@@ -1,0 +1,4 @@
+spring:
+  flyway:
+    # En desarrollo también se cargan los datos provisionales
+    locations: classpath:db/migration,classpath:db/seed-dev

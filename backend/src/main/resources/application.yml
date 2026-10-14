@@ -1,15 +1,20 @@
 spring:
   application:
     name: tipi-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   autoconfigure:
+    # Evita el usuario "user" con contraseña generada de Spring Security
     exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
+    # Mantenemos tu conexión a Neon en la nube
     url: jdbc:postgresql://ep-polished-band-b5l6k60e-pooler.c-7.us-east-2.aws.neon.tech/tipi-clubes?sslmode=require
     username: tipi-clubes_owner
     password: npg_YURD9haSu1pT
   jpa:
     hibernate:
       ddl-auto: validate
+      # el esquema lo controla Flyway, Hibernate solo valida
     open-in-view: false
   flyway:
     enabled: true
