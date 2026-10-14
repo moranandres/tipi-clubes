@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: tipi-backend
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: jdbc:postgresql://ep-polished-band-b5l6k60e-pooler.c-7.us-east-2.aws.neon.tech/tipi-clubes?sslmode=require
+    username: tipi-clubes_owner
+    password: npg_YURD9haSu1pT
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+tipi:
+  security:
+    # Mínimo 32 caracteres. En producción defínelo con la variable JWT_SECRET
+    jwt-secret: ${JWT_SECRET:clave-solo-para-desarrollo-tipi-3-0-cambiala-en-produccion}
+    jwt-expiration-minutes: 30
+    max-failed-attempts: 5
+    lock-minutes: 15
+  bootstrap:
+    # Contraseña del primer administrador (solo se usa si no existen usuarios)
+    admin-password: ${ADMIN_INITIAL_PASSWORD:Cambiar#2026}
+  storage:
+    evidencias-dir: ./uploads
