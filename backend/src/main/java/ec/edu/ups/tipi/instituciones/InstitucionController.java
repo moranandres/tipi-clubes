@@ -4,6 +4,7 @@ import ec.edu.ups.tipi.common.PaginaResponse;
 import ec.edu.ups.tipi.instituciones.dto.InstitucionContactoRequest;
 import ec.edu.ups.tipi.instituciones.dto.InstitucionRequest;
 import ec.edu.ups.tipi.instituciones.dto.InstitucionResponse;
+import ec.edu.ups.tipi.instituciones.dto.ResponsableRequest;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -62,5 +63,12 @@ public class InstitucionController {
                                                   @Valid @RequestBody InstitucionContactoRequest request,
                                                   @AuthenticationPrincipal UsuarioPrincipal usuario) {
         return service.actualizarContacto(id, request, usuario);
+    }
+
+    @PutMapping("/{id}/responsable")
+    @PreAuthorize("hasRole('ADMIN')")
+    public InstitucionResponse asignarResponsable(@PathVariable Long id,
+                                                  @Valid @RequestBody ResponsableRequest request) {
+        return service.asignarResponsable(id, request.usuarioId());
     }
 }

@@ -56,6 +56,9 @@ public class Institucion {
     @Column(name = "fecha_adhesion")
     private LocalDate fechaAdhesion;
 
+    @Column(name = "responsable_id")
+    private Long responsableId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 }

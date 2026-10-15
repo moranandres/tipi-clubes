@@ -1,11 +1,14 @@
 package ec.edu.ups.tipi.instituciones;
 
+import ec.edu.ups.tipi.auditoria.AuditoriaService;
 import ec.edu.ups.tipi.common.ApiException;
 import ec.edu.ups.tipi.common.PaginaResponse;
 import ec.edu.ups.tipi.instituciones.dto.InstitucionContactoRequest;
 import ec.edu.ups.tipi.instituciones.dto.InstitucionRequest;
 import ec.edu.ups.tipi.instituciones.dto.InstitucionResponse;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
+import ec.edu.ups.tipi.usuarios.Usuario;
+import ec.edu.ups.tipi.usuarios.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -26,6 +32,8 @@ public class InstitucionService {
     private static final Set<String> ROLES_ALCANCE_GLOBAL = Set.of("ADMIN", "COORDINADOR", "CONSULTA");
 
     private final InstitucionRepository repository;
+    private final UsuarioRepository usuarioRepository;
+    private final AuditoriaService auditoria;
 
     @Transactional(readOnly = true)
     public PaginaResponse<InstitucionResponse> listar(String q, String provincia, String canton,
@@ -80,7 +88,11 @@ public class InstitucionService {
         Institucion institucion = new Institucion();
         institucion.setCodigoAmie(amie);
         aplicar(institucion, request);
-        return InstitucionResponse.de(repository.saveAndFlush(institucion));
+        institucion = repository.saveAndFlush(institucion);
+
+        auditoria.registrar("INSTITUCION_CREADA", "INSTITUCION", institucion.getId(),
+                "AMIE=" + institucion.getCodigoAmie() + ", nombre=" + institucion.getNombre());
+        return InstitucionResponse.de(institucion);
     }
 
     @Transactional
@@ -91,9 +103,14 @@ public class InstitucionService {
             throw new ApiException(HttpStatus.CONFLICT,
                     "Ya existe otra institución con el código AMIE " + amie + ".");
         }
+        Map<String, String> antes = instantanea(institucion);
         institucion.setCodigoAmie(amie);
         aplicar(institucion, request);
-        return InstitucionResponse.de(repository.saveAndFlush(institucion));
+        institucion = repository.saveAndFlush(institucion);
+
+        auditoria.registrar("INSTITUCION_ACTUALIZADA", "INSTITUCION", id,
+                diferencias(antes, instantanea(institucion)));
+        return InstitucionResponse.de(institucion);
     }
 
     @Transactional
@@ -101,12 +118,41 @@ public class InstitucionService {
                                                   UsuarioPrincipal usuario) {
         verificarAcceso(usuario, id);
         Institucion institucion = buscar(id);
+        Map<String, String> antes = instantanea(institucion);
+
         institucion.setDireccion(limpiar(request.direccion()));
         institucion.setTelefono(limpiar(request.telefono()));
         institucion.setCorreoContacto(limpiar(request.correoContacto()));
         institucion.setAutoridadNombre(limpiar(request.autoridadNombre()));
         institucion.setAutoridadCargo(limpiar(request.autoridadCargo()));
-        return InstitucionResponse.de(repository.saveAndFlush(institucion));
+        institucion = repository.saveAndFlush(institucion);
+
+        auditoria.registrar("INSTITUCION_CONTACTO_ACTUALIZADO", "INSTITUCION", id,
+                diferencias(antes, instantanea(institucion)));
+        return InstitucionResponse.de(institucion);
+    }
+
+    @Transactional
+    public InstitucionResponse asignarResponsable(Long id, Long usuarioId) {
+        Institucion institucion = buscar(id);
+        Usuario responsable = usuarioRepository.findById(usuarioId).orElseThrow(() ->
+                new ApiException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+
+        if (!"RESP_INSTITUCIONAL".equals(responsable.getRol().getCodigo())
+                || !id.equals(responsable.getInstitucionId())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "El usuario debe tener el rol RESP_INSTITUCIONAL y pertenecer a esta institución.");
+        }
+        if (!responsable.isActivo()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "El usuario indicado está inactivo.");
+        }
+        Long anterior = institucion.getResponsableId();
+        institucion.setResponsableId(responsable.getId());
+        institucion = repository.saveAndFlush(institucion);
+
+        auditoria.registrar("INSTITUCION_RESPONSABLE_ASIGNADO", "INSTITUCION", id,
+                "responsableId: '" + anterior + "' -> '" + responsable.getId() + "'");
+        return InstitucionResponse.de(institucion);
     }
 
     // ---------------- utilidades privadas ----------------
@@ -151,6 +197,39 @@ public class InstitucionService {
         i.setAutoridadCargo(limpiar(r.autoridadCargo()));
         i.setEstadoAdhesion(estado);
         i.setFechaAdhesion(r.fechaAdhesion());
+    }
+
+    /** Foto de los campos editables, para calcular qué cambió (historial RF-11). */
+    private Map<String, String> instantanea(Institucion i) {
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("codigoAmie", Objects.toString(i.getCodigoAmie(), ""));
+        m.put("nombre", Objects.toString(i.getNombre(), ""));
+        m.put("zona", Objects.toString(i.getZona(), ""));
+        m.put("circuito", Objects.toString(i.getCircuito(), ""));
+        m.put("provincia", Objects.toString(i.getProvincia(), ""));
+        m.put("canton", Objects.toString(i.getCanton(), ""));
+        m.put("direccion", Objects.toString(i.getDireccion(), ""));
+        m.put("telefono", Objects.toString(i.getTelefono(), ""));
+        m.put("correoContacto", Objects.toString(i.getCorreoContacto(), ""));
+        m.put("autoridadNombre", Objects.toString(i.getAutoridadNombre(), ""));
+        m.put("autoridadCargo", Objects.toString(i.getAutoridadCargo(), ""));
+        m.put("estadoAdhesion", Objects.toString(i.getEstadoAdhesion(), ""));
+        m.put("fechaAdhesion", Objects.toString(i.getFechaAdhesion(), ""));
+        return m;
+    }
+
+    private String diferencias(Map<String, String> antes, Map<String, String> despues) {
+        StringBuilder sb = new StringBuilder();
+        despues.forEach((campo, nuevo) -> {
+            String viejo = antes.get(campo);
+            if (!Objects.equals(viejo, nuevo)) {
+                if (sb.length() > 0) {
+                    sb.append("; ");
+                }
+                sb.append(campo).append(": '").append(viejo).append("' -> '").append(nuevo).append("'");
+            }
+        });
+        return sb.length() == 0 ? "Sin cambios" : sb.toString();
     }
 
     private String normalizarAmie(String amie) {

@@ -39,8 +39,9 @@ public class DataInitializer implements CommandLineRunner {
         admin.setNombres("Administrador");
         admin.setApellidos("del Sistema");
         admin.setRol(rolAdmin);
+        admin.setDebeCambiarPassword(true);
         usuarioRepository.save(admin);
 
-        log.warn("Se creó el usuario inicial 'admin'. Cambia su contraseña antes de usar el sistema en producción.");
+        log.warn("Se creó el usuario inicial 'admin' con contraseña temporal; deberá cambiarla en su primer acceso.");
     }
 }

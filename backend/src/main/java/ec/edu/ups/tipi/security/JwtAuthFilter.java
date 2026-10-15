@@ -14,10 +14,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private static final Set<String> RUTAS_CON_PASSWORD_TEMPORAL =
+            Set.of("/api/auth/me", "/api/auth/cambiar-password");
 
     private final JwtService jwtService;
     private final UsuarioRepository usuarioRepository;
@@ -33,16 +37,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             // Se consulta el usuario en cada petición: si lo desactivan o bloquean, pierde acceso de inmediato
-            jwtService.extraerUsername(header.substring(7))
+            UsuarioPrincipal principal = jwtService.extraerUsername(header.substring(7))
                     .flatMap(usuarioRepository::buscarPorIdentificador)
                     .map(UsuarioPrincipal::new)
                     .filter(p -> p.isEnabled() && p.isAccountNonLocked())
-                    .ifPresent(p -> {
-                        var auth = new UsernamePasswordAuthenticationToken(p, null, p.getAuthorities());
-                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(auth);
-                    });
+                    .orElse(null);
+
+            if (principal != null) {
+                if (principal.getUsuario().isDebeCambiarPassword()
+                        && !RUTAS_CON_PASSWORD_TEMPORAL.contains(request.getRequestURI())) {
+                    rechazarPorPasswordTemporal(response);
+                    return;
+                }
+                var auth = new UsernamePasswordAuthenticationToken(
+                        principal, null, principal.getAuthorities());
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
         }
         chain.doFilter(request, response);
+    }
+
+    private void rechazarPorPasswordTemporal(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"status\":403,\"title\":\"Forbidden\","
+                + "\"detail\":\"Debe cambiar su contraseña temporal antes de continuar.\"}");
     }
 }

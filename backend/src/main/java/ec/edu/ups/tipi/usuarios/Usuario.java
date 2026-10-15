@@ -49,6 +49,9 @@ public class Usuario {
     @Column(name = "ultimo_acceso")
     private Instant ultimoAcceso;
 
+    @Column(name = "debe_cambiar_password", nullable = false)
+    private boolean debeCambiarPassword;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 }
