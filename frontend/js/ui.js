@@ -23,6 +23,21 @@ export function formatearFecha(texto) {
   return `${dia}/${mes}/${anio}`;
 }
 
+export function formatearFechaHora(texto) {
+  if (!texto) {
+    return '—';
+  }
+  const fecha = new Date(texto);
+  if (Number.isNaN(fecha.getTime())) {
+    return texto;
+  }
+  return fecha.toLocaleString('es-EC', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'America/Guayaquil'
+  });
+}
+
 export function mostrarAlerta(contenedor, tipo, mensaje, detalles = []) {
   contenedor.replaceChildren();
   const alerta = document.createElement('div');
@@ -43,6 +58,22 @@ export function mostrarAlerta(contenedor, tipo, mensaje, detalles = []) {
     });
     alerta.appendChild(lista);
   }
+  contenedor.appendChild(alerta);
+}
+
+export function mostrarAlertaConEnlace(contenedor, tipo, mensaje, textoEnlace, href) {
+  contenedor.replaceChildren();
+  const alerta = document.createElement('div');
+  alerta.className = `alert alert-${tipo} mb-3`;
+  alerta.setAttribute('role', 'status');
+  alerta.appendChild(document.createTextNode(`${mensaje} `));
+
+  const enlace = document.createElement('a');
+  enlace.className = 'alert-link';
+  enlace.href = href;
+  enlace.textContent = textoEnlace;
+  alerta.appendChild(enlace);
+
   contenedor.appendChild(alerta);
 }
 

@@ -6,6 +6,7 @@ import {
   crearElemento,
   formatearFecha,
   mostrarAlerta,
+  mostrarAlertaConEnlace,
   limpiarAlerta,
   establecerCargando,
   mensajesDeError
@@ -341,7 +342,13 @@ async function abrirResponsable(institucion) {
 
     if (usuarios.length === 0) {
       textoActual.textContent = 'No hay usuarios activos con rol Responsable institucional en esta institución.';
-      mostrarAlerta(alertas, 'info', 'Cree primero un usuario con rol Responsable institucional para esta institución.');
+      mostrarAlertaConEnlace(
+        alertas,
+        'info',
+        'Cree primero un usuario con rol Responsable institucional para esta institución.',
+        'Crear usuario responsable',
+        `usuarios.html?crear=RESP_INSTITUCIONAL&institucionId=${institucion.id}`
+      );
       return;
     }
 
