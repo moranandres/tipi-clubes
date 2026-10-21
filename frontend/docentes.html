@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Docentes | TIPI 3.0</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h1 class="h3 mb-0">Docentes</h1>
+          <button type="button" class="btn btn-primary" id="boton-nuevo" hidden>
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo docente
+          </button>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <form id="formulario-filtros" class="card card-body shadow-sm mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+              <label for="filtro-q" class="form-label mb-1">Nombre o correo</label>
+              <input type="search" class="form-control" id="filtro-q" maxlength="100">
+            </div>
+            <div class="col-6 col-md-3" id="grupo-filtro-institucion">
+              <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+              <select class="form-select" id="filtro-institucion">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2">
+              <label for="filtro-activo" class="form-label mb-1">Estado</label>
+              <select class="form-select" id="filtro-activo">
+                <option value="">Todos</option>
+                <option value="true">Activos</option>
+                <option value="false">Inactivos</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-3 d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+              <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <caption class="visually-hidden">Listado de docentes</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Docente</th>
+                  <th scope="col">Institución</th>
+                  <th scope="col">Contacto</th>
+                  <th scope="col">Cuenta</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla"></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+            <nav id="paginacion" aria-label="Paginación de docentes"></nav>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-docente" tabindex="-1" aria-labelledby="titulo-modal-docente" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-docente" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-docente">Docente</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-modal" aria-live="polite"></div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="campo-institucion" class="form-label">Institución *</label>
+              <select class="form-select" id="campo-institucion" required>
+                <option value="">Seleccione una institución</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="campo-nombres" class="form-label">Nombres *</label>
+              <input type="text" class="form-control" id="campo-nombres" maxlength="100" required>
+            </div>
+            <div class="col-md-6">
+              <label for="campo-apellidos" class="form-label">Apellidos *</label>
+              <input type="text" class="form-control" id="campo-apellidos" maxlength="100" required>
+            </div>
+            <div class="col-md-7">
+              <label for="campo-correo" class="form-label">Correo electrónico</label>
+              <input type="email" class="form-control" id="campo-correo" maxlength="150">
+            </div>
+            <div class="col-md-5">
+              <label for="campo-telefono" class="form-label">Teléfono</label>
+              <input type="tel" class="form-control" id="campo-telefono" maxlength="30">
+            </div>
+            <div class="col-12" id="grupo-cuenta">
+              <label for="campo-cuenta" class="form-label">Cuenta de usuario vinculada</label>
+              <select class="form-select" id="campo-cuenta" aria-describedby="ayuda-cuenta" disabled>
+                <option value="">Sin cuenta vinculada</option>
+              </select>
+              <div id="ayuda-cuenta" class="form-text">
+                Solo aparecen cuentas activas con rol Docente de la institución que aún no están vinculadas.
+                Si no encuentra la cuenta, solicite al administrador que la cree en el módulo Usuarios.
+                <a href="usuarios.html" id="enlace-crear-cuenta" class="ms-1" hidden>Crear cuenta de docente</a>
+              </div>
+            </div>
+            <div class="col-12" id="grupo-cuenta-estado" hidden>
+              <p class="form-label mb-1">Cuenta de usuario</p>
+              <p class="mb-0" id="texto-cuenta-estado"></p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/docentes.js"></script>
+</body>
+</html>

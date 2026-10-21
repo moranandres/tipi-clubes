@@ -1,6 +1,7 @@
 package ec.edu.ups.tipi.docentes;
 
 import ec.edu.ups.tipi.common.PaginaResponse;
+import ec.edu.ups.tipi.docentes.dto.CuentaDocenteResponse;
 import ec.edu.ups.tipi.docentes.dto.DocenteActualizarRequest;
 import ec.edu.ups.tipi.docentes.dto.DocenteCrearRequest;
 import ec.edu.ups.tipi.docentes.dto.DocenteResponse;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/docentes")
@@ -34,6 +37,15 @@ public class DocenteController {
             @RequestParam(defaultValue = "10") int tamano,
             @AuthenticationPrincipal UsuarioPrincipal usuario) {
         return service.listar(q, institucionId, activo, pagina, tamano, usuario);
+    }
+
+    @GetMapping("/cuentas-disponibles")
+    @PreAuthorize(ESCRITURA)
+    public List<CuentaDocenteResponse> cuentasDisponibles(
+            @RequestParam Long institucionId,
+            @RequestParam(required = false) Long docenteId,
+            @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return service.cuentasDisponibles(institucionId, docenteId, usuario);
     }
 
     @GetMapping("/{id}")

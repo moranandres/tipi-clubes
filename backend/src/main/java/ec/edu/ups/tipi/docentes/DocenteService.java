@@ -5,6 +5,7 @@ import ec.edu.ups.tipi.clubes.ClubRepository;
 import ec.edu.ups.tipi.clubes.EstadoClub;
 import ec.edu.ups.tipi.common.ApiException;
 import ec.edu.ups.tipi.common.PaginaResponse;
+import ec.edu.ups.tipi.docentes.dto.CuentaDocenteResponse;
 import ec.edu.ups.tipi.docentes.dto.DocenteActualizarRequest;
 import ec.edu.ups.tipi.docentes.dto.DocenteCrearRequest;
 import ec.edu.ups.tipi.docentes.dto.DocenteResponse;
@@ -81,6 +82,16 @@ public class DocenteService {
         Docente docente = buscar(id);
         verificarLectura(usuario, docente);
         return DocenteResponse.de(docente);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CuentaDocenteResponse> cuentasDisponibles(Long institucionId, Long docenteId,
+                                                          UsuarioPrincipal usuario) {
+        alcance.verificar(usuario, institucionId);
+        Long referencia = docenteId != null ? docenteId : 0L;
+        return usuarioRepository.cuentasDocenteDisponibles(institucionId, referencia).stream()
+                .map(CuentaDocenteResponse::de)
+                .toList();
     }
 
     @Transactional
