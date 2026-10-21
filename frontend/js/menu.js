@@ -7,5 +7,5 @@ export const OPCIONES_MENU = [
   { id: 'docentes', etiqueta: 'Docentes', icono: 'bi-person-workspace', href: 'docentes.html', roles: TODOS, disponible: true },
   { id: 'periodos', etiqueta: 'Períodos académicos', icono: 'bi-calendar3', href: 'periodos.html', roles: ['ADMIN', 'COORDINADOR', 'CONSULTA', 'RESP_INSTITUCIONAL'], disponible: true },
   { id: 'usuarios', etiqueta: 'Usuarios', icono: 'bi-people', href: 'usuarios.html', roles: ['ADMIN'], disponible: true },
-  { id: 'auditoria', etiqueta: 'Auditoría', icono: 'bi-shield-check', href: 'auditoria.html', roles: ['ADMIN', 'CONSULTA'], disponible: false }
+  { id: 'auditoria', etiqueta: 'Auditoría', icono: 'bi-shield-check', href: 'auditoria.html', roles: ['ADMIN', 'CONSULTA'], disponible: true }
 ];
