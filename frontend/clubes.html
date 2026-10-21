@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clubes | TIPI 3.0</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h1 class="h3 mb-0">Clubes de robótica y programación</h1>
+          <button type="button" class="btn btn-primary" id="boton-nuevo" hidden>
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo club
+          </button>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <form id="formulario-filtros" class="card card-body shadow-sm mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-3">
+              <label for="filtro-q" class="form-label mb-1">Nombre del club</label>
+              <input type="search" class="form-control" id="filtro-q" maxlength="100">
+            </div>
+            <div class="col-6 col-md-3" id="grupo-filtro-institucion">
+              <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+              <select class="form-select" id="filtro-institucion">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2">
+              <label for="filtro-periodo" class="form-label mb-1">Período</label>
+              <select class="form-select" id="filtro-periodo">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2">
+              <label for="filtro-estado" class="form-label mb-1">Estado</label>
+              <select class="form-select" id="filtro-estado">
+                <option value="">Todos</option>
+                <option value="PLANIFICADO">Planificado</option>
+                <option value="ACTIVO">Activo</option>
+                <option value="SUSPENDIDO">Suspendido</option>
+                <option value="CERRADO">Cerrado</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-2 d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+              <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <caption class="visually-hidden">Listado de clubes de robótica y programación</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Club</th>
+                  <th scope="col">Institución</th>
+                  <th scope="col">Período</th>
+                  <th scope="col">Docente</th>
+                  <th scope="col">Horario</th>
+                  <th scope="col">Integrantes</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla"></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+            <nav id="paginacion" aria-label="Paginación de clubes"></nav>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-club" tabindex="-1" aria-labelledby="titulo-modal-club" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-club" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-club">Club</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-modal" aria-live="polite"></div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="campo-institucion" class="form-label">Institución *</label>
+              <select class="form-select" id="campo-institucion" required>
+                <option value="">Seleccione una institución</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="campo-periodo" class="form-label">Período *</label>
+              <select class="form-select" id="campo-periodo" required>
+                <option value="">Seleccione un período</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label for="campo-docente" class="form-label">Docente responsable *</label>
+              <select class="form-select" id="campo-docente" required aria-describedby="ayuda-docente" disabled>
+                <option value="">Seleccione un docente</option>
+              </select>
+              <div id="ayuda-docente" class="form-text">
+                Solo aparecen docentes activos de la institución seleccionada.
+              </div>
+            </div>
+            <div class="col-md-8">
+              <label for="campo-nombre" class="form-label">Nombre del club *</label>
+              <input type="text" class="form-control" id="campo-nombre" maxlength="150" required>
+            </div>
+            <div class="col-md-4">
+              <label for="campo-cupo" class="form-label">Cupo máximo *</label>
+              <input type="number" class="form-control" id="campo-cupo" min="1" max="500" step="1"
+                     required aria-describedby="ayuda-cupo">
+              <div id="ayuda-cupo" class="form-text" hidden></div>
+            </div>
+            <div class="col-12">
+              <label for="campo-objetivo" class="form-label">Objetivo *</label>
+              <textarea class="form-control" id="campo-objetivo" rows="3" maxlength="2000" required></textarea>
+            </div>
+            <div class="col-md-4">
+              <label for="campo-dia" class="form-label">Día de la semana</label>
+              <select class="form-select" id="campo-dia" aria-describedby="ayuda-horario">
+                <option value="">Sin horario</option>
+                <option value="1">Lunes</option>
+                <option value="2">Martes</option>
+                <option value="3">Miércoles</option>
+                <option value="4">Jueves</option>
+                <option value="5">Viernes</option>
+                <option value="6">Sábado</option>
+                <option value="7">Domingo</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="campo-horaInicio" class="form-label">Hora de inicio</label>
+              <input type="time" class="form-control" id="campo-horaInicio">
+            </div>
+            <div class="col-md-4">
+              <label for="campo-horaFin" class="form-label">Hora de fin</label>
+              <input type="time" class="form-control" id="campo-horaFin">
+            </div>
+            <div class="col-12">
+              <div id="ayuda-horario" class="form-text mt-0">
+                Complete el día y las dos horas, o deje los tres campos vacíos.
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="campo-lugar" class="form-label">Lugar</label>
+              <input type="text" class="form-control" id="campo-lugar" maxlength="150">
+            </div>
+            <div class="col-12" id="grupo-info-club" hidden>
+              <p class="text-body-secondary small mb-0" id="info-club"></p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-estado" tabindex="-1" aria-labelledby="titulo-modal-estado" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-estado" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-estado">Cambiar estado del club</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-semibold mb-1" id="estado-club"></p>
+          <p class="text-body-secondary small">Estado actual: <span id="estado-actual"></span></p>
+          <div id="alertas-estado" aria-live="polite"></div>
+          <div class="mb-3">
+            <label for="estado-nuevo" class="form-label">Nuevo estado *</label>
+            <select class="form-select" id="estado-nuevo" required></select>
+          </div>
+          <div class="alert alert-warning py-2" id="aviso-estado" hidden>
+            Al cerrar un club se conserva su historial, pero no se podrán registrar nuevas actividades ni modificarlo.
+            Solo un administrador puede reabrirlo.
+          </div>
+          <div class="mb-0">
+            <label for="estado-motivo" class="form-label" id="etiqueta-motivo">Motivo</label>
+            <textarea class="form-control" id="estado-motivo" rows="3" maxlength="255"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar-estado">Cambiar estado</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/clubes.js"></script>
+</body>
+</html>
