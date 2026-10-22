@@ -7,7 +7,8 @@ const MENSAJES_MOTIVO = {
   expirada: { tipo: 'warning', texto: 'Su sesión expiró o fue cerrada. Inicie sesión nuevamente.' },
   requerida: { tipo: 'info', texto: 'Inicie sesión para continuar.' },
   salida: { tipo: 'success', texto: 'Sesión cerrada correctamente.' },
-  todas: { tipo: 'success', texto: 'Se cerraron todas sus sesiones abiertas en todos los dispositivos.' }
+  todas: { tipo: 'success', texto: 'Se cerraron todas sus sesiones abiertas en todos los dispositivos.' },
+  restablecida: { tipo: 'success', texto: 'Su contraseña fue restablecida. Inicie sesión con su nueva contraseña.' }
 };
 
 if (exigirInvitado()) {
