@@ -21,6 +21,16 @@
   opacity: 0.65;
 }
 
+.aviso-sesion {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1090;
+  width: calc(100% - 2rem);
+  max-width: 520px;
+}
+
 @media (min-width: 992px) {
   #menu-lateral {
     min-height: calc(100vh - 56px);

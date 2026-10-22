@@ -1,10 +1,14 @@
 import { ETIQUETAS_ROL } from './config.js';
-import { cerrarSesion } from './auth.js';
+import { cerrarSesion, limpiarSesion, obtenerSesion } from './auth.js';
+import { confirmar } from './confirmacion.js';
 import { OPCIONES_MENU } from './menu.js';
+
+const MARGEN_AVISO_MS = 60000;
 
 export function montarLayout(sesion, opcionActiva) {
   montarBarra(sesion.usuario);
   montarMenu(sesion.usuario, opcionActiva);
+  vigilarVencimiento(sesion);
 }
 
 function montarBarra(usuario) {
@@ -29,12 +33,29 @@ function montarBarra(usuario) {
           <li><a class="dropdown-item" href="cambiar-password.html">Cambiar contraseña</a></li>
           <li><hr class="dropdown-divider"></li>
           <li><button class="dropdown-item" type="button" id="boton-cerrar-sesion">Cerrar sesión</button></li>
+          <li>
+            <button class="dropdown-item" type="button" id="boton-cerrar-todas">
+              Cerrar sesión en todos los dispositivos
+            </button>
+          </li>
         </ul>
       </div>
     </div>`;
   document.getElementById('nombre-usuario').textContent = `${usuario.nombres} ${usuario.apellidos}`;
   document.getElementById('rol-usuario').textContent = ETIQUETAS_ROL[usuario.rol] || usuario.rol;
-  document.getElementById('boton-cerrar-sesion').addEventListener('click', cerrarSesion);
+  document.getElementById('boton-cerrar-sesion').addEventListener('click', () => cerrarSesion());
+  document.getElementById('boton-cerrar-todas').addEventListener('click', cerrarTodas);
+}
+
+async function cerrarTodas() {
+  const aceptado = await confirmar({
+    titulo: 'Cerrar todas las sesiones',
+    mensaje: 'Se cerrarán sus sesiones abiertas en todos los navegadores y dispositivos, incluida esta. Deberá iniciar sesión nuevamente.',
+    textoAceptar: 'Cerrar todas'
+  });
+  if (aceptado) {
+    await cerrarSesion({ todas: true });
+  }
 }
 
 function montarMenu(usuario, opcionActiva) {
@@ -91,4 +112,51 @@ function crearElementoMenu(opcion, opcionActiva) {
   deshabilitado.append(etiqueta, insignia);
   item.appendChild(deshabilitado);
   return item;
+}
+
+function vigilarVencimiento(sesion) {
+  const restante = sesion.expiraEn - Date.now();
+  if (restante <= 0) {
+    finalizarPorVencimiento();
+    return;
+  }
+  if (restante > MARGEN_AVISO_MS) {
+    setTimeout(mostrarAvisoVencimiento, restante - MARGEN_AVISO_MS);
+  } else {
+    mostrarAvisoVencimiento();
+  }
+  setTimeout(finalizarPorVencimiento, restante);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !obtenerSesion()) {
+      finalizarPorVencimiento();
+    }
+  });
+}
+
+function finalizarPorVencimiento() {
+  limpiarSesion();
+  window.location.replace('login.html?motivo=expirada');
+}
+
+function mostrarAvisoVencimiento() {
+  if (document.getElementById('aviso-vencimiento')) {
+    return;
+  }
+  const aviso = document.createElement('div');
+  aviso.id = 'aviso-vencimiento';
+  aviso.className = 'alert alert-warning alert-dismissible shadow aviso-sesion';
+  aviso.setAttribute('role', 'alert');
+  aviso.appendChild(document.createTextNode(
+    'Su sesión vencerá en menos de un minuto. Guarde sus cambios; después deberá iniciar sesión nuevamente.'
+  ));
+
+  const cerrar = document.createElement('button');
+  cerrar.type = 'button';
+  cerrar.className = 'btn-close';
+  cerrar.setAttribute('data-bs-dismiss', 'alert');
+  cerrar.setAttribute('aria-label', 'Cerrar aviso');
+  aviso.appendChild(cerrar);
+
+  document.body.appendChild(aviso);
 }

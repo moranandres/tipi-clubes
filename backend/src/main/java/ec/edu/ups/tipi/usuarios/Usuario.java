@@ -52,6 +52,13 @@ public class Usuario {
     @Column(name = "debe_cambiar_password", nullable = false)
     private boolean debeCambiarPassword;
 
+    @Column(name = "version_token", nullable = false)
+    private int versionToken;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
+    public void invalidarSesiones() {
+        this.versionToken = this.versionToken + 1;
+    }
 }

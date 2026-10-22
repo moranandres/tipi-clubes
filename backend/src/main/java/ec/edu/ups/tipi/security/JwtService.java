@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -33,21 +34,32 @@ public class JwtService {
     public String generarToken(UsuarioPrincipal principal) {
         Instant ahora = Instant.now();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(principal.getUsername())
                 .claim("uid", principal.getId())
                 .claim("rol", principal.getRolCodigo())
+                .claim("ver", principal.getUsuario().getVersionToken())
                 .issuedAt(Date.from(ahora))
                 .expiration(Date.from(ahora.plus(expirationMinutes, ChronoUnit.MINUTES)))
                 .signWith(key)
                 .compact();
     }
 
-    /** Devuelve el username si el token es válido y no ha expirado. */
-    public Optional<String> extraerUsername(String token) {
+    public Optional<TokenValidado> validar(String token) {
         try {
             Claims claims = Jwts.parser().verifyWith(key).build()
                     .parseSignedClaims(token).getPayload();
-            return Optional.ofNullable(claims.getSubject());
+            if (!(claims.get("ver") instanceof Number version)) {
+                return Optional.empty();
+            }
+            if (claims.getSubject() == null || claims.getId() == null || claims.getExpiration() == null) {
+                return Optional.empty();
+            }
+            return Optional.of(new TokenValidado(
+                    claims.getSubject(),
+                    UUID.fromString(claims.getId()),
+                    version.intValue(),
+                    claims.getExpiration().toInstant()));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }

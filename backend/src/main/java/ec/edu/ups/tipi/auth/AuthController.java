@@ -4,6 +4,8 @@ import ec.edu.ups.tipi.auth.dto.CambiarPasswordRequest;
 import ec.edu.ups.tipi.auth.dto.LoginRequest;
 import ec.edu.ups.tipi.auth.dto.LoginResponse;
 import ec.edu.ups.tipi.auth.dto.UsuarioResumen;
+import ec.edu.ups.tipi.security.JwtAuthFilter;
+import ec.edu.ups.tipi.security.TokenValidado;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +31,21 @@ public class AuthController {
     }
 
     @PostMapping("/cambiar-password")
+    public LoginResponse cambiarPassword(@AuthenticationPrincipal UsuarioPrincipal principal,
+                                         @Valid @RequestBody CambiarPasswordRequest request) {
+        return authService.cambiarPassword(principal, request);
+    }
+
+    @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void cambiarPassword(@AuthenticationPrincipal UsuarioPrincipal principal,
-                                @Valid @RequestBody CambiarPasswordRequest request) {
-        authService.cambiarPassword(principal, request);
+    public void logout(@AuthenticationPrincipal UsuarioPrincipal principal,
+                       @RequestAttribute(JwtAuthFilter.ATRIBUTO_TOKEN) TokenValidado token) {
+        authService.logout(principal, token);
+    }
+
+    @PostMapping("/cerrar-sesiones")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cerrarSesiones(@AuthenticationPrincipal UsuarioPrincipal principal) {
+        authService.cerrarSesiones(principal);
     }
 }

@@ -20,11 +20,17 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private static final Set<String> RUTAS_CON_PASSWORD_TEMPORAL =
-            Set.of("/api/auth/me", "/api/auth/cambiar-password");
+    public static final String ATRIBUTO_TOKEN = "tipi.tokenValidado";
+
+    private static final Set<String> RUTAS_CON_PASSWORD_TEMPORAL = Set.of(
+            "/api/auth/me",
+            "/api/auth/cambiar-password",
+            "/api/auth/logout",
+            "/api/auth/cerrar-sesiones");
 
     private final JwtService jwtService;
     private final UsuarioRepository usuarioRepository;
+    private final TokenRevocadoRepository tokenRevocadoRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -36,12 +42,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Se consulta el usuario en cada petición: si lo desactivan o bloquean, pierde acceso de inmediato
-            UsuarioPrincipal principal = jwtService.extraerUsername(header.substring(7))
-                    .flatMap(usuarioRepository::buscarPorIdentificador)
-                    .map(UsuarioPrincipal::new)
-                    .filter(p -> p.isEnabled() && p.isAccountNonLocked())
-                    .orElse(null);
+            TokenValidado token = jwtService.validar(header.substring(7)).orElse(null);
+            UsuarioPrincipal principal = token == null ? null : autenticar(token);
 
             if (principal != null) {
                 if (principal.getUsuario().isDebeCambiarPassword()
@@ -49,6 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     rechazarPorPasswordTemporal(response);
                     return;
                 }
+                request.setAttribute(ATRIBUTO_TOKEN, token);
                 var auth = new UsernamePasswordAuthenticationToken(
                         principal, null, principal.getAuthorities());
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -56,6 +59,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
         chain.doFilter(request, response);
+    }
+
+    private UsuarioPrincipal autenticar(TokenValidado token) {
+        return usuarioRepository.buscarPorIdentificador(token.username())
+                .filter(usuario -> usuario.getVersionToken() == token.version())
+                .map(UsuarioPrincipal::new)
+                .filter(p -> p.isEnabled() && p.isAccountNonLocked())
+                .filter(p -> !tokenRevocadoRepository.existsById(token.jti()))
+                .orElse(null);
     }
 
     private void rechazarPorPasswordTemporal(HttpServletResponse response) throws IOException {

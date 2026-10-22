@@ -3,6 +3,13 @@ import { guardarSesion } from './auth.js';
 import { exigirInvitado } from './guard.js';
 import { mostrarAlerta, limpiarAlerta, establecerCargando, mensajesDeError } from './ui.js';
 
+const MENSAJES_MOTIVO = {
+  expirada: { tipo: 'warning', texto: 'Su sesión expiró o fue cerrada. Inicie sesión nuevamente.' },
+  requerida: { tipo: 'info', texto: 'Inicie sesión para continuar.' },
+  salida: { tipo: 'success', texto: 'Sesión cerrada correctamente.' },
+  todas: { tipo: 'success', texto: 'Se cerraron todas sus sesiones abiertas en todos los dispositivos.' }
+};
+
 if (exigirInvitado()) {
   iniciar();
 }
@@ -13,12 +20,8 @@ function iniciar() {
   const boton = document.getElementById('boton-ingresar');
 
   const motivo = new URLSearchParams(window.location.search).get('motivo');
-  if (motivo === 'expirada') {
-    mostrarAlerta(alertas, 'warning', 'Su sesión expiró. Inicie sesión nuevamente.');
-  } else if (motivo === 'requerida') {
-    mostrarAlerta(alertas, 'info', 'Inicie sesión para continuar.');
-  } else if (motivo === 'salida') {
-    mostrarAlerta(alertas, 'success', 'Sesión cerrada correctamente.');
+  if (motivo && MENSAJES_MOTIVO[motivo]) {
+    mostrarAlerta(alertas, MENSAJES_MOTIVO[motivo].tipo, MENSAJES_MOTIVO[motivo].texto);
   }
 
   formulario.addEventListener('submit', async evento => {

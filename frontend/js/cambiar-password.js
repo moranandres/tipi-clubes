@@ -1,5 +1,5 @@
 import { apiFetch, ApiError } from './api.js';
-import { actualizarUsuario, cerrarSesion } from './auth.js';
+import { guardarSesion, cerrarSesion } from './auth.js';
 import { exigirSesion } from './guard.js';
 import { mostrarAlerta, limpiarAlerta, establecerCargando, mensajesDeError } from './ui.js';
 
@@ -21,7 +21,7 @@ function iniciar(sesionActual) {
   const obligatorio = sesionActual.usuario.debeCambiarPassword;
   enlaceCancelar.hidden = obligatorio;
   botonSalir.hidden = !obligatorio;
-  botonSalir.addEventListener('click', cerrarSesion);
+  botonSalir.addEventListener('click', () => cerrarSesion());
 
   if (obligatorio) {
     mostrarAlerta(alertas, 'warning', 'Debe cambiar su contraseña temporal para continuar.');
@@ -43,12 +43,11 @@ function iniciar(sesionActual) {
 
     establecerCargando(boton, true, 'Guardando...');
     try {
-      await apiFetch('/api/auth/cambiar-password', {
+      const respuesta = await apiFetch('/api/auth/cambiar-password', {
         metodo: 'POST',
         cuerpo: { passwordActual, passwordNueva }
       });
-      const usuario = await apiFetch('/api/auth/me');
-      actualizarUsuario(usuario);
+      guardarSesion(respuesta);
       window.location.replace('dashboard.html');
     } catch (error) {
       const mensaje = error instanceof ApiError ? error.message : 'Ocurrió un error inesperado.';

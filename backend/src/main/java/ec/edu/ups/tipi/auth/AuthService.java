@@ -8,6 +8,9 @@ import ec.edu.ups.tipi.auth.dto.UsuarioResumen;
 import ec.edu.ups.tipi.common.ApiException;
 import ec.edu.ups.tipi.common.CredencialesInvalidasException;
 import ec.edu.ups.tipi.security.JwtService;
+import ec.edu.ups.tipi.security.TokenRevocado;
+import ec.edu.ups.tipi.security.TokenRevocadoRepository;
+import ec.edu.ups.tipi.security.TokenValidado;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
 import ec.edu.ups.tipi.usuarios.Usuario;
 import ec.edu.ups.tipi.usuarios.UsuarioRepository;
@@ -24,20 +27,23 @@ import java.time.temporal.ChronoUnit;
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
+    private final TokenRevocadoRepository tokenRevocadoRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuditoriaService auditoria;
     private final int maxIntentos;
     private final long minutosBloqueo;
-    private final String hashFalso; // para igualar tiempos cuando el usuario no existe
+    private final String hashFalso;
 
     public AuthService(UsuarioRepository usuarioRepository,
+                       TokenRevocadoRepository tokenRevocadoRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        AuditoriaService auditoria,
                        @Value("${tipi.security.max-failed-attempts}") int maxIntentos,
                        @Value("${tipi.security.lock-minutes}") long minutosBloqueo) {
         this.usuarioRepository = usuarioRepository;
+        this.tokenRevocadoRepository = tokenRevocadoRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.auditoria = auditoria;
@@ -46,8 +52,6 @@ public class AuthService {
         this.hashFalso = passwordEncoder.encode("contrasena-falsa-para-igualar-tiempos");
     }
 
-    // noRollbackFor: si la excepción revirtiera la transacción, ni el contador de intentos
-    // fallidos ni el registro de auditoría del fallo se guardarían
     @Transactional(noRollbackFor = CredencialesInvalidasException.class)
     public LoginResponse login(LoginRequest request) {
         Instant ahora = Instant.now();
@@ -83,15 +87,12 @@ public class AuthService {
         auditoria.registrarComo(usuario.getId(), usuario.getUsername(), "LOGIN_EXITOSO",
                 "USUARIO", usuario.getId(), null);
 
-        String token = jwtService.generarToken(new UsuarioPrincipal(usuario));
-        return new LoginResponse(token, "Bearer", jwtService.getExpirationSeconds(),
-                UsuarioResumen.de(usuario));
+        return emitir(usuario);
     }
 
     @Transactional
-    public void cambiarPassword(UsuarioPrincipal principal, CambiarPasswordRequest request) {
-        Usuario usuario = usuarioRepository.findById(principal.getId()).orElseThrow(() ->
-                new ApiException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+    public LoginResponse cambiarPassword(UsuarioPrincipal principal, CambiarPasswordRequest request) {
+        Usuario usuario = buscar(principal.getId());
 
         if (!passwordEncoder.matches(request.passwordActual(), usuario.getPasswordHash())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "La contraseña actual es incorrecta.");
@@ -102,8 +103,41 @@ public class AuthService {
         }
         usuario.setPasswordHash(passwordEncoder.encode(request.passwordNueva()));
         usuario.setDebeCambiarPassword(false);
+        usuario.invalidarSesiones();
         auditoria.registrar("PASSWORD_CAMBIADA", "USUARIO", usuario.getId(),
-                "username=" + usuario.getUsername());
+                "username=" + usuario.getUsername() + "; se cerraron las demás sesiones abiertas");
+        return emitir(usuario);
+    }
+
+    @Transactional
+    public void logout(UsuarioPrincipal principal, TokenValidado token) {
+        if (!tokenRevocadoRepository.existsById(token.jti())) {
+            TokenRevocado revocado = new TokenRevocado();
+            revocado.setJti(token.jti());
+            revocado.setUsuarioId(principal.getId());
+            revocado.setExpiraEn(token.expiraEn());
+            tokenRevocadoRepository.save(revocado);
+        }
+        auditoria.registrar("LOGOUT", "USUARIO", principal.getId(), "username=" + principal.getUsername());
+    }
+
+    @Transactional
+    public void cerrarSesiones(UsuarioPrincipal principal) {
+        Usuario usuario = buscar(principal.getId());
+        usuario.invalidarSesiones();
+        auditoria.registrar("SESIONES_CERRADAS", "USUARIO", usuario.getId(),
+                "Motivo: solicitud del propio usuario");
+    }
+
+    private Usuario buscar(Long id) {
+        return usuarioRepository.findById(id).orElseThrow(() ->
+                new ApiException(HttpStatus.NOT_FOUND, "Usuario no encontrado."));
+    }
+
+    private LoginResponse emitir(Usuario usuario) {
+        String token = jwtService.generarToken(new UsuarioPrincipal(usuario));
+        return new LoginResponse(token, "Bearer", jwtService.getExpirationSeconds(),
+                UsuarioResumen.de(usuario));
     }
 
     private void registrarFallo(Usuario usuario, Instant ahora) {

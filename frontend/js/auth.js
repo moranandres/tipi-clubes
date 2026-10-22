@@ -1,4 +1,7 @@
+import { API_BASE_URL } from './config.js';
+
 const CLAVE_SESION = 'tipi.sesion';
+const TIEMPO_LIMITE_CIERRE_MS = 5000;
 
 export function guardarSesion(respuestaLogin) {
   const sesion = {
@@ -42,7 +45,23 @@ export function actualizarUsuario(usuario) {
   return sesion;
 }
 
-export function cerrarSesion() {
+async function revocarEnServidor(token, ruta) {
+  try {
+    await fetch(`${API_BASE_URL}${ruta}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(TIEMPO_LIMITE_CIERRE_MS)
+    });
+  } catch (error) {
+    return;
+  }
+}
+
+export async function cerrarSesion({ todas = false } = {}) {
+  const sesion = obtenerSesion();
+  if (sesion) {
+    await revocarEnServidor(sesion.token, todas ? '/api/auth/cerrar-sesiones' : '/api/auth/logout');
+  }
   limpiarSesion();
-  window.location.replace('login.html?motivo=salida');
+  window.location.replace(`login.html?motivo=${todas ? 'todas' : 'salida'}`);
 }

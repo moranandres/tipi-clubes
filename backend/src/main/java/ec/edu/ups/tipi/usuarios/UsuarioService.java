@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -113,16 +114,26 @@ public class UsuarioService {
             garantizarOtroAdminActivo();
         }
 
+        boolean cambiaAcceso = !u.getRol().getCodigo().equals(rolNuevo.getCodigo())
+                || !Objects.equals(u.getInstitucionId(), r.institucionId());
+
         String antes = resumen(u);
         u.setEmail(email);
         u.setNombres(r.nombres().trim());
         u.setApellidos(r.apellidos().trim());
         u.setRol(rolNuevo);
         u.setInstitucionId(r.institucionId());
+        if (cambiaAcceso) {
+            u.invalidarSesiones();
+        }
         u = usuarioRepository.saveAndFlush(u);
 
         auditoria.registrar("USUARIO_ACTUALIZADO", "USUARIO", u.getId(),
                 "antes: [" + antes + "] -> despues: [" + resumen(u) + "]");
+        if (cambiaAcceso) {
+            auditoria.registrar("SESIONES_CERRADAS", "USUARIO", u.getId(),
+                    "Motivo: cambio de rol o institución");
+        }
         return UsuarioDetalleResponse.de(u);
     }
 
@@ -136,6 +147,9 @@ public class UsuarioService {
             garantizarOtroAdminActivo();
         }
         u.setActivo(activo);
+        if (!activo) {
+            u.invalidarSesiones();
+        }
         u = usuarioRepository.saveAndFlush(u);
 
         auditoria.registrar(activo ? "USUARIO_ACTIVADO" : "USUARIO_DESACTIVADO", "USUARIO",
@@ -143,7 +157,6 @@ public class UsuarioService {
         return UsuarioDetalleResponse.de(u);
     }
 
-    /** Asigna una contraseña temporal, desbloquea la cuenta y obliga a cambiarla en el próximo acceso. */
     @Transactional
     public void restablecerPassword(Long id, String passwordTemporal) {
         Usuario u = buscar(id);
@@ -151,12 +164,12 @@ public class UsuarioService {
         u.setDebeCambiarPassword(true);
         u.setIntentosFallidos(0);
         u.setBloqueadoHasta(null);
+        u.invalidarSesiones();
         usuarioRepository.saveAndFlush(u);
 
-        auditoria.registrar("PASSWORD_RESTABLECIDA", "USUARIO", u.getId(), "username=" + u.getUsername());
+        auditoria.registrar("PASSWORD_RESTABLECIDA", "USUARIO", u.getId(),
+                "username=" + u.getUsername() + "; se cerraron sus sesiones abiertas");
     }
-
-    // ---------------- utilidades privadas ----------------
 
     private Usuario buscar(Long id) {
         return usuarioRepository.findById(id).orElseThrow(() ->
