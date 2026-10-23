@@ -1,0 +1,25 @@
+flowchart TD
+    subgraph EXT["Contexto externo: no se almacena como tabla"]
+        MINEDUC["Ministerio de Educación<br/>(MINEDUC)<br/>emite el código AMIE"]
+        ZONA["Coordinación Zonal 8<br/>Guayaquil, Durán, Samborondón"]
+        DIST["Distrito educativo"]
+        CIRC["Circuito educativo"]
+        UPS["Universidad Politécnica Salesiana"]
+        TIPI["Proyecto de vinculación<br/>TIPI 3.0"]
+        MINEDUC --> ZONA --> DIST --> CIRC
+        UPS --> TIPI
+    end
+
+    subgraph BD["Base de datos del sistema"]
+        INST[("INSTITUCIONES<br/>raíz estructural<br/>código AMIE único")]
+        CLUB[("CLUBES")]
+        EST[("ESTUDIANTES")]
+        DOC[("DOCENTES")]
+        INST --> CLUB
+        INST --> EST
+        INST --> DOC
+    end
+
+    CIRC -. "atributos zona y circuito" .-> INST
+    MINEDUC -. "código AMIE como clave natural" .-> INST
+    TIPI -. "estado y fecha de adhesión" .-> INST

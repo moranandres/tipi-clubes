@@ -1,0 +1,39 @@
+erDiagram
+    ROLES ||--o{ USUARIOS : "asigna"
+    INSTITUCIONES |o--o{ USUARIOS : "agrupa"
+    USUARIOS |o--o{ INSTITUCIONES : "es responsable de"
+    USUARIOS |o--o| DOCENTES : "vincula cuenta"
+    USUARIOS |o--o{ AUDITORIA : "registra"
+    USUARIOS ||--o{ TOKENS_REVOCADOS : "revoca"
+    USUARIOS ||--o{ TOKENS_RECUPERACION : "solicita"
+
+    INSTITUCIONES ||--o{ DOCENTES : "emplea"
+    INSTITUCIONES ||--o{ CLUBES : "crea"
+    INSTITUCIONES ||--o{ ESTUDIANTES : "matricula"
+    PERIODOS_ACADEMICOS ||--o{ CLUBES : "enmarca"
+    DOCENTES ||--o{ CLUBES : "coordina"
+
+    ESTUDIANTES ||--o{ AUTORIZACIONES_ESTUDIANTE : "tiene"
+    ESTUDIANTES ||--o{ INSCRIPCIONES : "se inscribe"
+    CLUBES ||--o{ INSCRIPCIONES : "recibe"
+
+    CLUBES ||--o{ CURSOS : "ofrece"
+    CURSOS ||--o{ HORARIOS : "programa"
+    INSCRIPCIONES ||--o{ INSCRIPCIONES_CURSO : "habilita"
+    CURSOS ||--o{ INSCRIPCIONES_CURSO : "recibe"
+
+    ESTUDIANTES ||--o{ SOLICITUDES_INSCRIPCION : "presenta"
+    CLUBES ||--o{ SOLICITUDES_INSCRIPCION : "recibe"
+    CURSOS |o--o{ SOLICITUDES_INSCRIPCION : "solicitado en"
+    INSCRIPCIONES ||--o{ SOLICITUDES_RETIRO : "origina"
+
+    COMPETENCIAS ||--o{ EDICIONES_COMPETENCIA : "celebra"
+    COMPETENCIAS ||--o{ CATEGORIAS_COMPETENCIA : "define"
+    ESTUDIANTES ||--o{ PARTICIPACIONES_COMPETENCIA : "participa"
+    EDICIONES_COMPETENCIA ||--o{ PARTICIPACIONES_COMPETENCIA : "incluye"
+    CATEGORIAS_COMPETENCIA ||--o{ PARTICIPACIONES_COMPETENCIA : "clasifica"
+    CLUBES |o--o{ PARTICIPACIONES_COMPETENCIA : "representa"
+
+    ESTUDIANTES ||--o{ CERTIFICADOS : "obtiene"
+    INSCRIPCIONES_CURSO |o--o{ CERTIFICADOS : "respalda"
+    PARTICIPACIONES_COMPETENCIA |o--o{ CERTIFICADOS : "respalda"

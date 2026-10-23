@@ -1,0 +1,67 @@
+erDiagram
+    ROLES ||--o{ USUARIOS : "asigna"
+    INSTITUCIONES |o--o{ USUARIOS : "agrupa"
+    USUARIOS |o--o{ AUDITORIA : "registra"
+    USUARIOS ||--o{ TOKENS_REVOCADOS : "revoca"
+    USUARIOS ||--o{ TOKENS_RECUPERACION : "solicita"
+
+    ROLES {
+        int id PK
+        varchar codigo UK "ADMIN COORDINADOR RESP_INSTITUCIONAL DOCENTE CONSULTA"
+        varchar nombre
+        varchar descripcion
+    }
+
+    USUARIOS {
+        bigint id PK
+        varchar username UK "sin distinguir mayúsculas"
+        varchar email UK "sin distinguir mayúsculas"
+        varchar password_hash "BCrypt costo 12"
+        varchar nombres
+        varchar apellidos
+        int rol_id FK
+        bigint institucion_id FK "obligatoria según el rol"
+        boolean activo
+        int intentos_fallidos
+        timestamptz bloqueado_hasta
+        timestamptz ultimo_acceso
+        boolean debe_cambiar_password
+        int version_token "invalida todas las sesiones"
+        timestamptz created_at
+    }
+
+    INSTITUCIONES {
+        bigint id PK
+        varchar codigo_amie UK
+        varchar nombre
+    }
+
+    AUDITORIA {
+        bigint id PK
+        bigint usuario_id FK
+        varchar identificador
+        varchar accion
+        varchar entidad
+        bigint entidad_id
+        text detalle "valor anterior y nuevo"
+        varchar ip
+        timestamptz fecha
+    }
+
+    TOKENS_REVOCADOS {
+        uuid jti PK "identificador del JWT"
+        bigint usuario_id FK
+        timestamptz expira_en
+        timestamptz revocado_en
+    }
+
+    TOKENS_RECUPERACION {
+        bigint id PK
+        bigint usuario_id FK
+        varchar token_hash UK "SHA-256 nunca en claro"
+        timestamptz expira_en
+        timestamptz usado_en
+        timestamptz invalidado_en
+        varchar solicitado_ip
+        timestamptz created_at
+    }

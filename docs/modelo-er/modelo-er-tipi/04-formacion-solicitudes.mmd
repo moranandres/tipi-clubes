@@ -1,0 +1,110 @@
+erDiagram
+    CLUBES ||--o{ CURSOS : "ofrece"
+    CURSOS ||--o{ HORARIOS : "programa"
+    INSCRIPCIONES ||--o{ INSCRIPCIONES_CURSO : "habilita"
+    CURSOS ||--o{ INSCRIPCIONES_CURSO : "recibe"
+    ESTUDIANTES ||--o{ SOLICITUDES_INSCRIPCION : "presenta"
+    CLUBES ||--o{ SOLICITUDES_INSCRIPCION : "recibe"
+    CURSOS |o--o{ SOLICITUDES_INSCRIPCION : "solicitado en"
+    USUARIOS ||--o{ SOLICITUDES_INSCRIPCION : "registra o resuelve"
+    INSCRIPCIONES ||--o{ SOLICITUDES_RETIRO : "origina"
+    USUARIOS ||--o{ SOLICITUDES_RETIRO : "registra o resuelve"
+
+    CLUBES {
+        bigint id PK
+        bigint institucion_id FK
+        int cupo_maximo
+    }
+
+    ESTUDIANTES {
+        bigint id PK
+        bigint institucion_id FK
+    }
+
+    USUARIOS {
+        bigint id PK
+        varchar username UK
+    }
+
+    INSCRIPCIONES {
+        bigint id PK
+        bigint estudiante_id FK "único con club_id"
+        bigint club_id FK
+        varchar estado
+    }
+
+    CURSOS {
+        bigint id PK
+        bigint club_id FK
+        bigint institucion_id FK "compuesta con club"
+        varchar nombre "único por club"
+        text descripcion
+        varchar nivel "PRINCIPIANTE INTERMEDIO AVANZADO"
+        varchar modalidad "ONLINE PRESENCIAL HIBRIDO"
+        varchar lugar "obligatorio si es presencial o híbrido"
+        varchar enlace_virtual "obligatorio si es online o híbrido"
+        date fecha_inicio
+        date fecha_fin
+        smallint duracion_horas
+        int cupo_maximo
+        varchar estado "PLANIFICADO EN_CURSO FINALIZADO CANCELADO"
+        timestamptz created_at
+    }
+
+    HORARIOS {
+        bigint id PK
+        bigint curso_id FK
+        smallint dia_semana
+        time hora_inicio
+        time hora_fin
+        varchar tipo_sesion "PRESENCIAL VIRTUAL"
+        timestamptz created_at
+    }
+
+    INSCRIPCIONES_CURSO {
+        bigint id PK
+        bigint estudiante_id FK "único con curso_id"
+        bigint curso_id FK
+        bigint club_id FK "compuesta con inscripción y curso"
+        date fecha_ingreso
+        date fecha_fin
+        varchar estado "ACTIVA RETIRADA FINALIZADA"
+        varchar resultado "APROBADO NO_APROBADO"
+        timestamptz created_at
+    }
+
+    SOLICITUDES_INSCRIPCION {
+        bigint id PK
+        bigint estudiante_id FK
+        bigint institucion_id FK "compuesta"
+        bigint club_id FK
+        bigint curso_id FK "opcional"
+        varchar nivel "define campos obligatorios"
+        text experiencia_previa "obligatoria en AVANZADO"
+        text conocimientos "obligatorio en INTERMEDIO y AVANZADO"
+        text motivacion
+        varchar estado "PENDIENTE EN_REVISION APROBADA RECHAZADA CANCELADA"
+        bigint solicitado_por FK
+        timestamptz fecha_solicitud
+        bigint revisado_por FK
+        timestamptz fecha_revision
+        bigint resuelto_por FK
+        timestamptz fecha_resolucion
+        varchar nivel_asignado
+        varchar observacion_resolucion "obligatoria al rechazar"
+        timestamptz created_at
+    }
+
+    SOLICITUDES_RETIRO {
+        bigint id PK
+        bigint inscripcion_id FK
+        bigint institucion_id FK "compuesta"
+        varchar motivo
+        varchar estado "PENDIENTE APROBADA RECHAZADA CANCELADA"
+        bigint solicitado_por FK
+        timestamptz fecha_solicitud
+        bigint resuelto_por FK
+        timestamptz fecha_resolucion
+        varchar observacion_resolucion "obligatoria al rechazar"
+        timestamptz created_at
+    }

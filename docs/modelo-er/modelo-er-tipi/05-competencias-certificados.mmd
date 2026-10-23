@@ -1,0 +1,97 @@
+erDiagram
+    COMPETENCIAS ||--o{ EDICIONES_COMPETENCIA : "celebra"
+    COMPETENCIAS ||--o{ CATEGORIAS_COMPETENCIA : "define"
+    ESTUDIANTES ||--o{ PARTICIPACIONES_COMPETENCIA : "participa"
+    EDICIONES_COMPETENCIA ||--o{ PARTICIPACIONES_COMPETENCIA : "incluye"
+    CATEGORIAS_COMPETENCIA ||--o{ PARTICIPACIONES_COMPETENCIA : "clasifica"
+    CLUBES |o--o{ PARTICIPACIONES_COMPETENCIA : "representa"
+    ESTUDIANTES ||--o{ CERTIFICADOS : "obtiene"
+    INSCRIPCIONES_CURSO |o--o{ CERTIFICADOS : "respalda"
+    PARTICIPACIONES_COMPETENCIA |o--o{ CERTIFICADOS : "respalda"
+    USUARIOS ||--o{ CERTIFICADOS : "emite o anula"
+    USUARIOS ||--o{ PARTICIPACIONES_COMPETENCIA : "registra"
+
+    ESTUDIANTES {
+        bigint id PK
+        bigint institucion_id FK
+    }
+
+    CLUBES {
+        bigint id PK
+        bigint institucion_id FK
+    }
+
+    USUARIOS {
+        bigint id PK
+        varchar username UK
+    }
+
+    INSCRIPCIONES_CURSO {
+        bigint id PK
+        bigint estudiante_id FK
+        varchar resultado
+    }
+
+    COMPETENCIAS {
+        int id PK
+        varchar nombre UK "Killtronic"
+        varchar organizador
+        varchar sitio_web
+        boolean activa
+    }
+
+    EDICIONES_COMPETENCIA {
+        int id PK
+        int competencia_id FK
+        varchar nombre "único por competencia"
+        smallint anio
+        date fecha_inicio
+        date fecha_fin
+        varchar sede
+        boolean activa
+    }
+
+    CATEGORIAS_COMPETENCIA {
+        int id PK
+        int competencia_id FK
+        varchar nivel "BASICA AVANZADA"
+        varchar nombre "13 básicas y 20 avanzadas"
+        varchar descripcion
+        boolean activa
+    }
+
+    PARTICIPACIONES_COMPETENCIA {
+        bigint id PK
+        bigint estudiante_id FK
+        bigint institucion_id FK "compuesta"
+        bigint club_id FK "opcional"
+        int competencia_id FK "compuesta con edición y categoría"
+        int edicion_id FK
+        int categoria_id FK
+        varchar equipo_nombre "opcional"
+        smallint puesto
+        varchar reconocimiento
+        text observaciones
+        bigint registrado_por FK
+        timestamptz created_at
+    }
+
+    CERTIFICADOS {
+        bigint id PK
+        varchar codigo_verificacion UK
+        bigint estudiante_id FK
+        bigint institucion_id FK "compuesta"
+        varchar tipo "curso o competencia"
+        bigint inscripcion_curso_id FK "si el tipo es de curso"
+        bigint participacion_id FK "si el tipo es de competencia"
+        varchar titulo
+        date fecha_emision
+        bigint emitido_por FK
+        varchar estado "EMITIDO ANULADO"
+        bigint anulado_por FK
+        timestamptz fecha_anulacion
+        varchar motivo_anulacion
+        varchar archivo_ruta
+        varchar archivo_hash "SHA-256 del PDF"
+        timestamptz created_at
+    }

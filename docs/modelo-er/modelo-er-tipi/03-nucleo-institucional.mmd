@@ -1,0 +1,108 @@
+erDiagram
+    USUARIOS |o--o{ INSTITUCIONES : "es responsable de"
+    USUARIOS |o--o| DOCENTES : "vincula cuenta"
+    INSTITUCIONES ||--o{ DOCENTES : "emplea"
+    INSTITUCIONES ||--o{ CLUBES : "crea"
+    INSTITUCIONES ||--o{ ESTUDIANTES : "matricula"
+    PERIODOS_ACADEMICOS ||--o{ CLUBES : "enmarca"
+    DOCENTES ||--o{ CLUBES : "coordina"
+    ESTUDIANTES ||--o{ AUTORIZACIONES_ESTUDIANTE : "tiene"
+    USUARIOS |o--o{ AUTORIZACIONES_ESTUDIANTE : "registra"
+    ESTUDIANTES ||--o{ INSCRIPCIONES : "se inscribe"
+    CLUBES ||--o{ INSCRIPCIONES : "recibe"
+
+    USUARIOS {
+        bigint id PK
+        varchar username UK
+    }
+
+    INSTITUCIONES {
+        bigint id PK
+        varchar codigo_amie UK "emitido por MINEDUC"
+        varchar nombre
+        varchar zona
+        varchar circuito
+        varchar provincia
+        varchar canton
+        varchar direccion
+        varchar telefono
+        varchar correo_contacto
+        varchar autoridad_nombre
+        varchar autoridad_cargo
+        varchar estado_adhesion "PENDIENTE ADHERIDA SUSPENDIDA RETIRADA"
+        date fecha_adhesion
+        bigint responsable_id FK
+        timestamptz created_at
+    }
+
+    PERIODOS_ACADEMICOS {
+        int id PK
+        varchar nombre UK
+        date fecha_inicio
+        date fecha_fin
+        boolean activo "solo uno activo"
+    }
+
+    DOCENTES {
+        bigint id PK
+        bigint institucion_id FK
+        bigint usuario_id FK "única y de rol DOCENTE"
+        varchar nombres
+        varchar apellidos
+        varchar correo
+        varchar telefono
+        boolean activo
+        timestamptz created_at
+    }
+
+    CLUBES {
+        bigint id PK
+        bigint institucion_id FK
+        int periodo_id FK
+        bigint docente_id FK "misma institución"
+        varchar nombre "único por institución y período"
+        text objetivo
+        date fecha_creacion
+        smallint dia_semana
+        time hora_inicio
+        time hora_fin
+        varchar lugar
+        int cupo_maximo
+        varchar estado "PLANIFICADO ACTIVO SUSPENDIDO CERRADO"
+        timestamptz created_at
+    }
+
+    ESTUDIANTES {
+        bigint id PK
+        varchar codigo_interno UK "EST-000001"
+        varchar nombres
+        varchar apellidos
+        bigint institucion_id FK
+        varchar curso
+        varchar estado "ACTIVO RETIRADO EGRESADO"
+        timestamptz created_at
+    }
+
+    AUTORIZACIONES_ESTUDIANTE {
+        bigint id PK
+        bigint estudiante_id FK
+        varchar tipo "PARTICIPACION USO_IMAGEN"
+        varchar estado "PENDIENTE OTORGADA NO_OTORGADA REVOCADA"
+        date fecha_registro
+        varchar documento_ruta
+        varchar observacion
+        bigint registrado_por FK
+    }
+
+    INSCRIPCIONES {
+        bigint id PK
+        bigint estudiante_id FK
+        bigint club_id FK
+        bigint institucion_id FK "compuesta con estudiante y club"
+        int periodo_id FK "compuesta con club"
+        date fecha_ingreso
+        date fecha_retiro
+        varchar estado "ACTIVA RETIRADA TRASLADADA"
+        boolean sobrecupo_autorizado
+        timestamptz created_at
+    }
