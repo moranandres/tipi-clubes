@@ -10,9 +10,14 @@ import java.util.Set;
 public class AlcanceInstitucional {
 
     private static final Set<String> ROLES_GLOBALES = Set.of("ADMIN", "COORDINADOR", "CONSULTA");
+    private static final Set<String> ROLES_DATOS_MINIMOS = Set.of("COORDINADOR", "CONSULTA");
 
     public boolean esGlobal(UsuarioPrincipal usuario) {
         return ROLES_GLOBALES.contains(usuario.getRolCodigo());
+    }
+
+    public boolean soloDatosMinimos(UsuarioPrincipal usuario) {
+        return ROLES_DATOS_MINIMOS.contains(usuario.getRolCodigo());
     }
 
     public Long institucionPropia(UsuarioPrincipal usuario) {
