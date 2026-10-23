@@ -221,14 +221,12 @@ function crearCupos(club) {
     colorBarra = 'progress-bar bg-warning';
   }
 
-  const relleno = crearElemento('div', {
-    clase: colorBarra,
-    atributos: { style: `width: ${porcentaje}%` }
-  });
+  const relleno = crearElemento('div', { clase: colorBarra });
+  relleno.style.width = `${porcentaje}%`;
+
   const barra = crearElemento('div', {
-    clase: 'progress',
+    clase: 'progress barra-ocupacion',
     atributos: {
-      style: 'height: 6px',
       role: 'progressbar',
       'aria-label': `Ocupación del club ${club.nombre}`,
       'aria-valuenow': String(club.integrantesActivos),

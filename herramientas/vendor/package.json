@@ -1,0 +1,14 @@
+{
+  "name": "tipi-frontend-vendor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Descarga y copia las dependencias del frontend de TIPI 3.0 a frontend/vendor",
+  "scripts": {
+    "vendor": "node copiar-vendor.mjs"
+  },
+  "dependencies": {
+    "bootstrap": "5.3.3",
+    "bootstrap-icons": "1.11.3"
+  }
+}

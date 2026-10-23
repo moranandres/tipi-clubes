@@ -31,6 +31,19 @@
   max-width: 520px;
 }
 
+.barra-ocupacion {
+  height: 6px;
+}
+
+.detalle-truncado {
+  max-width: 260px;
+}
+
+.texto-preformateado {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @media (min-width: 992px) {
   #menu-lateral {
     min-height: calc(100vh - 56px);

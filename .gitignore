@@ -1,5 +1,6 @@
 backend/target/
 backend/uploads/
+node_modules/
 .env
 .idea/
 .vscode/

@@ -9,7 +9,8 @@ const ROLES_PAGINA = ['ADMIN', 'CONSULTA'];
 const ZONA_HORARIA = 'America/Guayaquil';
 
 const ACCIONES = [
-  'LOGIN_EXITOSO', 'LOGIN_FALLIDO', 'CUENTA_BLOQUEADA', 'PASSWORD_CAMBIADA', 'PASSWORD_RESTABLECIDA',
+  'LOGIN_EXITOSO', 'LOGIN_FALLIDO', 'CUENTA_BLOQUEADA', 'LOGOUT', 'SESIONES_CERRADAS',
+  'PASSWORD_CAMBIADA', 'PASSWORD_RESTABLECIDA', 'RECUPERACION_SOLICITADA', 'PASSWORD_RECUPERADA',
   'USUARIO_CREADO', 'USUARIO_ACTUALIZADO', 'USUARIO_ACTIVADO', 'USUARIO_DESACTIVADO',
   'INSTITUCION_CREADA', 'INSTITUCION_ACTUALIZADA', 'INSTITUCION_CONTACTO_ACTUALIZADO',
   'INSTITUCION_RESPONSABLE_ASIGNADO',
@@ -157,10 +158,10 @@ function claseAccion(accion) {
   if (accion === 'LOGIN_EXITOSO') {
     return 'text-bg-success';
   }
-  if (accion.includes('DESACTIVADO')) {
+  if (accion === 'LOGOUT' || accion === 'SESIONES_CERRADAS' || accion.includes('DESACTIVADO')) {
     return 'text-bg-secondary';
   }
-  if (accion.includes('PASSWORD')) {
+  if (accion.includes('PASSWORD') || accion.startsWith('RECUPERACION')) {
     return 'text-bg-warning';
   }
   if (accion.includes('CREAD')) {
@@ -185,9 +186,9 @@ function crearFila(evento) {
   }
 
   const resumenDetalle = crearElemento('div', {
-    clase: 'small text-truncate',
+    clase: 'small text-truncate detalle-truncado',
     texto: evento.detalle || '—',
-    atributos: { style: 'max-width: 260px', title: evento.detalle || '' }
+    atributos: { title: evento.detalle || '' }
   });
 
   const marca = crearElemento('i', { clase: 'bi bi-eye', atributos: { 'aria-hidden': 'true' } });
