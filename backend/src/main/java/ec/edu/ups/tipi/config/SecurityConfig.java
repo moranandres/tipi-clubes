@@ -46,6 +46,7 @@ public class SecurityConfig {
                         "/api/auth/recuperar",
                         "/api/auth/restablecer",
                         "/api/auth/restablecer/validar").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/publico/certificados/*").permitAll()
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e.authenticationEntryPoint(

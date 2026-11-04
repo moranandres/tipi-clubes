@@ -81,6 +81,30 @@ public class AlmacenamientoArchivos {
                 Hashes.sha256Hex(contenido));
     }
 
+    public ArchivoGuardado guardarGenerado(byte[] contenido, TipoArchivo tipo, String subcarpeta, String nombre) {
+        if (contenido == null || contenido.length == 0) {
+            throw new IllegalArgumentException("El contenido generado está vacío");
+        }
+        Path carpeta = resolver(subcarpeta + "/" + LocalDate.now(ZONA).format(CARPETA_MES));
+        Path destino = carpeta.resolve(UUID.randomUUID() + "." + tipo.extension());
+        try {
+            Files.createDirectories(carpeta);
+            Files.write(destino, contenido, StandardOpenOption.CREATE_NEW);
+        } catch (IOException e) {
+            log.error("No se pudo guardar un archivo generado en el repositorio: {}", e.getMessage());
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "No se pudo guardar el archivo generado. Intente nuevamente.");
+        }
+        eliminarSiSeRevierte(destino);
+
+        return new ArchivoGuardado(
+                base.relativize(destino).toString().replace('\\', '/'),
+                nombreSeguro(nombre, tipo),
+                tipo.mime(),
+                contenido.length,
+                Hashes.sha256Hex(contenido));
+    }
+
     public Resource abrir(String ruta) {
         Path archivo = resolver(ruta);
         if (!Files.isRegularFile(archivo)) {
