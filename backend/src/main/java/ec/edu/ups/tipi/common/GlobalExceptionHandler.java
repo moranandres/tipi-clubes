@@ -16,12 +16,17 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final String CODIGO_REGLA_NEGOCIO = "23TP1";
+    private static final String MENSAJE_INTEGRIDAD =
+            "La operación viola una restricción de integridad de datos (por ejemplo, un valor duplicado).";
 
     @ExceptionHandler(CredencialesInvalidasException.class)
     public ProblemDetail credencialesInvalidas(CredencialesInvalidasException ex) {
@@ -90,8 +95,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail integridad(DataIntegrityViolationException ex) {
-        log.warn("Violación de integridad de datos: {}", ex.getMostSpecificCause().getMessage());
-        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
-                "La operación viola una restricción de integridad de datos (por ejemplo, un valor duplicado).");
+        Throwable causa = ex.getMostSpecificCause();
+        if (causa instanceof SQLException sql && CODIGO_REGLA_NEGOCIO.equals(sql.getSQLState())) {
+            return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, mensajeDeRegla(sql.getMessage()));
+        }
+        log.warn("Violación de integridad de datos: {}", causa.getMessage());
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, MENSAJE_INTEGRIDAD);
+    }
+
+    private String mensajeDeRegla(String mensaje) {
+        if (mensaje == null || mensaje.isBlank()) {
+            return MENSAJE_INTEGRIDAD;
+        }
+        String primeraLinea = mensaje.split("\\R", 2)[0];
+        int separador = primeraLinea.indexOf(": ");
+        String texto = (separador >= 0 ? primeraLinea.substring(separador + 2) : primeraLinea).trim();
+        if (texto.isEmpty()) {
+            return MENSAJE_INTEGRIDAD;
+        }
+        return texto.endsWith(".") ? texto : texto + ".";
     }
 }
