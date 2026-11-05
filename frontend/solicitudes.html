@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Solicitudes de inscripción | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h1 class="h3 mb-1">Solicitudes de inscripción</h1>
+            <div class="d-flex flex-wrap gap-2 small" id="contadores" aria-live="polite"></div>
+          </div>
+          <button type="button" class="btn btn-primary" id="boton-nuevo" hidden>
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva solicitud
+          </button>
+        </div>
+
+        <div class="alert alert-info" id="aviso-datos-minimos" hidden>
+          <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-shield-lock fs-5" aria-hidden="true"></i>
+            <div>
+              Su rol supervisa las solicitudes en modo de consulta: los estudiantes se muestran solo por su código
+              interno (EST-) y no se muestran el formulario ni los nombres de quienes registraron o resolvieron.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info" id="aviso-docente" hidden>
+          <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-person-workspace fs-5" aria-hidden="true"></i>
+            <div>
+              Se muestran las solicitudes de los clubes que usted coordina y las que usted registró. Puede registrar
+              solicitudes para sus clubes y cancelar las que registró; la revisión y la aprobación las realiza el
+              Responsable institucional o el Administrador.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-secondary py-2" id="aviso-filtro-estudiante" hidden>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <i class="bi bi-funnel" aria-hidden="true"></i>
+            <span id="texto-filtro-estudiante"></span>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="boton-quitar-estudiante">Quitar filtro</button>
+          </div>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <form id="formulario-filtros" class="card card-body shadow-sm mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="filtro-q" class="form-label mb-1" id="etiqueta-filtro-q">Estudiante (nombre o código)</label>
+              <input type="search" class="form-control" id="filtro-q" maxlength="100">
+            </div>
+            <div class="col-12 col-md-6 col-xl-3" id="grupo-filtro-institucion">
+              <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+              <select class="form-select" id="filtro-institucion">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="filtro-club" class="form-label mb-1">Club</label>
+              <select class="form-select" id="filtro-club">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3 col-xl-3">
+              <label for="filtro-nivel" class="form-label mb-1">Nivel declarado</label>
+              <select class="form-select" id="filtro-nivel">
+                <option value="">Todos</option>
+                <option value="PRINCIPIANTE">Principiante</option>
+                <option value="INTERMEDIO">Intermedio</option>
+                <option value="AVANZADO">Avanzado</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3 col-xl-3">
+              <label for="filtro-estado" class="form-label mb-1">Estado</label>
+              <select class="form-select" id="filtro-estado">
+                <option value="">Todos</option>
+                <option value="PENDIENTE">Pendientes</option>
+                <option value="EN_REVISION">En revisión</option>
+                <option value="APROBADA">Aprobadas</option>
+                <option value="RECHAZADA">Rechazadas</option>
+                <option value="CANCELADA">Canceladas</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3 d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+              <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <caption class="visually-hidden">Listado de solicitudes de inscripción</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Fecha</th>
+                  <th scope="col">Estudiante</th>
+                  <th scope="col">Club y curso</th>
+                  <th scope="col">Nivel</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla"></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+            <nav id="paginacion" aria-label="Paginación de solicitudes"></nav>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-nueva" tabindex="-1" aria-labelledby="titulo-modal-nueva" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-nueva" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-nueva">Nueva solicitud de inscripción</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-nueva" aria-live="polite"></div>
+          <p class="form-text mt-0">
+            La solicitud se registra en estado Pendiente. Después, un Responsable institucional o el Administrador,
+            distinto de quien la registra, la toma en revisión y la aprueba o la rechaza.
+          </p>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="nueva-club" class="form-label">Club *</label>
+              <select class="form-select" id="nueva-club" required>
+                <option value="">Seleccione un club</option>
+              </select>
+              <div class="form-text" id="ayuda-nueva-club"></div>
+            </div>
+            <div class="col-12">
+              <label for="nueva-buscar-estudiante" class="form-label">Estudiante *</label>
+              <input type="search" class="form-control mb-2" id="nueva-buscar-estudiante" maxlength="100"
+                     placeholder="Escriba apellidos, nombres o código EST- para filtrar" disabled>
+              <select class="form-select" id="nueva-estudiante" size="6" required disabled
+                      aria-describedby="ayuda-nueva-estudiante"></select>
+              <div class="form-text" id="ayuda-nueva-estudiante">Seleccione primero el club.</div>
+            </div>
+            <div class="col-md-7">
+              <label for="nueva-curso" class="form-label">Curso del club</label>
+              <select class="form-select" id="nueva-curso" disabled>
+                <option value="">Solo inscribir en el club</option>
+              </select>
+              <div class="form-text" id="ayuda-nueva-curso">Opcional. Si el estudiante ya es integrante del club, indique el curso.</div>
+            </div>
+            <div class="col-md-5">
+              <label for="nueva-nivel" class="form-label">Nivel de conocimiento *</label>
+              <select class="form-select" id="nueva-nivel" required>
+                <option value="">Seleccione</option>
+                <option value="PRINCIPIANTE">Principiante</option>
+                <option value="INTERMEDIO">Intermedio</option>
+                <option value="AVANZADO">Avanzado</option>
+              </select>
+              <div class="form-text" id="ayuda-nueva-nivel"></div>
+            </div>
+            <div class="col-12" id="grupo-nueva-conocimientos" hidden>
+              <label for="nueva-conocimientos" class="form-label">Conocimientos del estudiante *</label>
+              <textarea class="form-control" id="nueva-conocimientos" rows="3" maxlength="2000"
+                        placeholder="Lenguajes, plataformas o kits que ya domina"></textarea>
+            </div>
+            <div class="col-12" id="grupo-nueva-experiencia" hidden>
+              <label for="nueva-experiencia" class="form-label">Experiencia previa *</label>
+              <textarea class="form-control" id="nueva-experiencia" rows="3" maxlength="2000"
+                        placeholder="Proyectos, clubes o competencias en los que participó"></textarea>
+            </div>
+            <div class="col-12">
+              <label for="nueva-motivacion" class="form-label">Motivación *</label>
+              <textarea class="form-control" id="nueva-motivacion" rows="3" maxlength="2000" required
+                        aria-describedby="contador-motivacion"></textarea>
+              <div class="form-text" id="contador-motivacion">Entre 10 y 2000 caracteres.</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="boton-registrar">Registrar solicitud</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="titulo-modal-detalle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5" id="titulo-modal-detalle">Solicitud</h2>
+            <p class="text-body-secondary small mb-0" id="subtitulo-detalle"></p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-detalle" aria-live="polite"></div>
+
+          <h3 class="h6 text-body-secondary text-uppercase small">Datos de la solicitud</h3>
+          <dl class="row small mb-0" id="lista-datos"></dl>
+
+          <div id="seccion-formulario" hidden>
+            <hr>
+            <h3 class="h6 text-body-secondary text-uppercase small">Formulario por nivel</h3>
+            <dl class="row small mb-0" id="lista-formulario"></dl>
+          </div>
+
+          <hr>
+          <h3 class="h6 text-body-secondary text-uppercase small">Trazabilidad</h3>
+          <ol class="list-unstyled small mb-0" id="lista-trazabilidad"></ol>
+
+          <div id="seccion-resolucion" hidden>
+            <hr>
+            <h3 class="h6 text-body-secondary text-uppercase small">Resultado</h3>
+            <dl class="row small mb-0" id="lista-resolucion"></dl>
+          </div>
+
+          <div id="panel-revision" hidden>
+            <hr>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <div class="flex-fill small" id="texto-revision"></div>
+              <button type="button" class="btn btn-primary" id="boton-tomar-revision">
+                <i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>Tomar en revisión
+              </button>
+            </div>
+          </div>
+
+          <form id="panel-aprobacion" class="border rounded p-3 mt-3" novalidate hidden>
+            <h3 class="h6">Aprobar la solicitud</h3>
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label for="aprobar-nivel" class="form-label small mb-1">Nivel asignado *</label>
+                <select class="form-select form-select-sm" id="aprobar-nivel" required>
+                  <option value="PRINCIPIANTE">Principiante</option>
+                  <option value="INTERMEDIO">Intermedio</option>
+                  <option value="AVANZADO">Avanzado</option>
+                </select>
+              </div>
+              <div class="col-md-8">
+                <label for="aprobar-curso" class="form-label small mb-1">Curso asignado</label>
+                <select class="form-select form-select-sm" id="aprobar-curso"></select>
+                <div class="form-text" id="ayuda-aprobar-curso"></div>
+              </div>
+              <div class="col-12">
+                <label for="aprobar-observacion" class="form-label small mb-1" id="etiqueta-aprobar-observacion">Observación (opcional)</label>
+                <textarea class="form-control form-control-sm" id="aprobar-observacion" rows="2" maxlength="500"></textarea>
+              </div>
+              <div class="col-12" id="grupo-sobrecupo" hidden>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="aprobar-sobrecupo">
+                  <label class="form-check-label small" for="aprobar-sobrecupo">
+                    Autorizar sobrecupo del club (solo Administrador; justifíquelo en la observación)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small fw-semibold">Verificación previa</span>
+                <button type="button" class="btn btn-sm btn-link p-0" id="boton-verificar">Volver a verificar</button>
+              </div>
+              <ul class="list-group list-group-flush small border rounded" id="lista-verificacion" aria-live="polite"></ul>
+              <div class="small mt-2" id="resumen-verificacion"></div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-outline-danger" id="boton-abrir-rechazo">
+                <i class="bi bi-x-circle me-1" aria-hidden="true"></i>Rechazar
+              </button>
+              <button type="submit" class="btn btn-success" id="boton-aprobar">
+                <i class="bi bi-check-circle me-1" aria-hidden="true"></i>Aprobar e inscribir
+              </button>
+            </div>
+          </form>
+
+          <form id="panel-motivo" class="border border-danger-subtle rounded p-3 mt-3" novalidate hidden>
+            <h3 class="h6" id="titulo-panel-motivo">Motivo</h3>
+            <p class="small text-body-secondary mb-2" id="texto-panel-motivo"></p>
+            <label for="campo-motivo" class="form-label small mb-1">Motivo *</label>
+            <textarea class="form-control form-control-sm" id="campo-motivo" rows="2" maxlength="500" required></textarea>
+            <div class="form-text">Entre 5 y 500 caracteres. Queda registrado en la solicitud.</div>
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="boton-volver-motivo">Volver</button>
+              <button type="submit" class="btn btn-sm btn-danger" id="boton-confirmar-motivo">Confirmar</button>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-danger me-auto" id="boton-abrir-cancelacion" hidden>
+            <i class="bi bi-slash-circle me-1" aria-hidden="true"></i>Cancelar solicitud
+          </button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/solicitudes.js"></script>
+</body>
+</html>
