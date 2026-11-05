@@ -1,16 +1,21 @@
 import { apiFetch } from './api.js';
 
-export async function cargarInstituciones() {
-  const todas = [];
+async function cargarTodasLasPaginas(ruta) {
+  const todos = [];
   let pagina = 0;
   let totalPaginas = 1;
+  const separador = ruta.includes('?') ? '&' : '?';
   while (pagina < totalPaginas) {
-    const respuesta = await apiFetch(`/api/instituciones?pagina=${pagina}&tamano=100`);
-    todas.push(...respuesta.contenido);
+    const respuesta = await apiFetch(`${ruta}${separador}pagina=${pagina}&tamano=100`);
+    todos.push(...respuesta.contenido);
     totalPaginas = respuesta.totalPaginas;
     pagina += 1;
   }
-  return todas;
+  return todos;
+}
+
+export function cargarInstituciones() {
+  return cargarTodasLasPaginas('/api/instituciones');
 }
 
 export function cargarRoles() {
@@ -25,16 +30,22 @@ export function cargarPeriodos() {
   return apiFetch('/api/periodos');
 }
 
-export async function cargarDocentesActivos(institucionId) {
-  const todos = [];
-  let pagina = 0;
-  let totalPaginas = 1;
-  while (pagina < totalPaginas) {
-    const consulta = `institucionId=${institucionId}&activo=true&pagina=${pagina}&tamano=100`;
-    const respuesta = await apiFetch(`/api/docentes?${consulta}`);
-    todos.push(...respuesta.contenido);
-    totalPaginas = respuesta.totalPaginas;
-    pagina += 1;
-  }
-  return todos;
+export function cargarDocentesActivos(institucionId) {
+  return cargarTodasLasPaginas(`/api/docentes?institucionId=${institucionId}&activo=true`);
+}
+
+export function cargarClubes() {
+  return cargarTodasLasPaginas('/api/clubes');
+}
+
+export function cargarCursosDelClub(clubId) {
+  return cargarTodasLasPaginas(`/api/cursos?clubId=${clubId}`);
+}
+
+export function cargarEstudiantesActivos(institucionId) {
+  return cargarTodasLasPaginas(`/api/estudiantes?institucionId=${institucionId}&estado=ACTIVO`);
+}
+
+export function cargarInscripcionesActivasDelClub(clubId) {
+  return cargarTodasLasPaginas(`/api/inscripciones?clubId=${clubId}&estado=ACTIVA`);
 }

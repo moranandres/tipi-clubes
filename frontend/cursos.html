@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Cursos y horarios | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h1 class="h3 mb-0">Cursos y horarios</h1>
+          <button type="button" class="btn btn-primary" id="boton-nuevo" hidden>
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo curso
+          </button>
+        </div>
+
+        <div class="alert alert-info" id="aviso-datos-minimos" hidden>
+          <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-shield-lock fs-5" aria-hidden="true"></i>
+            <div>
+              Su rol consulta los cursos en modo de supervisión: los participantes se muestran solo por su código
+              interno (EST-) y el enlace de la sala virtual no se muestra.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info" id="aviso-docente" hidden>
+          <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-person-workspace fs-5" aria-hidden="true"></i>
+            <div>
+              Se muestran los cursos de los clubes que usted coordina. Los cursos y sus horarios los gestiona el
+              Responsable institucional; usted registra el resultado de los participantes al finalizar cada curso.
+            </div>
+          </div>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <form id="formulario-filtros" class="card card-body shadow-sm mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="filtro-q" class="form-label mb-1">Nombre del curso</label>
+              <input type="search" class="form-control" id="filtro-q" maxlength="100">
+            </div>
+            <div class="col-12 col-md-6 col-xl-3" id="grupo-filtro-institucion">
+              <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+              <select class="form-select" id="filtro-institucion">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="filtro-club" class="form-label mb-1">Club</label>
+              <select class="form-select" id="filtro-club">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3 col-xl-3">
+              <label for="filtro-nivel" class="form-label mb-1">Nivel</label>
+              <select class="form-select" id="filtro-nivel">
+                <option value="">Todos</option>
+                <option value="PRINCIPIANTE">Principiante</option>
+                <option value="INTERMEDIO">Intermedio</option>
+                <option value="AVANZADO">Avanzado</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3 col-xl-3">
+              <label for="filtro-modalidad" class="form-label mb-1">Modalidad</label>
+              <select class="form-select" id="filtro-modalidad">
+                <option value="">Todas</option>
+                <option value="PRESENCIAL">Presencial</option>
+                <option value="ONLINE">En línea</option>
+                <option value="HIBRIDO">Híbrida</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3 col-xl-3">
+              <label for="filtro-estado" class="form-label mb-1">Estado</label>
+              <select class="form-select" id="filtro-estado">
+                <option value="">Todos</option>
+                <option value="PLANIFICADO">Planificados</option>
+                <option value="EN_CURSO">En curso</option>
+                <option value="FINALIZADO">Finalizados</option>
+                <option value="CANCELADO">Cancelados</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3 d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+              <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <caption class="visually-hidden">Listado de cursos</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Curso</th>
+                  <th scope="col">Club</th>
+                  <th scope="col">Modalidad</th>
+                  <th scope="col">Fechas</th>
+                  <th scope="col">Horarios</th>
+                  <th scope="col">Cupo</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla"></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+            <nav id="paginacion" aria-label="Paginación de cursos"></nav>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-curso" tabindex="-1" aria-labelledby="titulo-modal-curso" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-curso" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-curso">Curso</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-modal" aria-live="polite"></div>
+          <div id="grupo-detalle" hidden>
+            <dl class="row small mb-0">
+              <dt class="col-sm-4">Estado</dt>
+              <dd class="col-sm-8" id="detalle-estado"></dd>
+              <dt class="col-sm-4">Institución</dt>
+              <dd class="col-sm-8" id="detalle-institucion"></dd>
+              <dt class="col-sm-4">Participantes</dt>
+              <dd class="col-sm-8" id="detalle-cupo"></dd>
+              <dt class="col-sm-4">Horas por semana</dt>
+              <dd class="col-sm-8" id="detalle-horas"></dd>
+              <dt class="col-sm-4">Horarios</dt>
+              <dd class="col-sm-8" id="detalle-horarios"></dd>
+              <dt class="col-sm-4">Sala virtual</dt>
+              <dd class="col-sm-8 mb-0" id="detalle-enlace"></dd>
+            </dl>
+            <hr>
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="campo-club" class="form-label">Club *</label>
+              <select class="form-select" id="campo-club" required>
+                <option value="">Seleccione un club</option>
+              </select>
+              <div class="form-text" id="ayuda-club"></div>
+            </div>
+            <div class="col-md-8">
+              <label for="campo-nombre" class="form-label">Nombre del curso *</label>
+              <input type="text" class="form-control" id="campo-nombre" maxlength="150" required>
+            </div>
+            <div class="col-md-4">
+              <label for="campo-nivel" class="form-label">Nivel *</label>
+              <select class="form-select" id="campo-nivel" required>
+                <option value="">Seleccione</option>
+                <option value="PRINCIPIANTE">Principiante</option>
+                <option value="INTERMEDIO">Intermedio</option>
+                <option value="AVANZADO">Avanzado</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label for="campo-descripcion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="campo-descripcion" rows="3" maxlength="2000"></textarea>
+            </div>
+            <div class="col-md-4">
+              <label for="campo-modalidad" class="form-label">Modalidad *</label>
+              <select class="form-select" id="campo-modalidad" required>
+                <option value="">Seleccione</option>
+                <option value="PRESENCIAL">Presencial</option>
+                <option value="ONLINE">En línea</option>
+                <option value="HIBRIDO">Híbrida</option>
+              </select>
+            </div>
+            <div class="col-md-8" id="grupo-lugar" hidden>
+              <label for="campo-lugar" class="form-label">Lugar *</label>
+              <input type="text" class="form-control" id="campo-lugar" maxlength="150">
+            </div>
+            <div class="col-12" id="grupo-enlace" hidden>
+              <label for="campo-enlace" class="form-label">Enlace de la sala virtual *</label>
+              <input type="url" class="form-control" id="campo-enlace" maxlength="300" placeholder="https://">
+              <div class="form-text">Debe empezar con https://. Solo lo ven el Administrador, el Responsable y el Docente del club.</div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+              <label for="campo-fecha-inicio" class="form-label">Fecha de inicio *</label>
+              <input type="date" class="form-control" id="campo-fecha-inicio" required>
+            </div>
+            <div class="col-md-6 col-xl-3">
+              <label for="campo-fecha-fin" class="form-label">Fecha de fin *</label>
+              <input type="date" class="form-control" id="campo-fecha-fin" required>
+            </div>
+            <div class="col-md-6 col-xl-3">
+              <label for="campo-duracion" class="form-label">Duración total (horas)</label>
+              <input type="number" class="form-control" id="campo-duracion" min="1" max="500" step="1">
+            </div>
+            <div class="col-md-6 col-xl-3">
+              <label for="campo-cupo" class="form-label">Cupo máximo *</label>
+              <input type="number" class="form-control" id="campo-cupo" min="1" max="500" step="1" required>
+            </div>
+            <div class="col-12" id="grupo-ayuda-registro">
+              <p class="form-text mb-0">
+                El curso se crea en estado Planificado. Registre después sus horarios y, cuando el club esté activo,
+                cámbielo a En curso.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-horarios" tabindex="-1" aria-labelledby="titulo-modal-horarios" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5" id="titulo-modal-horarios">Horarios del curso</h2>
+            <p class="text-body-secondary small mb-0" id="subtitulo-horarios"></p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-horarios" aria-live="polite"></div>
+          <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle mb-0">
+              <caption class="visually-hidden">Horarios registrados</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Día</th>
+                  <th scope="col">Horario</th>
+                  <th scope="col">Duración</th>
+                  <th scope="col">Sesión</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-horarios"></tbody>
+            </table>
+          </div>
+          <p class="small text-body-secondary mb-3" id="total-horas"></p>
+
+          <form class="border rounded p-3" id="formulario-horario" novalidate>
+            <h3 class="h6" id="titulo-formulario-horario">Agregar horario</h3>
+            <div class="row g-2 align-items-end">
+              <div class="col-sm-6 col-lg-3">
+                <label for="horario-dia" class="form-label small mb-1">Día *</label>
+                <select class="form-select form-select-sm" id="horario-dia" required>
+                  <option value="1">Lunes</option>
+                  <option value="2">Martes</option>
+                  <option value="3">Miércoles</option>
+                  <option value="4">Jueves</option>
+                  <option value="5">Viernes</option>
+                  <option value="6">Sábado</option>
+                  <option value="7">Domingo</option>
+                </select>
+              </div>
+              <div class="col-6 col-lg-2">
+                <label for="horario-inicio" class="form-label small mb-1">Inicio *</label>
+                <input type="time" class="form-control form-control-sm" id="horario-inicio" step="300" required>
+              </div>
+              <div class="col-6 col-lg-2">
+                <label for="horario-fin" class="form-label small mb-1">Fin *</label>
+                <input type="time" class="form-control form-control-sm" id="horario-fin" step="300" required>
+              </div>
+              <div class="col-sm-6 col-lg-2">
+                <label for="horario-tipo" class="form-label small mb-1">Sesión *</label>
+                <select class="form-select form-select-sm" id="horario-tipo" required></select>
+              </div>
+              <div class="col-sm-6 col-lg-3 d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" id="boton-cancelar-horario" hidden>Cancelar</button>
+                <button type="submit" class="btn btn-sm btn-primary flex-fill" id="boton-guardar-horario">Agregar</button>
+              </div>
+            </div>
+            <div class="form-text">
+              Cada sesión dura entre 15 minutos y 6 horas y no puede cruzarse con otra sesión del mismo curso.
+              Si se cruza con otro curso del mismo club, se guarda y se le avisa.
+            </div>
+          </form>
+          <div class="alert alert-secondary small mb-0" id="aviso-horarios-cerrados" hidden>
+            El curso está finalizado o cancelado; sus horarios ya no se pueden modificar.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-estado" tabindex="-1" aria-labelledby="titulo-modal-estado" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-estado" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-estado">Cambiar estado del curso</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-semibold mb-1" id="estado-curso"></p>
+          <p class="text-body-secondary small">Estado actual: <span id="estado-actual"></span></p>
+          <div id="alertas-estado" aria-live="polite"></div>
+          <div class="mb-3">
+            <label for="estado-nuevo" class="form-label">Nuevo estado *</label>
+            <select class="form-select" id="estado-nuevo" required></select>
+          </div>
+          <div class="mb-3" id="grupo-motivo" hidden>
+            <label for="estado-motivo" class="form-label" id="etiqueta-motivo">Motivo</label>
+            <textarea class="form-control" id="estado-motivo" rows="2" maxlength="255"></textarea>
+          </div>
+          <div class="alert alert-warning py-2 mb-0 small" id="aviso-estado" hidden></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar-estado">Cambiar estado</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-participantes" tabindex="-1" aria-labelledby="titulo-modal-participantes" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5" id="titulo-modal-participantes">Participantes y resultados</h2>
+            <p class="text-body-secondary small mb-0" id="subtitulo-participantes"></p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-participantes" aria-live="polite"></div>
+          <div class="alert alert-info small" id="aviso-resultados"></div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <caption class="visually-hidden">Participantes del curso</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Código</th>
+                  <th scope="col" class="columna-completa">Estudiante</th>
+                  <th scope="col">Inscripción</th>
+                  <th scope="col">Ingreso</th>
+                  <th scope="col">Salida</th>
+                  <th scope="col">Resultado</th>
+                  <th scope="col">Certificados vigentes</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-participantes"></tbody>
+            </table>
+          </div>
+          <p class="small text-body-secondary mt-2 mb-0" id="resumen-participantes"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/cursos.js"></script>
+</body>
+</html>
