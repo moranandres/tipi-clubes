@@ -14,10 +14,11 @@ public record ClubResponse(Long id, Long institucionId, String institucionNombre
 
     public static ClubResponse de(Club c, String institucionNombre, String periodoNombre,
                                   String docenteNombre, long integrantesActivos) {
+        boolean admiteInscripciones = c.getEstado() == EstadoClub.PLANIFICADO || c.getEstado() == EstadoClub.ACTIVO;
+        long cupos = admiteInscripciones ? Math.max(c.getCupoMaximo() - integrantesActivos, 0) : 0;
         return new ClubResponse(c.getId(), c.getInstitucionId(), institucionNombre, c.getPeriodoId(),
                 periodoNombre, c.getDocenteId(), docenteNombre, c.getNombre(), c.getObjetivo(),
                 c.getFechaCreacion(), c.getDiaSemana(), c.getHoraInicio(), c.getHoraFin(), c.getLugar(),
-                c.getCupoMaximo(), integrantesActivos,
-                Math.max(c.getCupoMaximo() - integrantesActivos, 0), c.getEstado());
+                c.getCupoMaximo(), integrantesActivos, cupos, c.getEstado());
     }
 }

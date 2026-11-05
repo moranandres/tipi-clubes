@@ -4,6 +4,7 @@ import ec.edu.ups.tipi.clubes.dto.ClubActualizarRequest;
 import ec.edu.ups.tipi.clubes.dto.ClubCrearRequest;
 import ec.edu.ups.tipi.clubes.dto.ClubResponse;
 import ec.edu.ups.tipi.clubes.dto.CambioEstadoClubRequest;
+import ec.edu.ups.tipi.clubes.dto.CierreClubResponse;
 import ec.edu.ups.tipi.common.PaginaResponse;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
 import jakarta.validation.Valid;
@@ -23,6 +24,7 @@ public class ClubController {
     private static final String ESCRITURA = "hasAnyRole('ADMIN','RESP_INSTITUCIONAL')";
 
     private final ClubService service;
+    private final CierreClubService cierre;
 
     @GetMapping
     @PreAuthorize(LECTURA)
@@ -41,6 +43,13 @@ public class ClubController {
     @PreAuthorize(LECTURA)
     public ClubResponse obtener(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal usuario) {
         return service.obtener(id, usuario);
+    }
+
+    @GetMapping("/{id}/cierre")
+    @PreAuthorize(ESCRITURA)
+    public CierreClubResponse previsualizarCierre(@PathVariable Long id,
+                                                  @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return cierre.previsualizar(id, usuario);
     }
 
     @PostMapping

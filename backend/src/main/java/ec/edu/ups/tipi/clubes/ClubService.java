@@ -59,6 +59,7 @@ public class ClubService {
     private final DocenteRepository docenteRepository;
     private final AlcanceInstitucional alcance;
     private final AuditoriaService auditoria;
+    private final CierreClubService cierre;
 
     @Transactional(readOnly = true)
     public PaginaResponse<ClubResponse> listar(String q, Long institucionId, Integer periodoId,
@@ -183,7 +184,8 @@ public class ClubService {
 
     @Transactional
     public ClubResponse cambiarEstado(Long id, CambioEstadoClubRequest request, UsuarioPrincipal usuario) {
-        Club club = buscar(id);
+        Club club = clubRepository.bloquear(id).orElseThrow(() ->
+                new ApiException(HttpStatus.NOT_FOUND, "Club no encontrado."));
         alcance.verificar(usuario, club.getInstitucionId());
 
         EstadoClub actual = club.getEstado();
@@ -215,11 +217,24 @@ public class ClubService {
             }
         }
 
+        CierreClubService.ResultadoCierre resultado = null;
+        if (nuevo == EstadoClub.CERRADO) {
+            resultado = cierre.preparar(club, usuario);
+        }
+
         club.setEstado(nuevo);
         club = clubRepository.saveAndFlush(club);
 
-        auditoria.registrar("CLUB_ESTADO_CAMBIADO", "CLUB", id,
-                "estado: '" + actual + "' -> '" + nuevo + "'" + (motivo != null ? ", motivo=" + motivo : ""));
+        StringBuilder detalle = new StringBuilder("estado: '" + actual + "' -> '" + nuevo + "'");
+        if (motivo != null) {
+            detalle.append(", motivo=").append(motivo);
+        }
+        if (resultado != null) {
+            detalle.append(", integrantes finalizados=").append(resultado.integrantesFinalizados())
+                    .append(", solicitudes de inscripción canceladas=").append(resultado.solicitudesInscripcionCanceladas())
+                    .append(", solicitudes de retiro canceladas=").append(resultado.solicitudesRetiroCanceladas());
+        }
+        auditoria.registrar("CLUB_ESTADO_CAMBIADO", "CLUB", id, detalle.toString());
         return armar(List.of(club)).get(0);
     }
 
