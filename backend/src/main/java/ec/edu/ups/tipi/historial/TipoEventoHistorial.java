@@ -1,0 +1,6 @@
+package ec.edu.ups.tipi.historial;
+
+public enum TipoEventoHistorial {
+    INGRESO_CLUB, INGRESO_CURSO, FIN_CURSO, RETIRO_CURSO, COMPETENCIA, CERTIFICADO_EMITIDO, SALIDA_CLUB,
+    CERTIFICADO_ANULADO
+}
