@@ -49,3 +49,7 @@ export function cargarEstudiantesActivos(institucionId) {
 export function cargarInscripcionesActivasDelClub(clubId) {
   return cargarTodasLasPaginas(`/api/inscripciones?clubId=${clubId}&estado=ACTIVA`);
 }
+
+export function cargarRetirosPendientesDelClub(clubId) {
+  return cargarTodasLasPaginas(`/api/solicitudes-retiro?clubId=${clubId}&estado=PENDIENTE`);
+}
