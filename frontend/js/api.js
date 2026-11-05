@@ -13,11 +13,8 @@ function redirigirALogin(motivo) {
   window.location.replace(`login.html?motivo=${motivo}`);
 }
 
-export async function apiFetch(ruta, { metodo = 'GET', cuerpo = null, autenticado = true } = {}) {
+function cabecerasBase(autenticado) {
   const cabeceras = { Accept: 'application/json' };
-  if (cuerpo !== null) {
-    cabeceras['Content-Type'] = 'application/json';
-  }
   if (autenticado) {
     const sesion = obtenerSesion();
     if (!sesion) {
@@ -26,14 +23,13 @@ export async function apiFetch(ruta, { metodo = 'GET', cuerpo = null, autenticad
     }
     cabeceras.Authorization = `Bearer ${sesion.token}`;
   }
+  return cabeceras;
+}
 
+async function ejecutar(ruta, opciones, autenticado) {
   let respuesta;
   try {
-    respuesta = await fetch(`${API_BASE_URL}${ruta}`, {
-      method: metodo,
-      headers: cabeceras,
-      body: cuerpo !== null ? JSON.stringify(cuerpo) : undefined
-    });
+    respuesta = await fetch(`${API_BASE_URL}${ruta}`, opciones);
   } catch (error) {
     throw new ApiError(0, 'No se pudo conectar con el servidor. Verifique que el backend esté en ejecución.');
   }
@@ -43,23 +39,66 @@ export async function apiFetch(ruta, { metodo = 'GET', cuerpo = null, autenticad
     redirigirALogin('expirada');
     throw new ApiError(401, 'Su sesión expiró.');
   }
-  if (respuesta.status === 204) {
-    return null;
-  }
-
-  let datos = null;
-  const tipo = respuesta.headers.get('content-type') || '';
-  if (tipo.includes('json')) {
-    datos = await respuesta.json();
-  }
   if (!respuesta.ok) {
+    let datos = null;
+    const tipo = respuesta.headers.get('content-type') || '';
+    if (tipo.includes('json')) {
+      datos = await respuesta.json();
+    }
     throw new ApiError(
       respuesta.status,
       datos && datos.detail ? datos.detail : 'Ocurrió un error al procesar la solicitud.',
       datos ? datos.errores : null
     );
   }
-  return datos;
+  return respuesta;
+}
+
+async function leerJson(respuesta) {
+  if (respuesta.status === 204) {
+    return null;
+  }
+  const tipo = respuesta.headers.get('content-type') || '';
+  return tipo.includes('json') ? respuesta.json() : null;
+}
+
+export async function apiFetch(ruta, { metodo = 'GET', cuerpo = null, autenticado = true } = {}) {
+  const cabeceras = cabecerasBase(autenticado);
+  if (cuerpo !== null) {
+    cabeceras['Content-Type'] = 'application/json';
+  }
+  const respuesta = await ejecutar(ruta, {
+    method: metodo,
+    headers: cabeceras,
+    body: cuerpo !== null ? JSON.stringify(cuerpo) : undefined
+  }, autenticado);
+  return leerJson(respuesta);
+}
+
+export async function apiEnviarArchivo(ruta, archivo, { campo = 'archivo', metodo = 'POST' } = {}) {
+  const formulario = new FormData();
+  formulario.append(campo, archivo);
+  const respuesta = await ejecutar(ruta, {
+    method: metodo,
+    headers: cabecerasBase(true),
+    body: formulario
+  }, true);
+  return leerJson(respuesta);
+}
+
+export async function apiDescargarArchivo(ruta, nombreArchivo) {
+  const cabeceras = cabecerasBase(true);
+  cabeceras.Accept = '*/*';
+  const respuesta = await ejecutar(ruta, { method: 'GET', headers: cabeceras }, true);
+  const contenido = await respuesta.blob();
+  const direccion = URL.createObjectURL(contenido);
+  const enlace = document.createElement('a');
+  enlace.href = direccion;
+  enlace.download = nombreArchivo || 'documento';
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(direccion), 1000);
 }
 
 export function construirConsulta(parametros) {

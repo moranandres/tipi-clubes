@@ -17,6 +17,10 @@ export function cargarRoles() {
   return apiFetch('/api/roles');
 }
 
+export function cargarCursosEducativos() {
+  return apiFetch('/api/estudiantes/cursos');
+}
+
 export function cargarPeriodos() {
   return apiFetch('/api/periodos');
 }
