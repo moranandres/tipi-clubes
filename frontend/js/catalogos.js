@@ -1,4 +1,4 @@
-import { apiFetch } from './api.js';
+import { apiFetch, construirConsulta } from './api.js';
 
 async function cargarTodasLasPaginas(ruta) {
   const todos = [];
@@ -52,4 +52,20 @@ export function cargarInscripcionesActivasDelClub(clubId) {
 
 export function cargarRetirosPendientesDelClub(clubId) {
   return cargarTodasLasPaginas(`/api/solicitudes-retiro?clubId=${clubId}&estado=PENDIENTE`);
+}
+
+export function cargarCompetencias() {
+  return apiFetch('/api/competencias');
+}
+
+export function cargarEdicionesDeCompetencia(competenciaId) {
+  return apiFetch(`/api/competencias/${competenciaId}/ediciones`);
+}
+
+export function cargarCategoriasDeCompetencia(competenciaId) {
+  return apiFetch(`/api/competencias/${competenciaId}/categorias`);
+}
+
+export function cargarParticipaciones(filtros) {
+  return cargarTodasLasPaginas(`/api/participaciones-competencia${construirConsulta(filtros)}`);
 }
