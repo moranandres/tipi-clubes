@@ -1,7 +1,7 @@
 import { ETIQUETAS_ROL } from './config.js';
 import { cerrarSesion, limpiarSesion, obtenerSesion } from './auth.js';
 import { confirmar } from './confirmacion.js';
-import { OPCIONES_MENU } from './menu.js';
+import { SECCIONES_MENU } from './menu.js';
 
 const MARGEN_AVISO_MS = 60000;
 
@@ -67,15 +67,39 @@ function montarMenu(usuario, opcionActiva) {
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
                 data-bs-target="#panel-menu" aria-label="Cerrar menú"></button>
       </div>
-      <div class="offcanvas-body p-2 p-lg-3">
-        <ul class="nav nav-pills flex-column gap-1" id="lista-menu"></ul>
-      </div>
+      <div class="offcanvas-body flex-column p-2 p-lg-3" id="cuerpo-menu"></div>
     </div>`;
 
-  const lista = document.getElementById('lista-menu');
-  OPCIONES_MENU
-    .filter(opcion => opcion.roles.includes(usuario.rol))
-    .forEach(opcion => lista.appendChild(crearElementoMenu(opcion, opcionActiva)));
+  const cuerpo = document.getElementById('cuerpo-menu');
+  SECCIONES_MENU.forEach((seccion, indice) => {
+    const visibles = seccion.opciones.filter(opcion => opcion.roles.includes(usuario.rol));
+    if (visibles.length === 0) {
+      return;
+    }
+    const idTitulo = `seccion-menu-${indice}`;
+    const titulo = document.createElement('h3');
+    titulo.className = 'titulo-seccion-menu';
+    titulo.id = idTitulo;
+    titulo.textContent = seccion.titulo;
+
+    const lista = document.createElement('ul');
+    lista.className = 'nav nav-pills flex-column gap-1 mb-3';
+    lista.setAttribute('aria-labelledby', idTitulo);
+    visibles.forEach(opcion => lista.appendChild(crearElementoMenu(opcion, opcionActiva)));
+
+    cuerpo.append(titulo, lista);
+  });
+
+  const verificar = document.createElement('a');
+  verificar.className = 'small link-secondary d-inline-block px-3 mt-auto';
+  verificar.href = 'verificar-certificado.html';
+  verificar.target = '_blank';
+  verificar.rel = 'noopener';
+  const icono = document.createElement('i');
+  icono.className = 'bi bi-patch-check me-1';
+  icono.setAttribute('aria-hidden', 'true');
+  verificar.append(icono, document.createTextNode('Verificar un certificado'));
+  cuerpo.appendChild(verificar);
 }
 
 function crearElementoMenu(opcion, opcionActiva) {
@@ -86,31 +110,14 @@ function crearElementoMenu(opcion, opcionActiva) {
   icono.className = `bi ${opcion.icono} me-2`;
   icono.setAttribute('aria-hidden', 'true');
 
-  if (opcion.disponible) {
-    const enlace = document.createElement('a');
-    enlace.className = opcion.id === opcionActiva ? 'nav-link active' : 'nav-link';
-    enlace.href = opcion.href;
-    if (opcion.id === opcionActiva) {
-      enlace.setAttribute('aria-current', 'page');
-    }
-    enlace.append(icono, document.createTextNode(opcion.etiqueta));
-    item.appendChild(enlace);
-    return item;
+  const enlace = document.createElement('a');
+  enlace.className = opcion.id === opcionActiva ? 'nav-link active' : 'nav-link';
+  enlace.href = opcion.href;
+  if (opcion.id === opcionActiva) {
+    enlace.setAttribute('aria-current', 'page');
   }
-
-  const deshabilitado = document.createElement('span');
-  deshabilitado.className = 'nav-link disabled d-flex justify-content-between align-items-center';
-  deshabilitado.setAttribute('aria-disabled', 'true');
-
-  const etiqueta = document.createElement('span');
-  etiqueta.append(icono, document.createTextNode(opcion.etiqueta));
-
-  const insignia = document.createElement('span');
-  insignia.className = 'badge text-bg-secondary';
-  insignia.textContent = 'Pronto';
-
-  deshabilitado.append(etiqueta, insignia);
-  item.appendChild(deshabilitado);
+  enlace.append(icono, document.createTextNode(opcion.etiqueta));
+  item.appendChild(enlace);
   return item;
 }
 

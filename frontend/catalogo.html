@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Catálogo de clubes | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <h1 class="h3 mb-1">Catálogo de clubes</h1>
+        <p class="text-body-secondary mb-3">
+          Oferta de clubes y cursos de las instituciones adheridas a TIPI 3.0, con cupos disponibles por período.
+        </p>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <form id="formulario-filtros" class="card card-body shadow-sm mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-4 col-xl-3">
+              <label for="filtro-q" class="form-label mb-1">Club, institución o AMIE</label>
+              <input type="search" class="form-control" id="filtro-q" maxlength="100">
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-periodo" class="form-label mb-1">Período</label>
+              <select class="form-select" id="filtro-periodo"></select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+              <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+              <select class="form-select" id="filtro-institucion">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-estado" class="form-label mb-1">Estado del club</label>
+              <select class="form-select" id="filtro-estado">
+                <option value="">Todos</option>
+                <option value="PLANIFICADO">Planificado</option>
+                <option value="ACTIVO">Activo</option>
+                <option value="SUSPENDIDO">Suspendido</option>
+                <option value="CERRADO">Cerrado</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-nivel" class="form-label mb-1">Nivel de curso</label>
+              <select class="form-select" id="filtro-nivel">
+                <option value="">Todos</option>
+                <option value="PRINCIPIANTE">Principiante</option>
+                <option value="INTERMEDIO">Intermedio</option>
+                <option value="AVANZADO">Avanzado</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-modalidad" class="form-label mb-1">Modalidad</label>
+              <select class="form-select" id="filtro-modalidad">
+                <option value="">Todas</option>
+                <option value="PRESENCIAL">Presencial</option>
+                <option value="ONLINE">En línea</option>
+                <option value="HIBRIDO">Híbrida</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-8 col-xl-6 d-flex flex-wrap gap-3 pt-2">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="filtro-abiertos">
+                <label class="form-check-label" for="filtro-abiertos">Solo con inscripciones abiertas</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="filtro-con-cupo">
+                <label class="form-check-label" for="filtro-con-cupo">Solo con cupo disponible</label>
+              </div>
+            </div>
+            <div class="col-12 col-xl-4 d-flex gap-2 ms-auto">
+              <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+              <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+            </div>
+          </div>
+        </form>
+
+        <section class="card shadow-sm mb-3" aria-labelledby="titulo-instituciones">
+          <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h2 class="h6 mb-0" id="titulo-instituciones">Resumen por institución</h2>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" role="switch" id="mostrar-sin-clubes">
+              <label class="form-check-label small" for="mostrar-sin-clubes">Incluir instituciones sin clubes</label>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <caption class="visually-hidden">Clubes, cupos y estudiantes activos por institución</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Institución</th>
+                  <th scope="col" class="text-end">Clubes</th>
+                  <th scope="col" class="text-end">Abiertos</th>
+                  <th scope="col" class="text-end">Cupos libres</th>
+                  <th scope="col" class="text-end">Cursos abiertos</th>
+                  <th scope="col" class="text-end">Estudiantes activos</th>
+                  <th scope="col" class="text-end"><span class="visually-hidden">Acciones</span></th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-instituciones"></tbody>
+              <tfoot class="table-light fw-semibold" id="pie-instituciones"></tfoot>
+            </table>
+          </div>
+        </section>
+
+        <section aria-labelledby="titulo-clubes">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <h2 class="h5 mb-0" id="titulo-clubes">Clubes</h2>
+            <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+          </div>
+          <div class="row g-3" id="tarjetas-clubes"></div>
+          <nav class="d-flex justify-content-end mt-3" id="paginacion" aria-label="Paginación del catálogo"></nav>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="titulo-detalle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5" id="titulo-detalle">Club</h2>
+            <div class="small text-body-secondary" id="subtitulo-detalle"></div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-detalle" aria-live="polite"></div>
+          <div id="contenido-detalle" hidden>
+            <div class="d-flex flex-wrap gap-2 mb-3" id="insignias-detalle"></div>
+            <p class="texto-preformateado mb-3" id="detalle-objetivo"></p>
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <dl class="row small mb-0" id="detalle-datos"></dl>
+              </div>
+              <div class="col-md-6">
+                <div class="row g-2" id="detalle-cifras"></div>
+              </div>
+            </div>
+            <h3 class="h6">Trayectoria del club</h3>
+            <div class="row g-2 mb-3" id="detalle-trayectoria"></div>
+            <h3 class="h6">Cursos</h3>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <caption class="visually-hidden">Cursos del club con horarios y cupos</caption>
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">Curso</th>
+                    <th scope="col">Modalidad</th>
+                    <th scope="col">Fechas</th>
+                    <th scope="col">Horario</th>
+                    <th scope="col">Cupos</th>
+                    <th scope="col">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="detalle-cursos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <a class="btn btn-outline-secondary me-auto" id="enlace-cursos" href="cursos.html" hidden>
+            <i class="bi bi-journal-code me-1" aria-hidden="true"></i>Gestionar cursos del club
+          </a>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/catalogo.js"></script>
+</body>
+</html>

@@ -326,7 +326,8 @@ function crearFila(estudiante) {
 
 function crearAcciones(estudiante) {
   const acciones = [
-    crearBoton('bi-eye', 'Ver detalle', estudiante, () => abrirFormulario('ver', estudiante))
+    crearBoton('bi-eye', 'Ver detalle', estudiante, () => abrirFormulario('ver', estudiante)),
+    crearEnlaceHistorial(estudiante)
   ];
   if (puedeEditar(estudiante)) {
     acciones.push(crearBoton('bi-pencil', 'Editar', estudiante, () => abrirFormulario('editar', estudiante)));
@@ -339,6 +340,18 @@ function crearAcciones(estudiante) {
     acciones.push(crearBoton('bi-trash', 'Eliminar', estudiante, () => eliminarEstudiante(estudiante), true));
   }
   return acciones;
+}
+
+function crearEnlaceHistorial(estudiante) {
+  const marca = crearElemento('i', { clase: 'bi bi-clock-history', atributos: { 'aria-hidden': 'true' } });
+  return crearElemento('a', {
+    clase: 'btn btn-sm btn-outline-secondary ms-1',
+    atributos: {
+      href: `historial.html?id=${estudiante.id}`,
+      title: 'Historial',
+      'aria-label': `Historial: ${identificacion(estudiante)}`
+    }
+  }, [marca]);
 }
 
 function crearBoton(icono, etiqueta, estudiante, accion, peligro = false) {

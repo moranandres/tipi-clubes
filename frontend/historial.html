@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Historial del estudiante | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h1 class="h3 mb-0">Historial del estudiante</h1>
+          <div class="no-imprimir" id="acciones-historial" hidden>
+            <div class="d-flex flex-wrap gap-2">
+              <a class="btn btn-outline-secondary" id="enlace-certificados" href="certificados.html">
+                <i class="bi bi-award me-1" aria-hidden="true"></i>Ver certificados
+              </a>
+              <button type="button" class="btn btn-outline-secondary" id="boton-imprimir">
+                <i class="bi bi-printer me-1" aria-hidden="true"></i>Imprimir
+              </button>
+              <a class="btn btn-outline-primary" href="historial.html">
+                <i class="bi bi-search me-1" aria-hidden="true"></i>Buscar otro estudiante
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <section id="seccion-busqueda" aria-labelledby="titulo-busqueda" hidden>
+          <h2 class="h5 mb-2" id="titulo-busqueda">Elija un estudiante</h2>
+          <p class="text-body-secondary small mb-3" id="ayuda-busqueda">
+            Busque al estudiante y abra su historial: clubes, cursos, competencias y certificados en una sola ficha.
+          </p>
+          <form id="formulario-busqueda" class="card card-body shadow-sm mb-3">
+            <div class="row g-2 align-items-end">
+              <div class="col-12 col-md-5">
+                <label for="busqueda-q" class="form-label mb-1" id="etiqueta-busqueda-q">Nombre, apellido o código EST-</label>
+                <input type="search" class="form-control" id="busqueda-q" maxlength="100">
+              </div>
+              <div class="col-12 col-md-4" id="grupo-busqueda-institucion" hidden>
+                <label for="busqueda-institucion" class="form-label mb-1">Institución</label>
+                <select class="form-select" id="busqueda-institucion">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+                <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+              </div>
+            </div>
+          </form>
+          <div class="card shadow-sm">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <caption class="visually-hidden">Estudiantes encontrados</caption>
+                <thead class="table-light">
+                  <tr id="encabezado-busqueda">
+                    <th scope="col">Código</th>
+                    <th scope="col" id="columna-nombre">Estudiante</th>
+                    <th scope="col">Institución</th>
+                    <th scope="col">Curso</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col" class="text-end">Historial</th>
+                  </tr>
+                </thead>
+                <tbody id="cuerpo-busqueda"></tbody>
+              </table>
+            </div>
+            <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+              <small class="text-body-secondary" id="resumen-busqueda" aria-live="polite"></small>
+              <nav id="paginacion-busqueda" aria-label="Paginación de estudiantes"></nav>
+            </div>
+          </div>
+        </section>
+
+        <section id="seccion-historial" aria-labelledby="nombre-estudiante" hidden>
+          <div class="card shadow-sm mb-3">
+            <div class="card-body">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <div>
+                  <h2 class="h4 mb-1" id="nombre-estudiante"></h2>
+                  <p class="text-body-secondary mb-0" id="datos-estudiante"></p>
+                </div>
+                <div class="d-flex flex-wrap gap-2 align-items-center" id="insignias-estudiante"></div>
+              </div>
+              <div class="alert alert-info small py-2 mt-3 mb-0" id="aviso-alcance" hidden></div>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3" id="resumen-historial"></div>
+
+          <ul class="nav nav-tabs no-imprimir" id="pestanas-historial" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="pestana-linea" data-bs-toggle="tab" data-bs-target="#panel-linea"
+                      type="button" role="tab" aria-controls="panel-linea" aria-selected="true">
+                Línea de tiempo <span class="badge text-bg-light" id="conteo-linea"></span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="pestana-clubes" data-bs-toggle="tab" data-bs-target="#panel-clubes"
+                      type="button" role="tab" aria-controls="panel-clubes" aria-selected="false">
+                Clubes y cursos <span class="badge text-bg-light" id="conteo-clubes"></span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="pestana-competencias" data-bs-toggle="tab" data-bs-target="#panel-competencias"
+                      type="button" role="tab" aria-controls="panel-competencias" aria-selected="false">
+                Competencias <span class="badge text-bg-light" id="conteo-competencias"></span>
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="pestana-certificados" data-bs-toggle="tab" data-bs-target="#panel-certificados"
+                      type="button" role="tab" aria-controls="panel-certificados" aria-selected="false">
+                Certificados <span class="badge text-bg-light" id="conteo-certificados"></span>
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content card shadow-sm border-top-0 rounded-top-0">
+            <div class="tab-pane fade show active card-body" id="panel-linea" role="tabpanel" aria-labelledby="pestana-linea" tabindex="0">
+              <h3 class="h5 solo-impresion">Línea de tiempo</h3>
+              <div class="row g-2 align-items-end mb-3 no-imprimir">
+                <div class="col-sm-6 col-lg-4">
+                  <label for="filtro-tipo-evento" class="form-label mb-1">Mostrar</label>
+                  <select class="form-select form-select-sm" id="filtro-tipo-evento">
+                    <option value="">Todos los eventos</option>
+                    <option value="CLUB">Ingresos y salidas de clubes</option>
+                    <option value="CURSO">Cursos</option>
+                    <option value="COMPETENCIA">Competencias</option>
+                    <option value="CERTIFICADO">Certificados</option>
+                  </select>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                  <label for="filtro-orden" class="form-label mb-1">Orden</label>
+                  <select class="form-select form-select-sm" id="filtro-orden">
+                    <option value="DESC">Más recientes primero</option>
+                    <option value="ASC">Más antiguos primero</option>
+                  </select>
+                </div>
+              </div>
+              <ol class="list-unstyled linea-tiempo mb-0" id="lista-eventos"></ol>
+            </div>
+            <div class="tab-pane fade card-body" id="panel-clubes" role="tabpanel" aria-labelledby="pestana-clubes" tabindex="0">
+              <h3 class="h5 solo-impresion">Clubes y cursos</h3>
+              <div id="lista-clubes"></div>
+            </div>
+            <div class="tab-pane fade card-body" id="panel-competencias" role="tabpanel" aria-labelledby="pestana-competencias" tabindex="0">
+              <h3 class="h5 solo-impresion">Competencias</h3>
+              <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                  <caption class="visually-hidden">Participaciones en competencias</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Competencia y edición</th>
+                      <th scope="col">Categoría</th>
+                      <th scope="col">Club</th>
+                      <th scope="col">Equipo</th>
+                      <th scope="col">Resultado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-competencias"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane fade card-body" id="panel-certificados" role="tabpanel" aria-labelledby="pestana-certificados" tabindex="0">
+              <h3 class="h5 solo-impresion">Certificados</h3>
+              <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                  <caption class="visually-hidden">Certificados del estudiante</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Código</th>
+                      <th scope="col">Certificado</th>
+                      <th scope="col">Club</th>
+                      <th scope="col">Emisión</th>
+                      <th scope="col">Estado</th>
+                      <th scope="col" class="text-end no-imprimir">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-certificados"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <p class="text-body-secondary small mt-3 mb-0" id="pie-historial"></p>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/historial.js"></script>
+</body>
+</html>
