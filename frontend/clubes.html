@@ -192,8 +192,8 @@
             <select class="form-select" id="estado-nuevo" required></select>
           </div>
           <div class="alert alert-warning py-2" id="aviso-estado" hidden>
-            Al cerrar un club se conserva su historial, pero no se podrán registrar nuevas actividades ni modificarlo.
-            Solo un administrador puede reabrirlo.
+            Al reabrir el club, sus antiguos integrantes no se reactivan solos: cada estudiante debe volver a
+            inscribirse con una solicitud aprobada.
           </div>
           <div class="mb-0">
             <label for="estado-motivo" class="form-label" id="etiqueta-motivo">Motivo</label>
@@ -203,6 +203,67 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-primary" id="boton-guardar-estado">Cambiar estado</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-cierre" tabindex="-1" aria-labelledby="titulo-modal-cierre" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-cierre" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-cierre">Cerrar club</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-semibold mb-1" id="cierre-club"></p>
+          <p class="text-body-secondary small">Estado actual: <span id="cierre-estado"></span></p>
+          <div id="alertas-cierre" aria-live="polite"></div>
+          <div id="cierre-cargando" role="status">
+            <div class="d-flex align-items-center gap-2 text-body-secondary mb-3">
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              <span>Revisando qué pasará al cerrar el club...</span>
+            </div>
+          </div>
+          <div id="cierre-bloqueado" hidden>
+            <div class="alert alert-danger mb-3">
+              <div class="fw-semibold mb-1">Todavía no se puede cerrar este club.</div>
+              <ul class="mb-0" id="cierre-bloqueos"></ul>
+            </div>
+            <div id="grupo-cierre-cursos" hidden>
+              <p class="small mb-2">Cursos que debe finalizar o cancelar antes del cierre:</p>
+              <ul class="list-group mb-2" id="cierre-cursos"></ul>
+              <a class="btn btn-sm btn-outline-primary" id="enlace-cierre-cursos" href="cursos.html">
+                <i class="bi bi-journal-code me-1" aria-hidden="true"></i>Ir a los cursos del club
+              </a>
+            </div>
+          </div>
+          <div id="cierre-efectos" hidden>
+            <h3 class="h6">Qué pasará al cerrar el club</h3>
+            <div class="row g-2 mb-3" id="cierre-cifras"></div>
+            <p class="small mb-2">
+              Fecha de salida que quedará registrada para los integrantes: <strong id="cierre-fecha"></strong>
+            </p>
+            <div class="alert alert-warning py-2">
+              <ul class="mb-0 small" id="cierre-avisos"></ul>
+            </div>
+            <div class="mb-3">
+              <label for="cierre-motivo" class="form-label">Motivo del cierre *</label>
+              <textarea class="form-control" id="cierre-motivo" rows="3" maxlength="255"
+                        aria-describedby="contador-cierre-motivo"></textarea>
+              <div class="form-text text-end" id="contador-cierre-motivo">0 / 255</div>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="cierre-confirmacion">
+              <label class="form-check-label" for="cierre-confirmacion" id="etiqueta-cierre-confirmacion">
+                Revisé los efectos y confirmo el cierre del club.
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger" id="boton-confirmar-cierre" disabled>Cerrar club</button>
         </div>
       </form>
     </div>

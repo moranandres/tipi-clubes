@@ -1,17 +1,45 @@
 const TODOS = ['ADMIN', 'COORDINADOR', 'RESP_INSTITUCIONAL', 'DOCENTE', 'CONSULTA'];
+const SIN_DOCENTE = ['ADMIN', 'COORDINADOR', 'CONSULTA', 'RESP_INSTITUCIONAL'];
 
-export const OPCIONES_MENU = [
-  { id: 'dashboard', etiqueta: 'Panel principal', icono: 'bi-speedometer2', href: 'dashboard.html', roles: TODOS, disponible: true },
-  { id: 'instituciones', etiqueta: 'Instituciones', icono: 'bi-bank', href: 'instituciones.html', roles: TODOS, disponible: true },
-  { id: 'clubes', etiqueta: 'Clubes', icono: 'bi-robot', href: 'clubes.html', roles: TODOS, disponible: true },
-  { id: 'docentes', etiqueta: 'Docentes', icono: 'bi-person-workspace', href: 'docentes.html', roles: TODOS, disponible: true },
-  { id: 'estudiantes', etiqueta: 'Estudiantes', icono: 'bi-mortarboard', href: 'estudiantes.html', roles: TODOS, disponible: true },
-  { id: 'cursos', etiqueta: 'Cursos y horarios', icono: 'bi-journal-code', href: 'cursos.html', roles: TODOS, disponible: true },
-  { id: 'solicitudes', etiqueta: 'Solicitudes de inscripción', icono: 'bi-person-plus', href: 'solicitudes.html', roles: TODOS, disponible: true },
-  { id: 'retiros', etiqueta: 'Solicitudes de retiro', icono: 'bi-person-dash', href: 'retiros.html', roles: TODOS, disponible: true },
-  { id: 'competencias', etiqueta: 'Competencias', icono: 'bi-trophy', href: 'competencias.html', roles: TODOS, disponible: true },
-  { id: 'certificados', etiqueta: 'Certificados', icono: 'bi-award', href: 'certificados.html', roles: TODOS, disponible: true },
-  { id: 'periodos', etiqueta: 'Períodos académicos', icono: 'bi-calendar3', href: 'periodos.html', roles: ['ADMIN', 'COORDINADOR', 'CONSULTA', 'RESP_INSTITUCIONAL'], disponible: true },
-  { id: 'usuarios', etiqueta: 'Usuarios', icono: 'bi-people', href: 'usuarios.html', roles: ['ADMIN'], disponible: true },
-  { id: 'auditoria', etiqueta: 'Auditoría', icono: 'bi-shield-check', href: 'auditoria.html', roles: ['ADMIN', 'CONSULTA'], disponible: true }
+export const SECCIONES_MENU = [
+  {
+    titulo: 'Inicio',
+    opciones: [
+      { id: 'dashboard', etiqueta: 'Panel principal', icono: 'bi-speedometer2', href: 'dashboard.html', roles: TODOS },
+      { id: 'catalogo', etiqueta: 'Catálogo de clubes', icono: 'bi-grid-3x3-gap', href: 'catalogo.html', roles: TODOS }
+    ]
+  },
+  {
+    titulo: 'Gestión institucional',
+    opciones: [
+      { id: 'instituciones', etiqueta: 'Instituciones', icono: 'bi-bank', href: 'instituciones.html', roles: TODOS },
+      { id: 'clubes', etiqueta: 'Clubes', icono: 'bi-robot', href: 'clubes.html', roles: TODOS },
+      { id: 'docentes', etiqueta: 'Docentes', icono: 'bi-person-workspace', href: 'docentes.html', roles: TODOS },
+      { id: 'periodos', etiqueta: 'Períodos académicos', icono: 'bi-calendar3', href: 'periodos.html', roles: SIN_DOCENTE }
+    ]
+  },
+  {
+    titulo: 'Estudiantes',
+    opciones: [
+      { id: 'estudiantes', etiqueta: 'Estudiantes', icono: 'bi-mortarboard', href: 'estudiantes.html', roles: TODOS },
+      { id: 'historial', etiqueta: 'Historial del estudiante', icono: 'bi-clock-history', href: 'historial.html', roles: TODOS },
+      { id: 'solicitudes', etiqueta: 'Solicitudes de inscripción', icono: 'bi-person-plus', href: 'solicitudes.html', roles: TODOS },
+      { id: 'retiros', etiqueta: 'Solicitudes de retiro', icono: 'bi-person-dash', href: 'retiros.html', roles: TODOS }
+    ]
+  },
+  {
+    titulo: 'Formación y logros',
+    opciones: [
+      { id: 'cursos', etiqueta: 'Cursos y horarios', icono: 'bi-journal-code', href: 'cursos.html', roles: TODOS },
+      { id: 'competencias', etiqueta: 'Competencias', icono: 'bi-trophy', href: 'competencias.html', roles: TODOS },
+      { id: 'certificados', etiqueta: 'Certificados', icono: 'bi-award', href: 'certificados.html', roles: TODOS }
+    ]
+  },
+  {
+    titulo: 'Administración',
+    opciones: [
+      { id: 'usuarios', etiqueta: 'Usuarios', icono: 'bi-people', href: 'usuarios.html', roles: ['ADMIN'] },
+      { id: 'auditoria', etiqueta: 'Auditoría', icono: 'bi-shield-check', href: 'auditoria.html', roles: ['ADMIN', 'CONSULTA'] }
+    ]
+  }
 ];

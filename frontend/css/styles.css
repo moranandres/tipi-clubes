@@ -51,3 +51,79 @@
     background-color: var(--bs-body-bg);
   }
 }
+
+.titulo-seccion-menu {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--bs-secondary-color);
+  padding: 0 0.75rem;
+  margin: 0 0 0.35rem;
+}
+
+.linea-tiempo {
+  position: relative;
+}
+
+.evento-linea {
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.evento-linea:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  top: 2.25rem;
+  bottom: 0.25rem;
+  left: 1rem;
+  border-left: 2px solid var(--bs-border-color);
+}
+
+.marca-evento {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+
+.solo-impresion {
+  display: none;
+}
+
+@media print {
+  #barra-superior,
+  #menu-lateral,
+  .no-imprimir,
+  .aviso-sesion {
+    display: none !important;
+  }
+
+  #contenido {
+    width: 100%;
+    padding: 0 !important;
+  }
+
+  .solo-impresion {
+    display: block;
+    margin-top: 1rem;
+  }
+
+  .tab-content > .tab-pane {
+    display: block !important;
+    opacity: 1 !important;
+  }
+
+  #resumen-historial .card,
+  .tarjeta-historial,
+  .evento-linea {
+    break-inside: avoid;
+  }
+
+  .shadow-sm {
+    box-shadow: none !important;
+  }
+}
