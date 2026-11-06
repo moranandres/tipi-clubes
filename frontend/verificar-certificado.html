@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <title>Verificar certificado | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <header class="navbar navbar-dark bg-primary shadow-sm">
+    <div class="container">
+      <span class="navbar-brand">
+        <i class="bi bi-robot me-2" aria-hidden="true"></i>TIPI 3.0
+      </span>
+      <a class="btn btn-outline-light btn-sm" href="login.html" id="enlace-sistema">Ingresar al sistema</a>
+    </div>
+  </header>
+
+  <main class="container py-4" id="contenido">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-10 col-lg-8 col-xl-7">
+        <div class="text-center mb-4">
+          <i class="bi bi-patch-check fs-1 text-primary" aria-hidden="true"></i>
+          <h1 class="h3 mt-2 mb-1">Verificación de certificados</h1>
+          <p class="text-body-secondary mb-0">
+            Compruebe si un certificado emitido por el proyecto TIPI 3.0 es auténtico y sigue vigente.
+          </p>
+        </div>
+
+        <form class="card card-body shadow-sm mb-3" id="formulario-verificar" novalidate>
+          <label for="campo-codigo" class="form-label">Código de verificación</label>
+          <div class="input-group">
+            <input type="text" class="form-control font-monospace text-uppercase" id="campo-codigo"
+                   maxlength="40" autocomplete="off" spellcheck="false" required
+                   placeholder="TIPI-XXXX-XXXX-XXXX" aria-describedby="ayuda-codigo">
+            <button type="submit" class="btn btn-primary" id="boton-verificar">
+              <i class="bi bi-search me-1" aria-hidden="true"></i>Verificar
+            </button>
+          </div>
+          <div class="form-text" id="ayuda-codigo">
+            Lo encuentra en el pie del certificado. Puede escribirlo con o sin guiones.
+          </div>
+        </form>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <section class="card shadow-sm mb-3" id="tarjeta-resultado" aria-labelledby="titulo-resultado" hidden>
+          <div class="card-header d-flex align-items-center gap-2" id="cabecera-resultado">
+            <i class="bi fs-3" id="icono-resultado" aria-hidden="true"></i>
+            <div>
+              <h2 class="h5 mb-0" id="titulo-resultado"></h2>
+              <div class="small" id="mensaje-resultado"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            <dl class="row mb-0" id="lista-resultado"></dl>
+            <p class="small text-body-secondary mt-3 mb-0">
+              Para proteger los datos de los estudiantes, la verificación pública no muestra su nombre. Compruebe que el
+              nombre del PDF corresponde a la persona que le entregó el certificado.
+            </p>
+          </div>
+        </section>
+
+        <section class="card shadow-sm mb-3" id="tarjeta-huella" aria-labelledby="titulo-huella" hidden>
+          <div class="card-body">
+            <h2 class="h6" id="titulo-huella">
+              <i class="bi bi-fingerprint me-1" aria-hidden="true"></i>Comprobar que el PDF no fue modificado
+            </h2>
+            <p class="small text-body-secondary">
+              Seleccione el archivo PDF que recibió. Su navegador calcula la huella SHA-256 y la compara con la
+              registrada al emitir el certificado. El archivo no se envía a ningún servidor.
+            </p>
+            <label for="campo-archivo" class="form-label small mb-1">Archivo PDF del certificado</label>
+            <input type="file" class="form-control" id="campo-archivo" accept="application/pdf,.pdf">
+            <div class="mt-3" id="resultado-huella" aria-live="polite"></div>
+            <details class="small mt-2">
+              <summary>Ver la huella registrada</summary>
+              <div class="font-monospace text-break mt-1" id="huella-registrada"></div>
+            </details>
+          </div>
+        </section>
+
+        <p class="text-center small text-body-secondary mb-0">
+          Proyecto de vinculación TIPI 3.0 · Clubes de robótica y programación
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/verificar-certificado.js"></script>
+</body>
+</html>
