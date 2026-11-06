@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Certificados | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h1 class="h3 mb-1">Certificados</h1>
+            <div class="d-flex flex-wrap gap-2 small" id="contadores" aria-live="polite"></div>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-secondary" href="verificar-certificado.html" target="_blank" rel="noopener">
+              <i class="bi bi-patch-check me-1" aria-hidden="true"></i>Verificación pública
+            </a>
+            <button type="button" class="btn btn-primary" id="boton-nuevo" hidden>
+              <i class="bi bi-award me-1" aria-hidden="true"></i>Emitir certificado
+            </button>
+          </div>
+        </div>
+
+        <div class="alert alert-info" id="aviso-datos-minimos" hidden>
+          <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-shield-lock fs-5" aria-hidden="true"></i>
+            <div>
+              Su rol supervisa los certificados en modo de consulta: los estudiantes se muestran solo por su código
+              interno (EST-), no se muestran los nombres de quienes emitieron o anularon ni el motivo de anulación, y
+              los PDF no se descargan. Puede comprobar cualquier certificado en la verificación pública.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info" id="aviso-docente" hidden>
+          <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-person-workspace fs-5" aria-hidden="true"></i>
+            <div>
+              Se muestran los certificados de los integrantes de los clubes que usted coordina y puede descargar sus
+              PDF vigentes. La emisión y la anulación las realizan el Responsable institucional o el Administrador.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-secondary py-2" id="aviso-filtro-estudiante" hidden>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <i class="bi bi-funnel" aria-hidden="true"></i>
+            <span id="texto-filtro-estudiante"></span>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="boton-quitar-estudiante">Quitar filtro</button>
+          </div>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <form id="formulario-filtros" class="card card-body shadow-sm mb-3" novalidate>
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="filtro-q" class="form-label mb-1" id="etiqueta-filtro-q">Estudiante, título o código TIPI-</label>
+              <input type="search" class="form-control" id="filtro-q" maxlength="100">
+            </div>
+            <div class="col-12 col-md-6 col-xl-3" id="grupo-filtro-institucion">
+              <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+              <select class="form-select" id="filtro-institucion">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="filtro-club" class="form-label mb-1">Club</label>
+              <select class="form-select" id="filtro-club">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <label for="filtro-tipo" class="form-label mb-1">Tipo</label>
+              <select class="form-select" id="filtro-tipo">
+                <option value="">Todos</option>
+                <option value="PARTICIPACION_CURSO">Participación en curso</option>
+                <option value="APROBACION_CURSO">Aprobación de curso</option>
+                <option value="PARTICIPACION_COMPETENCIA">Participación en competencia</option>
+                <option value="RECONOCIMIENTO_COMPETENCIA">Reconocimiento en competencia</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-estado" class="form-label mb-1">Estado</label>
+              <select class="form-select" id="filtro-estado">
+                <option value="">Todos</option>
+                <option value="EMITIDO">Vigentes</option>
+                <option value="ANULADO">Anulados</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-desde" class="form-label mb-1">Emitidos desde</label>
+              <input type="date" class="form-control" id="filtro-desde">
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-hasta" class="form-label mb-1">Emitidos hasta</label>
+              <input type="date" class="form-control" id="filtro-hasta">
+            </div>
+            <div class="col-6 col-md-4 col-xl-2 ms-xl-auto d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+              <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <caption class="visually-hidden">Listado de certificados</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Emisión</th>
+                  <th scope="col">Código de verificación</th>
+                  <th scope="col">Estudiante</th>
+                  <th scope="col">Certificado</th>
+                  <th scope="col">Club</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla"></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+            <nav id="paginacion" aria-label="Paginación de certificados"></nav>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-emitir" tabindex="-1" aria-labelledby="titulo-modal-emitir" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-emitir" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-emitir">Emitir certificado</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-emitir" aria-live="polite"></div>
+          <p class="form-text mt-0">
+            El sistema genera el PDF con un código de verificación único y registra su huella SHA-256. Un certificado
+            emitido no se edita: si tiene un error, se anula y se emite uno nuevo.
+          </p>
+          <div class="row g-3">
+            <div class="col-12">
+              <span class="form-label d-block">Origen del certificado *</span>
+              <div class="btn-group" role="group" aria-label="Origen del certificado">
+                <input type="radio" class="btn-check" name="emitir-origen" id="emitir-origen-curso" value="CURSO" checked>
+                <label class="btn btn-outline-primary" for="emitir-origen-curso">
+                  <i class="bi bi-journal-code me-1" aria-hidden="true"></i>Curso finalizado
+                </label>
+                <input type="radio" class="btn-check" name="emitir-origen" id="emitir-origen-competencia" value="COMPETENCIA">
+                <label class="btn btn-outline-primary" for="emitir-origen-competencia">
+                  <i class="bi bi-trophy me-1" aria-hidden="true"></i>Competencia
+                </label>
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="emitir-club" class="form-label">Club *</label>
+              <select class="form-select" id="emitir-club" required>
+                <option value="">Seleccione un club</option>
+              </select>
+            </div>
+
+            <div class="col-12" id="grupo-curso">
+              <label for="emitir-curso" class="form-label">Curso *</label>
+              <select class="form-select" id="emitir-curso" required disabled aria-describedby="ayuda-emitir-curso">
+                <option value="">Seleccione primero el club</option>
+              </select>
+              <div class="form-text" id="ayuda-emitir-curso">Solo los cursos finalizados tienen participantes que se pueden certificar.</div>
+            </div>
+
+            <div class="col-12">
+              <label for="emitir-buscar" class="form-label" id="etiqueta-emitir-candidato">Participante *</label>
+              <input type="search" class="form-control mb-2" id="emitir-buscar" maxlength="100"
+                     placeholder="Escriba apellidos, nombres o código EST- para filtrar" disabled
+                     aria-label="Filtrar la lista">
+              <select class="form-select" id="emitir-candidato" size="6" required disabled
+                      aria-labelledby="etiqueta-emitir-candidato" aria-describedby="ayuda-emitir-candidato"></select>
+              <div class="form-text" id="ayuda-emitir-candidato">Seleccione primero el club.</div>
+            </div>
+
+            <fieldset class="col-12">
+              <legend class="form-label fs-6 mb-1">Tipo de certificado *</legend>
+              <div id="opciones-tipo"></div>
+            </fieldset>
+
+            <div class="col-12" id="grupo-resumen-emision" hidden>
+              <div class="border rounded p-2 small bg-body-tertiary">
+                <div class="fw-semibold mb-1">Se emitirá</div>
+                <dl class="row mb-0" id="lista-resumen-emision"></dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="boton-emitir" disabled>
+            <i class="bi bi-award me-1" aria-hidden="true"></i>Emitir certificado
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="titulo-modal-detalle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5" id="titulo-modal-detalle">Certificado</h2>
+            <p class="text-body-secondary small mb-0" id="subtitulo-detalle"></p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-detalle" aria-live="polite"></div>
+
+          <h3 class="h6 text-body-secondary text-uppercase small">Datos del certificado</h3>
+          <dl class="row small mb-0" id="lista-datos"></dl>
+
+          <hr>
+          <h3 class="h6 text-body-secondary text-uppercase small">Verificación</h3>
+          <dl class="row small mb-2" id="lista-verificacion"></dl>
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control font-monospace" id="enlace-verificacion" readonly
+                   aria-label="Enlace de verificación pública">
+            <button type="button" class="btn btn-outline-secondary" id="boton-copiar">
+              <i class="bi bi-clipboard me-1" aria-hidden="true"></i>Copiar
+            </button>
+            <a class="btn btn-outline-primary" id="boton-abrir-verificacion" href="verificar-certificado.html"
+               target="_blank" rel="noopener">
+              <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Abrir
+            </a>
+          </div>
+          <div class="form-text" id="ayuda-copiar">Este enlace es el mismo que figura en el PDF.</div>
+
+          <hr>
+          <h3 class="h6 text-body-secondary text-uppercase small">Trazabilidad</h3>
+          <ol class="list-unstyled small mb-0" id="lista-trazabilidad"></ol>
+
+          <div id="seccion-anulacion" hidden>
+            <hr>
+            <h3 class="h6 text-body-secondary text-uppercase small">Anulación</h3>
+            <dl class="row small mb-0" id="lista-anulacion"></dl>
+          </div>
+
+          <form id="panel-anulacion" class="border border-danger-subtle rounded p-3 mt-3" novalidate hidden>
+            <h3 class="h6">Anular el certificado</h3>
+            <p class="small text-body-secondary mb-2">
+              La anulación es definitiva. El código seguirá existiendo, pero la verificación pública mostrará que el
+              certificado ya no es válido y el PDF dejará de entregarse. Si el certificado tenía un error, después de
+              anularlo puede emitir uno nuevo.
+            </p>
+            <label for="campo-motivo" class="form-label small mb-1">Motivo de la anulación *</label>
+            <textarea class="form-control form-control-sm" id="campo-motivo" rows="3" maxlength="500" required
+                      aria-describedby="contador-motivo"></textarea>
+            <div class="form-text" id="contador-motivo">Entre 10 y 500 caracteres.</div>
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="anular-confirmacion">
+              <label class="form-check-label small" for="anular-confirmacion">
+                Confirmo la anulación. Entiendo que no se puede deshacer.
+              </label>
+            </div>
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="boton-volver-anulacion">Volver</button>
+              <button type="submit" class="btn btn-sm btn-danger" id="boton-confirmar-anulacion" disabled>Anular certificado</button>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-danger me-auto" id="boton-abrir-anulacion" hidden>
+            <i class="bi bi-x-octagon me-1" aria-hidden="true"></i>Anular
+          </button>
+          <button type="button" class="btn btn-primary" id="boton-descargar" hidden>
+            <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>Descargar PDF
+          </button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/certificados.js"></script>
+</body>
+</html>

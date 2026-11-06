@@ -69,3 +69,7 @@ export function cargarCategoriasDeCompetencia(competenciaId) {
 export function cargarParticipaciones(filtros) {
   return cargarTodasLasPaginas(`/api/participaciones-competencia${construirConsulta(filtros)}`);
 }
+
+export function cargarCertificadosDelClub(clubId, estado) {
+  return cargarTodasLasPaginas(`/api/certificados${construirConsulta({ clubId, estado })}`);
+}

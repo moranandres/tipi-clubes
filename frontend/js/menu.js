@@ -10,6 +10,7 @@ export const OPCIONES_MENU = [
   { id: 'solicitudes', etiqueta: 'Solicitudes de inscripción', icono: 'bi-person-plus', href: 'solicitudes.html', roles: TODOS, disponible: true },
   { id: 'retiros', etiqueta: 'Solicitudes de retiro', icono: 'bi-person-dash', href: 'retiros.html', roles: TODOS, disponible: true },
   { id: 'competencias', etiqueta: 'Competencias', icono: 'bi-trophy', href: 'competencias.html', roles: TODOS, disponible: true },
+  { id: 'certificados', etiqueta: 'Certificados', icono: 'bi-award', href: 'certificados.html', roles: TODOS, disponible: true },
   { id: 'periodos', etiqueta: 'Períodos académicos', icono: 'bi-calendar3', href: 'periodos.html', roles: ['ADMIN', 'COORDINADOR', 'CONSULTA', 'RESP_INSTITUCIONAL'], disponible: true },
   { id: 'usuarios', etiqueta: 'Usuarios', icono: 'bi-people', href: 'usuarios.html', roles: ['ADMIN'], disponible: true },
   { id: 'auditoria', etiqueta: 'Auditoría', icono: 'bi-shield-check', href: 'auditoria.html', roles: ['ADMIN', 'CONSULTA'], disponible: true }
