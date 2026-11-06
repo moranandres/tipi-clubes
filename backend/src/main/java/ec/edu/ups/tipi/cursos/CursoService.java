@@ -1,5 +1,7 @@
 package ec.edu.ups.tipi.cursos;
 
+import ec.edu.ups.tipi.actividades.Actividad;
+import ec.edu.ups.tipi.actividades.CierreActividadesService;
 import ec.edu.ups.tipi.auditoria.AuditoriaService;
 import ec.edu.ups.tipi.clubes.Club;
 import ec.edu.ups.tipi.clubes.ClubRepository;
@@ -60,6 +62,7 @@ public class CursoService {
     private final ClubRepository clubRepository;
     private final InstitucionRepository institucionRepository;
     private final DocenteRepository docenteRepository;
+    private final CierreActividadesService cierreActividades;
     private final AlcanceInstitucional alcance;
     private final AuditoriaService auditoria;
 
@@ -200,6 +203,17 @@ public class CursoService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Debe indicar el motivo de la cancelación.");
         }
 
+        int actividadesCanceladas = 0;
+        if (nuevo == EstadoCurso.FINALIZADO || nuevo == EstadoCurso.CANCELADO) {
+            List<Actividad> sinRegistrar = cierreActividades.sinRegistrarDelCurso(id);
+            if (!sinRegistrar.isEmpty()) {
+                throw new ApiException(HttpStatus.CONFLICT, cierreActividades.mensajeSinRegistrar("El curso",
+                        sinRegistrar, nuevo == EstadoCurso.FINALIZADO ? "finalizarlo" : "cancelarlo"));
+            }
+            actividadesCanceladas = cierreActividades.cancelar(cierreActividades.futurasDelCurso(id), usuario,
+                    "Cancelada automáticamente porque el curso «" + curso.getNombre() + "» pasó a " + nuevo);
+        }
+
         curso.setEstado(nuevo);
         curso = cursoRepository.saveAndFlush(curso);
 
@@ -216,6 +230,9 @@ public class CursoService {
         }
         if (cerradas > 0) {
             detalle.append(", inscripciones cerradas=").append(cerradas);
+        }
+        if (actividadesCanceladas > 0) {
+            detalle.append(", actividades canceladas=").append(actividadesCanceladas);
         }
         auditoria.registrar("CURSO_ESTADO_CAMBIADO", "CURSO", id, detalle.toString());
         return armar(List.of(curso), false).get(0);

@@ -1,5 +1,7 @@
 package ec.edu.ups.tipi.clubes;
 
+import ec.edu.ups.tipi.actividades.Actividad;
+import ec.edu.ups.tipi.actividades.CierreActividadesService;
 import ec.edu.ups.tipi.auditoria.AuditoriaService;
 import ec.edu.ups.tipi.clubes.dto.CierreClubResponse;
 import ec.edu.ups.tipi.clubes.dto.CursoAbiertoCierre;
@@ -25,10 +27,12 @@ public class CierreClubService {
 
     private static final ZoneId ZONA = ZoneId.of("America/Guayaquil");
     private static final String OBSERVACION = "Cancelada automáticamente por el cierre del club";
+    private static final String ACCION_CIERRE = "cerrar el club";
 
     private final ClubRepository clubRepository;
     private final PeriodoRepository periodoRepository;
     private final AlcanceInstitucional alcance;
+    private final CierreActividadesService actividades;
     private final AuditoriaService auditoria;
 
     public record ResultadoCierre(long integrantesFinalizados, int solicitudesInscripcionCanceladas,
@@ -45,6 +49,8 @@ public class CierreClubService {
         long integrantes = integrantesActivos(club.getId());
         long solicitudes = clubRepository.solicitudesInscripcionAbiertas(club.getId()).size();
         long retiros = clubRepository.solicitudesRetiroPendientes(club.getId()).size();
+        List<Actividad> sinRegistrar = actividades.sinRegistrarDelClub(club.getId());
+        long actividadesFuturas = actividades.futurasDelClub(club.getId()).size();
 
         List<String> bloqueos = new ArrayList<>();
         if (club.getEstado() == EstadoClub.CERRADO) {
@@ -52,6 +58,9 @@ public class CierreClubService {
         }
         if (!cursos.isEmpty()) {
             bloqueos.add(mensajeCursos(cursos));
+        }
+        if (!sinRegistrar.isEmpty()) {
+            bloqueos.add(actividades.mensajeSinRegistrar("El club", sinRegistrar, ACCION_CIERRE));
         }
 
         List<String> avisos = new ArrayList<>();
@@ -71,6 +80,11 @@ public class CierreClubService {
                         ? "1 solicitud de retiro pendiente se cancelará automáticamente."
                         : retiros + " solicitudes de retiro pendientes se cancelarán automáticamente.");
             }
+            if (actividadesFuturas > 0) {
+                avisos.add(actividadesFuturas == 1
+                        ? "1 actividad planificada para una fecha futura se cancelará automáticamente."
+                        : actividadesFuturas + " actividades planificadas para fechas futuras se cancelarán automáticamente.");
+            }
             avisos.add("Si un administrador reabre el club, los integrantes no se reactivan solos: "
                     + "cada estudiante debe volver a inscribirse con una solicitud aprobada.");
         }
@@ -84,6 +98,11 @@ public class CierreClubService {
         List<CursoAbiertoCierre> cursos = cursosAbiertos(club.getId());
         if (!cursos.isEmpty()) {
             throw new ApiException(HttpStatus.CONFLICT, mensajeCursos(cursos));
+        }
+        List<Actividad> sinRegistrar = actividades.sinRegistrarDelClub(club.getId());
+        if (!sinRegistrar.isEmpty()) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    actividades.mensajeSinRegistrar("El club", sinRegistrar, ACCION_CIERRE));
         }
         long integrantes = integrantesActivos(club.getId());
 
@@ -104,6 +123,8 @@ public class CierreClubService {
                     "codigo=" + fila[1] + "; estado: 'PENDIENTE' -> 'CANCELADA'; por cierre del club id="
                             + club.getId());
         }
+
+        actividades.cancelar(actividades.futurasDelClub(club.getId()), usuario, OBSERVACION);
 
         return new ResultadoCierre(integrantes, canceladas, retirosCancelados);
     }
