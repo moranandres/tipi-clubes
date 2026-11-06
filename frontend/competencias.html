@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Competencias | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h1 class="h3 mb-1">Competencias</h1>
+            <p class="text-body-secondary small mb-0">Participaciones de los integrantes de los clubes y catálogo de competencias, ediciones y categorías.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="boton-nuevo" hidden>
+            <i class="bi bi-trophy me-1" aria-hidden="true"></i>Registrar participación
+          </button>
+        </div>
+
+        <div class="alert alert-info" id="aviso-datos-minimos" hidden>
+          <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-shield-lock fs-5" aria-hidden="true"></i>
+            <div>
+              Su rol supervisa las competencias en modo de consulta: los estudiantes se muestran solo por su código
+              interno (EST-) y no se muestran las observaciones ni los nombres de quienes registraron o modificaron.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info" id="aviso-docente" hidden>
+          <div class="d-flex gap-2 align-items-start">
+            <i class="bi bi-person-workspace fs-5" aria-hidden="true"></i>
+            <div>
+              Se muestran las participaciones de los clubes que usted coordina y las que usted registró. Puede
+              registrar, modificar y eliminar participaciones de los integrantes de sus clubes.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-secondary py-2" id="aviso-filtro-estudiante" hidden>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <i class="bi bi-funnel" aria-hidden="true"></i>
+            <span id="texto-filtro-estudiante"></span>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" id="boton-quitar-estudiante">Quitar filtro</button>
+          </div>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <ul class="nav nav-tabs mb-3" id="pestanas" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-participaciones" data-bs-toggle="tab" data-bs-target="#panel-participaciones"
+                    type="button" role="tab" aria-controls="panel-participaciones" aria-selected="true">
+              <i class="bi bi-people-fill me-1" aria-hidden="true"></i>Participaciones
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-catalogo" data-bs-toggle="tab" data-bs-target="#panel-catalogo"
+                    type="button" role="tab" aria-controls="panel-catalogo" aria-selected="false">
+              <i class="bi bi-tags me-1" aria-hidden="true"></i>Catálogo de competencias
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          <section class="tab-pane fade show active" id="panel-participaciones" role="tabpanel" aria-labelledby="tab-participaciones" tabindex="0">
+            <form id="formulario-filtros" class="card card-body shadow-sm mb-3">
+              <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtro-q" class="form-label mb-1" id="etiqueta-filtro-q">Estudiante (nombre o código)</label>
+                  <input type="search" class="form-control" id="filtro-q" maxlength="100">
+                </div>
+                <div class="col-12 col-md-6 col-xl-3" id="grupo-filtro-institucion">
+                  <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+                  <select class="form-select" id="filtro-institucion">
+                    <option value="">Todas</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtro-club" class="form-label mb-1">Club</label>
+                  <select class="form-select" id="filtro-club">
+                    <option value="">Todos</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtro-competencia" class="form-label mb-1">Competencia</label>
+                  <select class="form-select" id="filtro-competencia">
+                    <option value="">Todas</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtro-edicion" class="form-label mb-1">Edición</label>
+                  <select class="form-select" id="filtro-edicion" disabled>
+                    <option value="">Todas</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtro-categoria" class="form-label mb-1">Categoría</label>
+                  <select class="form-select" id="filtro-categoria" disabled>
+                    <option value="">Todas</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3 col-xl-2">
+                  <label for="filtro-nivel" class="form-label mb-1">Nivel</label>
+                  <select class="form-select" id="filtro-nivel">
+                    <option value="">Todos</option>
+                    <option value="BASICA">Básica</option>
+                    <option value="AVANZADA">Avanzada</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3 col-xl-2">
+                  <label for="filtro-equipo" class="form-label mb-1">Equipo</label>
+                  <input type="search" class="form-control" id="filtro-equipo" maxlength="150">
+                </div>
+                <div class="col-12 col-md-6 col-xl-2 d-flex gap-2">
+                  <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+                  <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+                </div>
+              </div>
+            </form>
+
+            <div class="card shadow-sm">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <caption class="visually-hidden">Listado de participaciones en competencias</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Estudiante</th>
+                      <th scope="col">Club</th>
+                      <th scope="col">Competencia</th>
+                      <th scope="col">Categoría</th>
+                      <th scope="col">Equipo</th>
+                      <th scope="col">Resultado</th>
+                      <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-tabla"></tbody>
+                </table>
+              </div>
+              <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+                <nav id="paginacion" aria-label="Paginación de participaciones"></nav>
+              </div>
+            </div>
+          </section>
+
+          <section class="tab-pane fade" id="panel-catalogo" role="tabpanel" aria-labelledby="tab-catalogo" tabindex="0">
+            <div id="alertas-catalogo" aria-live="polite"></div>
+            <p class="small text-body-secondary" id="texto-catalogo-lectura" hidden>
+              El catálogo lo gestiona el Administrador. Las competencias, ediciones y categorías inactivas se conservan
+              en el historial, pero no admiten nuevas participaciones.
+            </p>
+            <div class="row g-3">
+              <div class="col-12 col-lg-4">
+                <div class="card shadow-sm">
+                  <div class="card-header bg-body d-flex justify-content-between align-items-center gap-2">
+                    <h2 class="h6 mb-0">Competencias</h2>
+                    <button type="button" class="btn btn-sm btn-primary" id="boton-nueva-competencia" hidden>
+                      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva
+                    </button>
+                  </div>
+                  <div class="list-group list-group-flush" id="lista-competencias" aria-live="polite"></div>
+                </div>
+              </div>
+              <div class="col-12 col-lg-8">
+                <div class="card shadow-sm" id="tarjeta-competencia" hidden>
+                  <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                      <div>
+                        <h2 class="h5 mb-1" id="nombre-competencia"></h2>
+                        <div class="small text-body-secondary" id="datos-competencia"></div>
+                      </div>
+                      <div class="d-flex flex-wrap gap-2" id="acciones-competencia"></div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                      <h3 class="h6 mb-0"><i class="bi bi-calendar-event me-1" aria-hidden="true"></i>Ediciones</h3>
+                      <button type="button" class="btn btn-sm btn-outline-primary" id="boton-nueva-edicion" hidden>
+                        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva edición
+                      </button>
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table table-sm align-middle mb-0">
+                        <caption class="visually-hidden">Ediciones de la competencia</caption>
+                        <thead class="table-light">
+                          <tr>
+                            <th scope="col">Edición</th>
+                            <th scope="col">Fechas</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Participaciones</th>
+                            <th scope="col" class="text-end">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody id="cuerpo-ediciones"></tbody>
+                      </table>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                      <h3 class="h6 mb-0"><i class="bi bi-tags me-1" aria-hidden="true"></i>Categorías</h3>
+                      <button type="button" class="btn btn-sm btn-outline-primary" id="boton-nueva-categoria" hidden>
+                        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva categoría
+                      </button>
+                    </div>
+                    <div class="row g-2 mb-2">
+                      <div class="col-12 col-md-5">
+                        <label for="filtro-categoria-q" class="visually-hidden">Buscar categoría</label>
+                        <input type="search" class="form-control form-control-sm" id="filtro-categoria-q" maxlength="100" placeholder="Buscar categoría por nombre">
+                      </div>
+                      <div class="col-6 col-md-4">
+                        <label for="filtro-categoria-nivel" class="visually-hidden">Nivel</label>
+                        <select class="form-select form-select-sm" id="filtro-categoria-nivel">
+                          <option value="">Todos los niveles</option>
+                          <option value="BASICA">Básica</option>
+                          <option value="AVANZADA">Avanzada</option>
+                        </select>
+                      </div>
+                      <div class="col-6 col-md-3">
+                        <label for="filtro-categoria-estado" class="visually-hidden">Estado</label>
+                        <select class="form-select form-select-sm" id="filtro-categoria-estado">
+                          <option value="">Todas</option>
+                          <option value="true">Activas</option>
+                          <option value="false">Inactivas</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table table-sm align-middle mb-0">
+                        <caption class="visually-hidden">Categorías de la competencia</caption>
+                        <thead class="table-light">
+                          <tr>
+                            <th scope="col">Categoría</th>
+                            <th scope="col">Nivel</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Participaciones</th>
+                            <th scope="col" class="text-end">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody id="cuerpo-categorias"></tbody>
+                      </table>
+                    </div>
+                    <div class="small text-body-secondary mt-2" id="resumen-categorias" aria-live="polite"></div>
+                  </div>
+                </div>
+                <div class="card card-body shadow-sm text-body-secondary" id="tarjeta-sin-competencia">
+                  Seleccione una competencia para ver sus ediciones y categorías.
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-nueva" tabindex="-1" aria-labelledby="titulo-modal-nueva" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-nueva" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-nueva">Registrar participación</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-nueva" aria-live="polite"></div>
+          <p class="form-text mt-0">
+            Solo participan integrantes activos del club con la autorización de participación otorgada. Un estudiante
+            participa una sola vez en cada categoría de una edición.
+          </p>
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="nueva-club" class="form-label">Club *</label>
+              <select class="form-select" id="nueva-club" required>
+                <option value="">Seleccione un club</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="nueva-competencia" class="form-label">Competencia *</label>
+              <select class="form-select" id="nueva-competencia" required>
+                <option value="">Seleccione una competencia</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <label for="nueva-edicion" class="form-label">Edición *</label>
+              <select class="form-select" id="nueva-edicion" required disabled>
+                <option value="">Seleccione primero la competencia</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <div class="form-text mt-0" id="ayuda-nueva-edicion"></div>
+            </div>
+            <div class="col-12">
+              <label for="nueva-categoria" class="form-label">Categoría *</label>
+              <select class="form-select" id="nueva-categoria" required disabled>
+                <option value="">Seleccione primero la competencia</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label for="nueva-buscar-integrante" class="form-label">Integrante que participa *</label>
+              <input type="search" class="form-control mb-2" id="nueva-buscar-integrante" maxlength="100"
+                     placeholder="Escriba apellidos, nombres o código EST- para filtrar" disabled>
+              <select class="form-select" id="nueva-integrante" size="6" required disabled
+                      aria-describedby="ayuda-nueva-integrante"></select>
+              <div class="form-text" id="ayuda-nueva-integrante">Seleccione primero el club.</div>
+            </div>
+            <div class="col-12">
+              <label for="nueva-equipo" class="form-label">Equipo (opcional)</label>
+              <input type="text" class="form-control" id="nueva-equipo" maxlength="150" list="lista-equipos-nueva"
+                     aria-describedby="ayuda-nueva-equipo" autocomplete="off">
+              <datalist id="lista-equipos-nueva"></datalist>
+              <div class="form-text" id="ayuda-nueva-equipo">Déjelo vacío si la participación es individual.</div>
+            </div>
+            <div class="col-12">
+              <fieldset class="border rounded p-2" id="grupo-resultados-nueva">
+                <legend class="float-none w-auto px-1 small fw-semibold mb-0">Resultado (opcional)</legend>
+                <div class="row g-2">
+                  <div class="col-12 col-md-4">
+                    <label for="nueva-puesto" class="form-label small mb-1">Puesto</label>
+                    <input type="number" class="form-control form-control-sm" id="nueva-puesto" min="1" max="999" step="1">
+                  </div>
+                  <div class="col-12 col-md-8">
+                    <label for="nueva-reconocimiento" class="form-label small mb-1">Reconocimiento</label>
+                    <input type="text" class="form-control form-control-sm" id="nueva-reconocimiento" maxlength="100"
+                           placeholder="Por ejemplo: Mejor diseño">
+                  </div>
+                </div>
+                <div class="form-text" id="ayuda-resultados-nueva"></div>
+              </fieldset>
+            </div>
+            <div class="col-12">
+              <label for="nueva-observaciones" class="form-label">Observaciones (opcional)</label>
+              <textarea class="form-control" id="nueva-observaciones" rows="2" maxlength="1000"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-outline-primary" id="boton-registrar-otro">Registrar y agregar otro</button>
+          <button type="submit" class="btn btn-primary" id="boton-registrar">Registrar participación</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="titulo-modal-detalle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title h5" id="titulo-modal-detalle">Participación</h2>
+            <p class="text-body-secondary small mb-0" id="subtitulo-detalle"></p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-detalle" aria-live="polite"></div>
+
+          <h3 class="h6 text-body-secondary text-uppercase small">Datos de la participación</h3>
+          <dl class="row small mb-0" id="lista-datos"></dl>
+
+          <div id="seccion-equipo" hidden>
+            <hr>
+            <h3 class="h6 text-body-secondary text-uppercase small">Integrantes del equipo</h3>
+            <ul class="small mb-0" id="lista-equipo"></ul>
+          </div>
+
+          <hr>
+          <h3 class="h6 text-body-secondary text-uppercase small">Trazabilidad</h3>
+          <ol class="list-unstyled small mb-0" id="lista-trazabilidad"></ol>
+
+          <div id="panel-solo-lectura" hidden>
+            <hr>
+            <div class="small" id="texto-solo-lectura"></div>
+          </div>
+
+          <form id="panel-edicion" class="border rounded p-3 mt-3" novalidate hidden>
+            <h3 class="h6">Modificar la participación</h3>
+            <p class="small text-body-secondary mb-2">
+              El estudiante, la edición y la categoría no se modifican; si son incorrectos, elimine la participación
+              y regístrela de nuevo.
+            </p>
+            <div class="row g-2">
+              <div class="col-12">
+                <label for="editar-equipo" class="form-label small mb-1">Equipo</label>
+                <input type="text" class="form-control form-control-sm" id="editar-equipo" maxlength="150"
+                       list="lista-equipos-editar" autocomplete="off" aria-describedby="ayuda-editar-equipo">
+                <datalist id="lista-equipos-editar"></datalist>
+                <div class="form-text" id="ayuda-editar-equipo">Déjelo vacío si la participación es individual.</div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label for="editar-puesto" class="form-label small mb-1">Puesto</label>
+                <input type="number" class="form-control form-control-sm" id="editar-puesto" min="1" max="999" step="1">
+              </div>
+              <div class="col-12 col-md-8">
+                <label for="editar-reconocimiento" class="form-label small mb-1">Reconocimiento</label>
+                <input type="text" class="form-control form-control-sm" id="editar-reconocimiento" maxlength="100">
+              </div>
+              <div class="col-12">
+                <div class="form-text mt-0" id="ayuda-resultados-editar"></div>
+              </div>
+              <div class="col-12">
+                <label for="editar-observaciones" class="form-label small mb-1">Observaciones</label>
+                <textarea class="form-control form-control-sm" id="editar-observaciones" rows="2" maxlength="1000"></textarea>
+              </div>
+            </div>
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-outline-danger me-auto" id="boton-abrir-eliminar">
+                <i class="bi bi-trash me-1" aria-hidden="true"></i>Eliminar
+              </button>
+              <button type="submit" class="btn btn-primary" id="boton-guardar">
+                <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Guardar cambios
+              </button>
+            </div>
+          </form>
+
+          <div id="panel-eliminar" class="border border-danger-subtle rounded p-3 mt-3" hidden>
+            <h3 class="h6">Eliminar la participación</h3>
+            <p class="small text-body-secondary mb-2" id="texto-eliminar"></p>
+            <div class="d-flex flex-wrap justify-content-end gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="boton-volver-eliminar">Volver</button>
+              <button type="button" class="btn btn-sm btn-danger" id="boton-confirmar-eliminar">Confirmar eliminación</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-competencia" tabindex="-1" aria-labelledby="titulo-modal-competencia" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-competencia" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-competencia">Nueva competencia</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-competencia" aria-live="polite"></div>
+          <div class="mb-3">
+            <label for="competencia-nombre" class="form-label">Nombre *</label>
+            <input type="text" class="form-control" id="competencia-nombre" maxlength="100" required>
+          </div>
+          <div class="mb-3">
+            <label for="competencia-organizador" class="form-label">Organizador</label>
+            <input type="text" class="form-control" id="competencia-organizador" maxlength="200">
+          </div>
+          <div>
+            <label for="competencia-sitio" class="form-label">Sitio web</label>
+            <input type="url" class="form-control" id="competencia-sitio" maxlength="200" placeholder="https://">
+            <div class="form-text">Debe empezar con http:// o https://.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar-competencia">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-edicion" tabindex="-1" aria-labelledby="titulo-modal-edicion" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-edicion" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-edicion">Nueva edición</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-edicion" aria-live="polite"></div>
+          <div class="row g-3">
+            <div class="col-12 col-md-8">
+              <label for="edicion-nombre" class="form-label">Nombre *</label>
+              <input type="text" class="form-control" id="edicion-nombre" maxlength="100" required placeholder="Por ejemplo: Killtronic 2027">
+            </div>
+            <div class="col-12 col-md-4">
+              <label for="edicion-anio" class="form-label">Año *</label>
+              <input type="number" class="form-control" id="edicion-anio" min="2000" max="2100" step="1" required>
+            </div>
+            <div class="col-6">
+              <label for="edicion-inicio" class="form-label">Fecha de inicio</label>
+              <input type="date" class="form-control" id="edicion-inicio">
+            </div>
+            <div class="col-6">
+              <label for="edicion-fin" class="form-label">Fecha de fin</label>
+              <input type="date" class="form-control" id="edicion-fin">
+            </div>
+            <div class="col-12">
+              <div class="form-text mt-0">
+                La fecha de inicio debe caer en el año de la edición. Los puestos y reconocimientos solo se registran
+                desde esa fecha.
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="edicion-sede" class="form-label">Sede</label>
+              <input type="text" class="form-control" id="edicion-sede" maxlength="150">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar-edicion">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-categoria" tabindex="-1" aria-labelledby="titulo-modal-categoria" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-categoria" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-categoria">Nueva categoría</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-categoria" aria-live="polite"></div>
+          <div class="mb-3">
+            <label for="categoria-nivel" class="form-label">Nivel *</label>
+            <select class="form-select" id="categoria-nivel" required aria-describedby="ayuda-categoria-nivel">
+              <option value="">Seleccione el nivel</option>
+              <option value="BASICA">Básica</option>
+              <option value="AVANZADA">Avanzada</option>
+            </select>
+            <div class="form-text" id="ayuda-categoria-nivel"></div>
+          </div>
+          <div class="mb-3">
+            <label for="categoria-nombre" class="form-label">Nombre *</label>
+            <input type="text" class="form-control" id="categoria-nombre" maxlength="150" required>
+          </div>
+          <div>
+            <label for="categoria-descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="categoria-descripcion" rows="3" maxlength="500"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar-categoria">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/competencias.js"></script>
+</body>
+</html>
