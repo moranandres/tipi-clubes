@@ -37,5 +37,8 @@ public record ActividadActualizarRequest(
         String lugar,
 
         @Size(max = 30, message = "Máximo 30 contenidos por actividad")
-        List<@NotNull(message = "El identificador del contenido no puede ser nulo") Integer> contenidoIds) {
+        List<@NotNull(message = "El identificador del contenido no puede ser nulo") Integer> contenidoIds,
+
+        @Size(max = 500, message = "Máximo 500 caracteres")
+        String motivoReprogramacion) {
 }

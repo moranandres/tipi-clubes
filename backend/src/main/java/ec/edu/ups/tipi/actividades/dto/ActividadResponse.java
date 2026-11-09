@@ -12,7 +12,8 @@ public record ActividadResponse(
         Long cursoId, String cursoNombre, Long responsableId, String responsableNombre,
         LocalDate fecha, LocalTime horaInicio, LocalTime horaFin, long duracionMinutos,
         String tema, String objetivo, String descripcion, String lugar,
-        EstadoActividad estado, boolean pendienteDeRegistro, List<ContenidoResumen> contenidos,
+        EstadoActividad estado, boolean pendienteDeRegistro, LocalDate fechaOriginal, LocalTime horaInicioOriginal,
+        LocalTime horaFinOriginal, long reprogramaciones, List<ContenidoResumen> contenidos,
         String resumenEjecucion, String observaciones, String ejecutadaPorNombre, Instant fechaRegistroEjecucion,
         String motivoCancelacion, String canceladaPorNombre, Instant fechaCancelacion,
         String creadoPorNombre, Instant createdAt, Instant actualizadoEn) {

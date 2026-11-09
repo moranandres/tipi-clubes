@@ -6,6 +6,7 @@ import ec.edu.ups.tipi.actividades.dto.ActividadResponse;
 import ec.edu.ups.tipi.actividades.dto.CancelacionActividadRequest;
 import ec.edu.ups.tipi.actividades.dto.ContenidoResumen;
 import ec.edu.ups.tipi.actividades.dto.EjecucionActividadRequest;
+import ec.edu.ups.tipi.actividades.dto.ReprogramacionResponse;
 import ec.edu.ups.tipi.auditoria.AuditoriaService;
 import ec.edu.ups.tipi.clubes.Club;
 import ec.edu.ups.tipi.clubes.ClubRepository;
@@ -39,8 +40,10 @@ import org.springframework.util.StringUtils;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -70,6 +73,7 @@ public class ActividadService {
     private static final String ENTIDAD = "ACTIVIDAD";
 
     private final ActividadRepository actividadRepository;
+    private final ReprogramacionActividadRepository reprogramacionRepository;
     private final ContenidoCatalogoRepository contenidoRepository;
     private final ClubRepository clubRepository;
     private final CursoRepository cursoRepository;
@@ -202,6 +206,19 @@ public class ActividadService {
         }
         verificarClubProgramable(club);
 
+        boolean reprograma = !actividad.getFecha().equals(datos.fecha())
+                || !actividad.getHoraInicio().equals(datos.horaInicio())
+                || !actividad.getHoraFin().equals(datos.horaFin());
+        String motivo = limpiar(datos.motivoReprogramacion());
+        if (reprograma) {
+            if (motivo == null) {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        "Cambiar la fecha o el horario de una actividad planificada es una reprogramación; "
+                                + "indique el motivo en «motivoReprogramacion».");
+            }
+            reprogramacionRepository.prepararContexto(motivo, String.valueOf(usuario.getId()));
+        }
+
         Map<String, String> antes = instantanea(actividad);
         Set<Integer> contenidosAntes = new TreeSet<>(actividad.getContenidoIds());
         String objetivoAnterior = actividad.getObjetivo();
@@ -229,7 +246,10 @@ public class ActividadService {
         if (contenidos != null) {
             partes.add(contenidos);
         }
-        auditoria.registrar("ACTIVIDAD_ACTUALIZADA", ENTIDAD, id,
+        if (reprograma) {
+            partes.add("motivo de la reprogramación=" + motivo);
+        }
+        auditoria.registrar(reprograma ? "ACTIVIDAD_REPROGRAMADA" : "ACTIVIDAD_ACTUALIZADA", ENTIDAD, id,
                 partes.isEmpty() ? "Sin cambios" : String.join("; ", partes));
         return armar(List.of(actividad)).get(0);
     }
@@ -326,12 +346,34 @@ public class ActividadService {
                     + (actividad.getEstado() == EstadoActividad.EJECUTADA ? "ejecutada" : "cancelada")
                     + " y forma parte del historial del club; no se elimina.");
         }
+        if (actividad.getFecha().isBefore(hoy())) {
+            throw new ApiException(HttpStatus.CONFLICT, "La actividad del " + actividad.getFecha().format(FECHA)
+                    + " ya pasó y forma parte del seguimiento del club; cancélela con un motivo en lugar de eliminarla.");
+        }
+        if (reprogramacionRepository.existsByActividadId(id)) {
+            throw new ApiException(HttpStatus.CONFLICT, "La actividad fue reprogramada y su historial forma parte del "
+                    + "seguimiento del club; cancélela con un motivo en lugar de eliminarla.");
+        }
         actividadRepository.delete(actividad);
         actividadRepository.flush();
 
         auditoria.registrar("ACTIVIDAD_ELIMINADA", ENTIDAD, id,
                 "clubId=" + actividad.getClubId() + ", fecha=" + actividad.getFecha()
                         + ", tema=" + actividad.getTema());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReprogramacionResponse> reprogramaciones(Long id, UsuarioPrincipal usuario) {
+        Actividad actividad = buscar(id);
+        verificarLectura(usuario, actividad);
+        List<ReprogramacionActividad> lista = reprogramacionRepository.findByActividadIdOrderByIdAsc(id);
+        Map<Long, String> usuarios = usuarioRepository.findAllById(lista.stream()
+                        .map(ReprogramacionActividad::getRegistradoPor).collect(Collectors.toSet())).stream()
+                .collect(Collectors.toMap(Usuario::getId, u -> u.getNombres() + " " + u.getApellidos()));
+        return lista.stream().map(r -> new ReprogramacionResponse(r.getId(), r.getFechaAnterior(),
+                r.getHoraInicioAnterior(), r.getHoraFinAnterior(), r.getFechaNueva(), r.getHoraInicioNueva(),
+                r.getHoraFinNueva(), ChronoUnit.DAYS.between(r.getFechaAnterior(), r.getFechaNueva()), r.getMotivo(),
+                usuarios.get(r.getRegistradoPor()), r.getFechaRegistro())).toList();
     }
 
     private Actividad buscar(Long id) {
@@ -484,6 +526,9 @@ public class ActividadService {
                 .collect(Collectors.toSet());
         Map<Integer, ContenidoCatalogo> contenidos = porId(contenidoRepository.findAllById(contenidoIds),
                 ContenidoCatalogo::getId);
+        Map<Long, List<ReprogramacionActividad>> reprogramaciones = reprogramacionRepository
+                .findByActividadIdInOrderByIdAsc(ids(actividades, Actividad::getId)).stream()
+                .collect(Collectors.groupingBy(ReprogramacionActividad::getActividadId));
         LocalDate hoy = hoy();
 
         return actividades.stream().map(a -> {
@@ -494,6 +539,11 @@ public class ActividadService {
                     .map(ContenidoResumen::de)
                     .toList();
             Club club = clubes.get(a.getClubId());
+            List<ReprogramacionActividad> cambios = reprogramaciones.getOrDefault(a.getId(), List.of());
+            ReprogramacionActividad primera = cambios.isEmpty() ? null : cambios.get(0);
+            LocalDate fechaOriginal = primera == null ? a.getFecha() : primera.getFechaAnterior();
+            LocalTime inicioOriginal = primera == null ? a.getHoraInicio() : primera.getHoraInicioAnterior();
+            LocalTime finOriginal = primera == null ? a.getHoraFin() : primera.getHoraFinAnterior();
             return new ActividadResponse(a.getId(), a.getClubId(), club == null ? null : club.getNombre(),
                     a.getInstitucionId(), instituciones.get(a.getInstitucionId()),
                     a.getCursoId(), a.getCursoId() == null ? null : cursos.get(a.getCursoId()),
@@ -503,7 +553,7 @@ public class ActividadService {
                     a.getTema(), a.getObjetivo(), a.getDescripcion(), a.getLugar(),
                     a.getEstado(),
                     a.getEstado() == EstadoActividad.PLANIFICADA && !a.getFecha().isAfter(hoy),
-                    lista, a.getResumenEjecucion(), a.getObservaciones(),
+                    fechaOriginal, inicioOriginal, finOriginal, cambios.size(), lista, a.getResumenEjecucion(), a.getObservaciones(),
                     a.getEjecutadaPor() == null ? null : usuarios.get(a.getEjecutadaPor()),
                     a.getFechaRegistroEjecucion(), a.getMotivoCancelacion(),
                     a.getCanceladaPor() == null ? null : usuarios.get(a.getCanceladaPor()),

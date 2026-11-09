@@ -44,6 +44,6 @@ public record ActividadCrearRequest(
 
     public ActividadActualizarRequest datos() {
         return new ActividadActualizarRequest(cursoId, responsableId, fecha, horaInicio, horaFin, tema, objetivo,
-                descripcion, lugar, contenidoIds);
+                descripcion, lugar, contenidoIds, null);
     }
 }

@@ -5,6 +5,7 @@ import ec.edu.ups.tipi.actividades.dto.ActividadCrearRequest;
 import ec.edu.ups.tipi.actividades.dto.ActividadResponse;
 import ec.edu.ups.tipi.actividades.dto.CancelacionActividadRequest;
 import ec.edu.ups.tipi.actividades.dto.EjecucionActividadRequest;
+import ec.edu.ups.tipi.actividades.dto.ReprogramacionResponse;
 import ec.edu.ups.tipi.common.PaginaResponse;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/actividades")
@@ -52,6 +54,13 @@ public class ActividadController {
     @PreAuthorize(LECTURA)
     public ActividadResponse obtener(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal usuario) {
         return service.obtener(id, usuario);
+    }
+
+    @GetMapping("/{id}/reprogramaciones")
+    @PreAuthorize(LECTURA)
+    public List<ReprogramacionResponse> reprogramaciones(@PathVariable Long id,
+                                                        @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return service.reprogramaciones(id, usuario);
     }
 
     @PostMapping
