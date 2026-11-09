@@ -8,6 +8,8 @@ import ec.edu.ups.tipi.clubes.dto.CursoAbiertoCierre;
 import ec.edu.ups.tipi.common.ApiException;
 import ec.edu.ups.tipi.periodos.PeriodoAcademico;
 import ec.edu.ups.tipi.periodos.PeriodoRepository;
+import ec.edu.ups.tipi.proyectos.CierreProyectosService;
+import ec.edu.ups.tipi.proyectos.Proyecto;
 import ec.edu.ups.tipi.security.AlcanceInstitucional;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class CierreClubService {
     private final PeriodoRepository periodoRepository;
     private final AlcanceInstitucional alcance;
     private final CierreActividadesService actividades;
+    private final CierreProyectosService proyectos;
     private final AuditoriaService auditoria;
 
     public record ResultadoCierre(long integrantesFinalizados, int solicitudesInscripcionCanceladas,
@@ -51,6 +54,7 @@ public class CierreClubService {
         long retiros = clubRepository.solicitudesRetiroPendientes(club.getId()).size();
         List<Actividad> sinRegistrar = actividades.sinRegistrarDelClub(club.getId());
         long actividadesFuturas = actividades.futurasDelClub(club.getId()).size();
+        List<Proyecto> enDesarrollo = proyectos.enDesarrolloDelClub(club.getId());
 
         List<String> bloqueos = new ArrayList<>();
         if (club.getEstado() == EstadoClub.CERRADO) {
@@ -61,6 +65,9 @@ public class CierreClubService {
         }
         if (!sinRegistrar.isEmpty()) {
             bloqueos.add(actividades.mensajeSinRegistrar("El club", sinRegistrar, ACCION_CIERRE));
+        }
+        if (!enDesarrollo.isEmpty()) {
+            bloqueos.add(proyectos.mensajeEnDesarrollo(enDesarrollo, ACCION_CIERRE));
         }
 
         List<String> avisos = new ArrayList<>();
@@ -103,6 +110,10 @@ public class CierreClubService {
         if (!sinRegistrar.isEmpty()) {
             throw new ApiException(HttpStatus.CONFLICT,
                     actividades.mensajeSinRegistrar("El club", sinRegistrar, ACCION_CIERRE));
+        }
+        List<Proyecto> enDesarrollo = proyectos.enDesarrolloDelClub(club.getId());
+        if (!enDesarrollo.isEmpty()) {
+            throw new ApiException(HttpStatus.CONFLICT, proyectos.mensajeEnDesarrollo(enDesarrollo, ACCION_CIERRE));
         }
         long integrantes = integrantesActivos(club.getId());
 
