@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Catálogo de contenidos | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h1 class="h3 mb-0">Catálogo de contenidos</h1>
+            <p class="text-body-secondary small mb-0">
+              Herramientas, lenguajes, componentes y competencias que se asignan a las actividades de los clubes.
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary" id="boton-nuevo">
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nuevo contenido
+          </button>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <form id="formulario-filtros" class="card card-body shadow-sm mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+              <label for="filtro-q" class="form-label mb-1">Nombre</label>
+              <input type="search" class="form-control" id="filtro-q" maxlength="100">
+            </div>
+            <div class="col-6 col-md-3">
+              <label for="filtro-tipo" class="form-label mb-1">Tipo</label>
+              <select class="form-select" id="filtro-tipo">
+                <option value="">Todos</option>
+                <option value="HERRAMIENTA">Herramienta</option>
+                <option value="LENGUAJE">Lenguaje</option>
+                <option value="COMPONENTE">Componente</option>
+                <option value="COMPETENCIA">Competencia</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label for="filtro-activo" class="form-label mb-1">Estado</label>
+              <select class="form-select" id="filtro-activo">
+                <option value="">Todos</option>
+                <option value="true">Activos</option>
+                <option value="false">Inactivos</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+              <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <caption class="visually-hidden">Contenidos del catálogo</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Descripción</th>
+                  <th scope="col" class="text-end">Actividades</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla"></tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-contenido" tabindex="-1" aria-labelledby="titulo-modal-contenido" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-contenido" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-contenido">Contenido</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-modal" aria-live="polite"></div>
+          <div class="mb-3">
+            <label for="campo-tipo" class="form-label">Tipo *</label>
+            <select class="form-select" id="campo-tipo" required aria-describedby="ayuda-tipo">
+              <option value="">Seleccione un tipo</option>
+              <option value="HERRAMIENTA">Herramienta</option>
+              <option value="LENGUAJE">Lenguaje</option>
+              <option value="COMPONENTE">Componente</option>
+              <option value="COMPETENCIA">Competencia</option>
+            </select>
+            <div id="ayuda-tipo" class="form-text" hidden>
+              Este contenido ya se usa en actividades y no puede cambiar de tipo.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="campo-nombre" class="form-label">Nombre *</label>
+            <input type="text" class="form-control" id="campo-nombre" maxlength="100" required>
+          </div>
+          <div class="mb-0">
+            <label for="campo-descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="campo-descripcion" rows="3" maxlength="255"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/contenidos.js"></script>
+</body>
+</html>

@@ -73,3 +73,11 @@ export function cargarParticipaciones(filtros) {
 export function cargarCertificadosDelClub(clubId, estado) {
   return cargarTodasLasPaginas(`/api/certificados${construirConsulta({ clubId, estado })}`);
 }
+
+export function cargarActividadesDelClub(clubId, estado) {
+  return cargarTodasLasPaginas(`/api/actividades${construirConsulta({ clubId, estado })}`);
+}
+
+export function cargarContenidos(filtros = {}) {
+  return apiFetch(`/api/contenidos${construirConsulta(filtros)}`);
+}

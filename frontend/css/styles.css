@@ -127,3 +127,28 @@
     box-shadow: none !important;
   }
 }
+
+.lista-contenidos {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.tarjeta-alerta {
+  border-left: 4px solid var(--bs-warning) !important;
+}
+
+.fila-nueva > td {
+  background-color: var(--bs-success-bg-subtle);
+}
+
+.fila-corregida > td {
+  background-color: var(--bs-warning-bg-subtle);
+}
+
+.celda-observacion {
+  min-width: 14rem;
+}
+
+.barra-asistencia {
+  min-width: 5rem;
+}

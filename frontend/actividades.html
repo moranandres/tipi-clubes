@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Actividades y sesiones | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h1 class="h3 mb-0">Actividades y sesiones</h1>
+            <p class="text-body-secondary small mb-0">
+              Planificación, ejecución, reprogramación y cancelación de las sesiones de cada club.
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary" id="boton-nueva" hidden>
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nueva actividad
+          </button>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <div class="row g-2 mb-3" id="indicadores" aria-live="polite"></div>
+
+        <form id="formulario-filtros" class="card card-body shadow-sm mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-4 col-xl-3">
+              <label for="filtro-q" class="form-label mb-1">Tema</label>
+              <input type="search" class="form-control" id="filtro-q" maxlength="100">
+            </div>
+            <div class="col-12 col-md-4 col-xl-3" id="grupo-filtro-institucion">
+              <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+              <select class="form-select" id="filtro-institucion">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-4 col-xl-3">
+              <label for="filtro-club" class="form-label mb-1">Club</label>
+              <select class="form-select" id="filtro-club">
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-3">
+              <label for="filtro-curso" class="form-label mb-1">Curso</label>
+              <select class="form-select" id="filtro-curso" disabled>
+                <option value="">Todos</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-estado" class="form-label mb-1">Estado</label>
+              <select class="form-select" id="filtro-estado">
+                <option value="">Todos</option>
+                <option value="PLANIFICADA">Planificada</option>
+                <option value="EJECUTADA">Ejecutada</option>
+                <option value="CANCELADA">Cancelada</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-desde" class="form-label mb-1">Desde</label>
+              <input type="date" class="form-control" id="filtro-desde">
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-hasta" class="form-label mb-1">Hasta</label>
+              <input type="date" class="form-control" id="filtro-hasta">
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+              <label for="filtro-orden" class="form-label mb-1">Orden</label>
+              <select class="form-select" id="filtro-orden">
+                <option value="false">Más recientes primero</option>
+                <option value="true">Más antiguas primero</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-8 col-xl-4">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="filtro-pendientes">
+                <label class="form-check-label" for="filtro-pendientes">
+                  Solo sesiones pasadas o de hoy sin ejecución registrada
+                </label>
+              </div>
+            </div>
+            <div class="col-12 col-md-4 col-xl-2 d-flex gap-2">
+              <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+              <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="card shadow-sm">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <caption class="visually-hidden">Listado de actividades y sesiones de los clubes</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Fecha y horario</th>
+                  <th scope="col">Tema</th>
+                  <th scope="col">Club</th>
+                  <th scope="col">Responsable</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-tabla"></tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <small class="text-body-secondary" id="resumen-resultados" aria-live="polite"></small>
+            <nav id="paginacion" aria-label="Paginación de actividades"></nav>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-actividad" tabindex="-1" aria-labelledby="titulo-modal-actividad" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-actividad" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-actividad">Actividad</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-modal" aria-live="polite"></div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="campo-club" class="form-label">Club *</label>
+              <select class="form-select" id="campo-club" required aria-describedby="ayuda-club">
+                <option value="">Seleccione un club</option>
+              </select>
+              <div id="ayuda-club" class="form-text">Solo clubes planificados o activos admiten actividades.</div>
+            </div>
+            <div class="col-md-6">
+              <label for="campo-curso" class="form-label">Curso del club</label>
+              <select class="form-select" id="campo-curso" aria-describedby="ayuda-curso" disabled>
+                <option value="">Sesión general del club</option>
+              </select>
+              <div id="ayuda-curso" class="form-text">
+                Si elige un curso, la asistencia se toma solo a sus inscritos.
+              </div>
+            </div>
+            <div class="col-12">
+              <label for="campo-responsable" class="form-label">Docente responsable</label>
+              <select class="form-select" id="campo-responsable" aria-describedby="ayuda-responsable" disabled>
+                <option value="">Docente del club</option>
+              </select>
+              <div id="ayuda-responsable" class="form-text">
+                Si no elige uno, la sesión queda a cargo del docente coordinador del club.
+              </div>
+            </div>
+            <div class="col-md-4">
+              <label for="campo-fecha" class="form-label">Fecha *</label>
+              <input type="date" class="form-control" id="campo-fecha" required>
+            </div>
+            <div class="col-6 col-md-4">
+              <label for="campo-horaInicio" class="form-label">Hora de inicio *</label>
+              <input type="time" class="form-control" id="campo-horaInicio" required>
+            </div>
+            <div class="col-6 col-md-4">
+              <label for="campo-horaFin" class="form-label">Hora de fin *</label>
+              <input type="time" class="form-control" id="campo-horaFin" required aria-describedby="ayuda-duracion">
+            </div>
+            <div class="col-12">
+              <div id="ayuda-duracion" class="form-text mt-0">Una sesión dura como máximo 8 horas.</div>
+            </div>
+            <div class="col-12" id="grupo-reprogramacion" hidden>
+              <div class="alert alert-warning py-2 mb-2">
+                <div class="fw-semibold">Este cambio es una reprogramación.</div>
+                <div class="small" id="texto-reprogramacion"></div>
+                <div class="small">
+                  Queda registrado en el historial de la actividad con su motivo y ya no se puede borrar.
+                </div>
+              </div>
+              <label for="campo-motivoReprogramacion" class="form-label">Motivo de la reprogramación *</label>
+              <textarea class="form-control" id="campo-motivoReprogramacion" rows="2" maxlength="500"
+                        aria-describedby="contador-motivoReprogramacion"></textarea>
+              <div class="form-text text-end" id="contador-motivoReprogramacion">0 / 500</div>
+            </div>
+            <div class="col-12">
+              <label for="campo-tema" class="form-label">Tema *</label>
+              <input type="text" class="form-control" id="campo-tema" maxlength="200" required>
+            </div>
+            <div class="col-12">
+              <label for="campo-objetivo" class="form-label">Objetivo de la sesión *</label>
+              <textarea class="form-control" id="campo-objetivo" rows="2" maxlength="2000" required></textarea>
+            </div>
+            <div class="col-12">
+              <label for="campo-descripcion" class="form-label">Descripción</label>
+              <textarea class="form-control" id="campo-descripcion" rows="3" maxlength="4000"></textarea>
+            </div>
+            <div class="col-12">
+              <label for="campo-lugar" class="form-label">Lugar</label>
+              <input type="text" class="form-control" id="campo-lugar" maxlength="150" aria-describedby="ayuda-lugar">
+              <div id="ayuda-lugar" class="form-text">Si lo deja vacío al crear, se usa el lugar del club.</div>
+            </div>
+            <div class="col-12">
+              <fieldset>
+                <legend class="form-label fs-6 mb-1">Contenidos planificados</legend>
+                <p class="form-text mt-0 mb-2">
+                  Herramientas, lenguajes, componentes y competencias que se trabajarán (máximo 30).
+                </p>
+                <div class="border rounded p-2 lista-contenidos" id="contenidos-actividad"></div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-ejecucion" tabindex="-1" aria-labelledby="titulo-modal-ejecucion" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-ejecucion" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-ejecucion">Registrar ejecución</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-semibold mb-0" id="ejecucion-tema"></p>
+          <p class="text-body-secondary small" id="ejecucion-datos"></p>
+          <div id="alertas-ejecucion" aria-live="polite"></div>
+          <div class="alert alert-info py-2 small" id="aviso-ejecucion" hidden>
+            Está corrigiendo los datos de una sesión ya ejecutada. El cambio queda registrado en la auditoría.
+          </div>
+          <div class="mb-3">
+            <label for="ejecucion-resumen" class="form-label">Contenidos impartidos en la sesión *</label>
+            <textarea class="form-control" id="ejecucion-resumen" rows="4" maxlength="4000"
+                      aria-describedby="contador-ejecucion-resumen"></textarea>
+            <div class="form-text text-end" id="contador-ejecucion-resumen">0 / 4000</div>
+          </div>
+          <div class="mb-3">
+            <label for="ejecucion-observaciones" class="form-label">Observaciones</label>
+            <textarea class="form-control" id="ejecucion-observaciones" rows="3" maxlength="4000"></textarea>
+          </div>
+          <fieldset>
+            <legend class="form-label fs-6 mb-1">Contenidos trabajados *</legend>
+            <p class="form-text mt-0 mb-2">Marque al menos uno. Se proponen los contenidos planificados.</p>
+            <div class="border rounded p-2 lista-contenidos" id="contenidos-ejecucion"></div>
+          </fieldset>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-success" id="boton-guardar-ejecucion">Registrar ejecución</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-cancelacion" tabindex="-1" aria-labelledby="titulo-modal-cancelacion" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-cancelacion" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-cancelacion">Cancelar actividad</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-semibold mb-0" id="cancelacion-tema"></p>
+          <p class="text-body-secondary small" id="cancelacion-datos"></p>
+          <div id="alertas-cancelacion" aria-live="polite"></div>
+          <div class="alert alert-warning py-2 small">
+            La actividad cancelada se conserva en el historial y en el seguimiento del club; ya no se podrá
+            modificar ni registrar su ejecución.
+          </div>
+          <label for="cancelacion-motivo" class="form-label">Motivo de la cancelación *</label>
+          <textarea class="form-control" id="cancelacion-motivo" rows="3" maxlength="500"
+                    aria-describedby="contador-cancelacion-motivo"></textarea>
+          <div class="form-text text-end" id="contador-cancelacion-motivo">0 / 500</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
+          <button type="submit" class="btn btn-danger" id="boton-confirmar-cancelacion">Cancelar actividad</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="titulo-modal-detalle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-detalle">Detalle de la actividad</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-detalle" aria-live="polite"></div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h3 class="h5 mb-0" id="detalle-tema"></h3>
+            <span id="detalle-estado"></span>
+          </div>
+          <p class="text-body-secondary small mb-3" id="detalle-club"></p>
+          <dl class="row small mb-3" id="detalle-datos"></dl>
+          <div class="mb-3" id="grupo-detalle-contenidos">
+            <h4 class="h6">Contenidos</h4>
+            <div class="d-flex flex-wrap gap-1" id="detalle-contenidos"></div>
+          </div>
+          <div class="mb-3" id="grupo-detalle-ejecucion" hidden>
+            <h4 class="h6">Ejecución registrada</h4>
+            <div class="border rounded p-2 small">
+              <p class="mb-2 texto-preformateado" id="detalle-resumen"></p>
+              <p class="mb-2 texto-preformateado text-body-secondary" id="detalle-observaciones"></p>
+              <p class="mb-0 text-body-secondary" id="detalle-ejecutada"></p>
+            </div>
+          </div>
+          <div class="mb-3" id="grupo-detalle-cancelacion" hidden>
+            <h4 class="h6">Cancelación</h4>
+            <div class="border border-danger-subtle rounded p-2 small">
+              <p class="mb-1 texto-preformateado" id="detalle-motivo-cancelacion"></p>
+              <p class="mb-0 text-body-secondary" id="detalle-cancelada"></p>
+            </div>
+          </div>
+          <div class="mb-3" id="grupo-detalle-reprogramaciones" hidden>
+            <h4 class="h6">Historial de reprogramaciones</h4>
+            <p class="small text-body-secondary mb-2" id="detalle-fecha-original"></p>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <caption class="visually-hidden">Reprogramaciones de la actividad</caption>
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Antes</th>
+                    <th scope="col">Después</th>
+                    <th scope="col">Desplazamiento</th>
+                    <th scope="col">Motivo</th>
+                    <th scope="col">Registró</th>
+                  </tr>
+                </thead>
+                <tbody id="detalle-reprogramaciones"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="alert alert-secondary py-2 small mb-0" id="detalle-nota-eliminar" hidden></div>
+          <p class="small text-body-secondary mb-0 mt-3" id="detalle-registro"></p>
+        </div>
+        <div class="modal-footer">
+          <a class="btn btn-outline-primary me-auto" id="enlace-detalle-asistencia" href="asistencia.html" hidden>
+            <i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>Ver asistencia
+          </a>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/actividades.js"></script>
+</body>
+</html>

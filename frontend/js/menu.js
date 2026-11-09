@@ -36,9 +36,17 @@ export const SECCIONES_MENU = [
     ]
   },
   {
+    titulo: 'Actividades del club',
+    opciones: [
+      { id: 'actividades', etiqueta: 'Actividades y sesiones', icono: 'bi-calendar-check', href: 'actividades.html', roles: TODOS },
+      { id: 'asistencia', etiqueta: 'Asistencia', icono: 'bi-clipboard-check', href: 'asistencia.html', roles: TODOS }
+    ]
+  },
+  {
     titulo: 'Administración',
     opciones: [
       { id: 'usuarios', etiqueta: 'Usuarios', icono: 'bi-people', href: 'usuarios.html', roles: ['ADMIN'] },
+      { id: 'contenidos', etiqueta: 'Catálogo de contenidos', icono: 'bi-tags', href: 'contenidos.html', roles: ['ADMIN'] },
       { id: 'auditoria', etiqueta: 'Auditoría', icono: 'bi-shield-check', href: 'auditoria.html', roles: ['ADMIN', 'CONSULTA'] }
     ]
   }

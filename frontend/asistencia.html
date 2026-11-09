@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Asistencia | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="mb-3">
+          <h1 class="h3 mb-0">Asistencia</h1>
+          <p class="text-body-secondary small mb-0">
+            Registro por sesión ejecutada, correcciones con motivo y resumen de asistencia del club.
+          </p>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <div class="card card-body shadow-sm mb-3">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-6">
+              <label for="selector-club" class="form-label mb-1">Club</label>
+              <select class="form-select" id="selector-club">
+                <option value="">Seleccione un club</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-6">
+              <p class="small text-body-secondary mb-0" id="ayuda-club">
+                Elija el club para ver sus sesiones ejecutadas y su resumen de asistencia.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <ul class="nav nav-tabs" id="pestanas" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pestana-planilla" data-bs-toggle="tab" data-bs-target="#panel-planilla"
+                    type="button" role="tab" aria-controls="panel-planilla" aria-selected="true">
+              <i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>Planilla de la sesión
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pestana-resumen" data-bs-toggle="tab" data-bs-target="#panel-resumen"
+                    type="button" role="tab" aria-controls="panel-resumen" aria-selected="false">
+              <i class="bi bi-bar-chart me-1" aria-hidden="true"></i>Resumen del club
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content border border-top-0 rounded-bottom bg-body p-3 shadow-sm">
+          <section class="tab-pane fade show active" id="panel-planilla" role="tabpanel" aria-labelledby="pestana-planilla"
+                   tabindex="0">
+            <div class="row g-2 align-items-end mb-3">
+              <div class="col-12 col-md-8">
+                <label for="selector-actividad" class="form-label mb-1">Sesión ejecutada</label>
+                <select class="form-select" id="selector-actividad" disabled>
+                  <option value="">Seleccione primero un club</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4">
+                <a class="btn btn-outline-secondary w-100" id="enlace-actividades" href="actividades.html">
+                  <i class="bi bi-calendar-check me-1" aria-hidden="true"></i>Ir a las actividades del club
+                </a>
+              </div>
+            </div>
+
+            <div id="alertas-planilla" aria-live="polite"></div>
+
+            <div id="planilla-vacia" class="text-center text-body-secondary py-4">
+              Seleccione un club y una sesión para ver su planilla de asistencia.
+            </div>
+
+            <div id="planilla" hidden>
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <div class="d-flex flex-wrap align-items-center gap-2">
+                    <h2 class="h5 mb-0" id="planilla-tema"></h2>
+                    <span id="planilla-estado"></span>
+                  </div>
+                  <p class="small text-body-secondary mb-0" id="planilla-datos"></p>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <a class="btn btn-sm btn-outline-secondary" id="enlace-actividad" href="actividades.html">
+                    <i class="bi bi-eye me-1" aria-hidden="true"></i>Ver actividad
+                  </a>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="boton-correcciones">
+                    <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Correcciones
+                  </button>
+                </div>
+              </div>
+
+              <div class="row g-2 mb-3" id="planilla-cifras"></div>
+
+              <div id="planilla-bloqueo"></div>
+
+              <form id="formulario-asistencia" novalidate>
+                <div id="barra-edicion" hidden>
+                  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-success" id="boton-todos-presentes">
+                      <i class="bi bi-check-all me-1" aria-hidden="true"></i>Marcar pendientes como presentes
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="boton-deshacer" disabled>
+                      <i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Deshacer cambios
+                    </button>
+                    <span class="small text-body-secondary ms-auto" id="contador-cambios" aria-live="polite"></span>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle mb-3">
+                    <caption class="visually-hidden">Planilla de asistencia de la sesión</caption>
+                    <thead class="table-light">
+                      <tr>
+                        <th scope="col">Código</th>
+                        <th scope="col" id="columna-estudiante">Estudiante</th>
+                        <th scope="col">Asistencia</th>
+                        <th scope="col" id="columna-observacion">Observación</th>
+                        <th scope="col">Registro</th>
+                      </tr>
+                    </thead>
+                    <tbody id="cuerpo-planilla"></tbody>
+                  </table>
+                </div>
+
+                <div id="grupo-motivo-correccion" class="mb-3" hidden>
+                  <div class="alert alert-warning py-2 small mb-2" id="aviso-correccion"></div>
+                  <label for="motivo-correccion" class="form-label">Motivo de la corrección *</label>
+                  <textarea class="form-control" id="motivo-correccion" rows="2" maxlength="500"
+                            aria-describedby="contador-motivo-correccion"></textarea>
+                  <div class="form-text text-end" id="contador-motivo-correccion">0 / 500</div>
+                </div>
+
+                <div id="alertas-guardado" aria-live="polite"></div>
+
+                <div id="grupo-guardar" hidden>
+                  <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary" id="boton-guardar" disabled>
+                      <i class="bi bi-save me-1" aria-hidden="true"></i>Guardar asistencia
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="tab-pane fade" id="panel-resumen" role="tabpanel" aria-labelledby="pestana-resumen" tabindex="0">
+            <form id="formulario-resumen" class="row g-2 align-items-end mb-3" novalidate>
+              <div class="col-12 col-md-4">
+                <label for="resumen-curso" class="form-label mb-1">Curso</label>
+                <select class="form-select" id="resumen-curso" disabled>
+                  <option value="">Todo el club</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-3">
+                <label for="resumen-desde" class="form-label mb-1">Desde</label>
+                <input type="date" class="form-control" id="resumen-desde">
+              </div>
+              <div class="col-6 col-md-3">
+                <label for="resumen-hasta" class="form-label mb-1">Hasta</label>
+                <input type="date" class="form-control" id="resumen-hasta">
+              </div>
+              <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-primary w-100" id="boton-resumen" disabled>Calcular</button>
+              </div>
+              <div class="col-12">
+                <p class="form-text mb-0">
+                  Sin fechas se usa todo el período académico del club. El porcentaje de asistencia es
+                  (presentes + atrasados) / (registros − justificados).
+                </p>
+              </div>
+            </form>
+
+            <div id="alertas-resumen" aria-live="polite"></div>
+
+            <div id="resumen-vacio" class="text-center text-body-secondary py-4">
+              Seleccione un club para calcular su resumen de asistencia.
+            </div>
+
+            <div id="resumen" hidden>
+              <p class="small text-body-secondary" id="resumen-titulo"></p>
+              <div class="row g-2 mb-3" id="resumen-cifras"></div>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <caption class="visually-hidden">Asistencia por estudiante del club</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Código</th>
+                      <th scope="col" id="columna-resumen-estudiante">Estudiante</th>
+                      <th scope="col" class="text-end">Sesiones</th>
+                      <th scope="col" class="text-end">Presente</th>
+                      <th scope="col" class="text-end">Atrasado</th>
+                      <th scope="col" class="text-end">Ausente</th>
+                      <th scope="col" class="text-end">Justificado</th>
+                      <th scope="col" class="text-end">Sin registro</th>
+                      <th scope="col">Asistencia</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-resumen"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-correcciones" tabindex="-1" aria-labelledby="titulo-modal-correcciones" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-correcciones">Correcciones de asistencia</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-body-secondary" id="correcciones-sesion"></p>
+          <div id="alertas-correcciones" aria-live="polite"></div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <caption class="visually-hidden">Historial de correcciones de la sesión</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">Fecha</th>
+                  <th scope="col">Estudiante</th>
+                  <th scope="col">Cambio</th>
+                  <th scope="col">Motivo</th>
+                  <th scope="col">Corrigió</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-correcciones"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/asistencia.js"></script>
+</body>
+</html>
