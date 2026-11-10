@@ -39,7 +39,8 @@ export const SECCIONES_MENU = [
     titulo: 'Actividades del club',
     opciones: [
       { id: 'actividades', etiqueta: 'Actividades y sesiones', icono: 'bi-calendar-check', href: 'actividades.html', roles: TODOS },
-      { id: 'asistencia', etiqueta: 'Asistencia', icono: 'bi-clipboard-check', href: 'asistencia.html', roles: TODOS }
+      { id: 'asistencia', etiqueta: 'Asistencia', icono: 'bi-clipboard-check', href: 'asistencia.html', roles: TODOS },
+      { id: 'evidencias', etiqueta: 'Evidencias', icono: 'bi-images', href: 'evidencias.html', roles: TODOS }
     ]
   },
   {

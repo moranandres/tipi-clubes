@@ -46,6 +46,10 @@ export function cargarEstudiantesActivos(institucionId) {
   return cargarTodasLasPaginas(`/api/estudiantes?institucionId=${institucionId}&estado=ACTIVO`);
 }
 
+export function cargarEstudiantesDeInstitucion(institucionId) {
+  return cargarTodasLasPaginas(`/api/estudiantes?institucionId=${institucionId}`);
+}
+
 export function cargarInscripcionesActivasDelClub(clubId) {
   return cargarTodasLasPaginas(`/api/inscripciones?clubId=${clubId}&estado=ACTIVA`);
 }

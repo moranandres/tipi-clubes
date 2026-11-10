@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Evidencias | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="mb-3">
+          <h1 class="h3 mb-0">Evidencias</h1>
+          <p class="text-body-secondary small mb-0">
+            Fotografías, informes, enlaces y productos de las sesiones ejecutadas, con control de la autorización de
+            uso de imagen y resumen por club.
+          </p>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <ul class="nav nav-tabs" id="pestanas" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pestana-actividad" data-bs-toggle="tab" data-bs-target="#panel-actividad"
+                    type="button" role="tab" aria-controls="panel-actividad" aria-selected="true">
+              <i class="bi bi-images me-1" aria-hidden="true"></i>Por actividad
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pestana-busqueda" data-bs-toggle="tab" data-bs-target="#panel-busqueda"
+                    type="button" role="tab" aria-controls="panel-busqueda" aria-selected="false">
+              <i class="bi bi-search me-1" aria-hidden="true"></i>Buscar evidencias
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pestana-resumen" data-bs-toggle="tab" data-bs-target="#panel-resumen"
+                    type="button" role="tab" aria-controls="panel-resumen" aria-selected="false">
+              <i class="bi bi-bar-chart me-1" aria-hidden="true"></i>Resumen por club
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content border border-top-0 rounded-bottom bg-body p-3 shadow-sm">
+          <section class="tab-pane fade show active" id="panel-actividad" role="tabpanel"
+                   aria-labelledby="pestana-actividad" tabindex="0">
+            <div class="row g-2 align-items-end mb-3">
+              <div class="col-12 col-md-5">
+                <label for="selector-club" class="form-label mb-1">Club</label>
+                <select class="form-select" id="selector-club">
+                  <option value="">Seleccione un club</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-7">
+                <label for="selector-actividad" class="form-label mb-1">Sesión ejecutada</label>
+                <select class="form-select" id="selector-actividad" disabled>
+                  <option value="">Seleccione primero un club</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="alertas-actividad" aria-live="polite"></div>
+
+            <div id="actividad-vacia" class="text-center text-body-secondary py-4">
+              Seleccione un club y una sesión ejecutada para ver y registrar sus evidencias.
+            </div>
+
+            <div id="actividad" hidden>
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <div class="d-flex flex-wrap align-items-center gap-2">
+                    <h2 class="h5 mb-0" id="actividad-tema"></h2>
+                    <span id="actividad-estado"></span>
+                  </div>
+                  <p class="small text-body-secondary mb-0" id="actividad-datos"></p>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <a class="btn btn-sm btn-outline-secondary" id="enlace-actividad" href="actividades.html">
+                    <i class="bi bi-eye me-1" aria-hidden="true"></i>Ver actividad
+                  </a>
+                  <a class="btn btn-sm btn-outline-secondary" id="enlace-asistencia" href="asistencia.html">
+                    <i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>Asistencia
+                  </a>
+                  <button type="button" class="btn btn-sm btn-primary" id="boton-agregar" hidden>
+                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Agregar evidencia
+                  </button>
+                </div>
+              </div>
+
+              <div class="row g-2 mb-3" id="actividad-cifras"></div>
+
+              <div id="actividad-bloqueo"></div>
+
+              <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" id="mostrar-retiradas">
+                  <label class="form-check-label" for="mostrar-retiradas" id="etiqueta-retiradas">
+                    Mostrar evidencias retiradas
+                  </label>
+                </div>
+              </div>
+
+              <div class="row g-3" id="lista-evidencias" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <section class="tab-pane fade" id="panel-busqueda" role="tabpanel" aria-labelledby="pestana-busqueda"
+                   tabindex="0">
+            <form id="formulario-busqueda" class="row g-2 align-items-end mb-3" novalidate>
+              <div class="col-12 col-md-4 col-xl-3" id="grupo-busqueda-institucion">
+                <label for="busqueda-institucion" class="form-label mb-1">Institución</label>
+                <select class="form-select" id="busqueda-institucion">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4 col-xl-3">
+                <label for="busqueda-club" class="form-label mb-1">Club</label>
+                <select class="form-select" id="busqueda-club">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="busqueda-tipo" class="form-label mb-1">Tipo</label>
+                <select class="form-select" id="busqueda-tipo">
+                  <option value="">Todos</option>
+                  <option value="FOTOGRAFIA">Fotografía</option>
+                  <option value="DOCUMENTO">Informe o documento</option>
+                  <option value="ENLACE">Enlace</option>
+                  <option value="PRODUCTO">Producto</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="busqueda-estado" class="form-label mb-1">Estado</label>
+                <select class="form-select" id="busqueda-estado">
+                  <option value="ACTIVA">Activas</option>
+                  <option value="RETIRADA">Retiradas</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="busqueda-desde" class="form-label mb-1">Desde</label>
+                <input type="date" class="form-control" id="busqueda-desde">
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="busqueda-hasta" class="form-label mb-1">Hasta</label>
+                <input type="date" class="form-control" id="busqueda-hasta">
+              </div>
+              <div class="col-12 col-md-4 col-xl-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+                <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+              </div>
+              <div class="col-12">
+                <p class="form-text mb-0">Las fechas filtran por la fecha de la evidencia.</p>
+              </div>
+            </form>
+
+            <div id="alertas-busqueda" aria-live="polite"></div>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <caption class="visually-hidden">Evidencias encontradas</caption>
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Evidencia</th>
+                    <th scope="col">Actividad</th>
+                    <th scope="col">Club</th>
+                    <th scope="col">Estudiantes</th>
+                    <th scope="col" class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="cuerpo-busqueda"></tbody>
+              </table>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+              <small class="text-body-secondary" id="resumen-busqueda" aria-live="polite"></small>
+              <nav id="paginacion-busqueda" aria-label="Paginación de evidencias"></nav>
+            </div>
+          </section>
+
+          <section class="tab-pane fade" id="panel-resumen" role="tabpanel" aria-labelledby="pestana-resumen"
+                   tabindex="0">
+            <form id="formulario-resumen" class="row g-2 align-items-end mb-3" novalidate>
+              <div class="col-12 col-md-4">
+                <label for="resumen-periodo" class="form-label mb-1">Período académico</label>
+                <select class="form-select" id="resumen-periodo">
+                  <option value="">Período activo</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4" id="grupo-resumen-institucion">
+                <label for="resumen-institucion" class="form-label mb-1">Institución</label>
+                <select class="form-select" id="resumen-institucion">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-primary w-100" id="boton-resumen">Calcular</button>
+              </div>
+              <div class="col-12">
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" id="resumen-solo-sin">
+                  <label class="form-check-label" for="resumen-solo-sin">Mostrar solo los clubes sin evidencias</label>
+                </div>
+                <p class="form-text mb-0">
+                  Incluye los clubes activos, suspendidos y cerrados del período. Solo cuentan las evidencias activas;
+                  la cobertura es el porcentaje de sesiones ejecutadas que tienen al menos una evidencia.
+                </p>
+              </div>
+            </form>
+
+            <div id="alertas-resumen" aria-live="polite"></div>
+
+            <div id="resumen" hidden>
+              <p class="small text-body-secondary" id="resumen-titulo"></p>
+              <div class="row g-2 mb-3" id="resumen-cifras"></div>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <caption class="visually-hidden">Evidencias por club</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Club</th>
+                      <th scope="col" class="text-end">Sesiones ejecutadas</th>
+                      <th scope="col" class="text-end">Con evidencia</th>
+                      <th scope="col">Cobertura</th>
+                      <th scope="col" class="text-end" title="Fotografías">
+                        <i class="bi bi-camera" aria-hidden="true"></i><span class="visually-hidden">Fotografías</span>
+                      </th>
+                      <th scope="col" class="text-end" title="Informes y documentos">
+                        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i><span class="visually-hidden">Informes y documentos</span>
+                      </th>
+                      <th scope="col" class="text-end" title="Enlaces">
+                        <i class="bi bi-link-45deg" aria-hidden="true"></i><span class="visually-hidden">Enlaces</span>
+                      </th>
+                      <th scope="col" class="text-end" title="Productos">
+                        <i class="bi bi-box-seam" aria-hidden="true"></i><span class="visually-hidden">Productos</span>
+                      </th>
+                      <th scope="col" class="text-end">Total</th>
+                      <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-resumen"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-evidencia" tabindex="-1" aria-labelledby="titulo-modal-evidencia" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-evidencia" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-evidencia">Agregar evidencia</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-body-secondary" id="evidencia-sesion"></p>
+          <div id="alertas-evidencia" aria-live="polite"></div>
+          <fieldset class="mb-3" id="grupo-tipo">
+            <legend class="form-label fs-6 mb-1">Tipo de evidencia *</legend>
+            <div class="row g-2">
+              <div class="col-6 col-md-3">
+                <input type="radio" class="btn-check" name="tipo" id="tipo-FOTOGRAFIA" value="FOTOGRAFIA">
+                <label class="btn btn-outline-primary w-100 h-100 boton-tipo" for="tipo-FOTOGRAFIA">
+                  <i class="bi bi-camera d-block fs-4" aria-hidden="true"></i>Fotografía
+                  <span class="d-block small">JPG o PNG</span>
+                </label>
+              </div>
+              <div class="col-6 col-md-3">
+                <input type="radio" class="btn-check" name="tipo" id="tipo-DOCUMENTO" value="DOCUMENTO">
+                <label class="btn btn-outline-primary w-100 h-100 boton-tipo" for="tipo-DOCUMENTO">
+                  <i class="bi bi-file-earmark-pdf d-block fs-4" aria-hidden="true"></i>Informe
+                  <span class="d-block small">PDF</span>
+                </label>
+              </div>
+              <div class="col-6 col-md-3">
+                <input type="radio" class="btn-check" name="tipo" id="tipo-ENLACE" value="ENLACE">
+                <label class="btn btn-outline-primary w-100 h-100 boton-tipo" for="tipo-ENLACE">
+                  <i class="bi bi-link-45deg d-block fs-4" aria-hidden="true"></i>Enlace
+                  <span class="d-block small">Video, repositorio…</span>
+                </label>
+              </div>
+              <div class="col-6 col-md-3">
+                <input type="radio" class="btn-check" name="tipo" id="tipo-PRODUCTO" value="PRODUCTO">
+                <label class="btn btn-outline-primary w-100 h-100 boton-tipo" for="tipo-PRODUCTO">
+                  <i class="bi bi-box-seam d-block fs-4" aria-hidden="true"></i>Producto
+                  <span class="d-block small">PDF o enlace</span>
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          <div id="campos-evidencia" hidden>
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label for="campo-titulo" class="form-label">Título *</label>
+                <input type="text" class="form-control" id="campo-titulo" maxlength="150" required>
+              </div>
+              <div class="col-md-4">
+                <label for="campo-fecha" class="form-label">Fecha de la evidencia *</label>
+                <input type="date" class="form-control" id="campo-fecha" required aria-describedby="ayuda-fecha">
+                <div id="ayuda-fecha" class="form-text"></div>
+              </div>
+              <div class="col-12">
+                <label for="campo-descripcion" class="form-label">Descripción *</label>
+                <textarea class="form-control" id="campo-descripcion" rows="3" maxlength="1000" required
+                          aria-describedby="contador-descripcion"></textarea>
+                <div class="form-text text-end" id="contador-descripcion">0 / 1000</div>
+              </div>
+
+              <div class="col-12" id="grupo-modo-producto" hidden>
+                <fieldset>
+                  <legend class="form-label fs-6 mb-1">El producto se entrega como *</legend>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="modo-producto" id="modo-producto-archivo"
+                           value="ARCHIVO" checked>
+                    <label class="form-check-label" for="modo-producto-archivo">Archivo PDF</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="modo-producto" id="modo-producto-enlace"
+                           value="ENLACE">
+                    <label class="form-check-label" for="modo-producto-enlace">Enlace</label>
+                  </div>
+                </fieldset>
+              </div>
+
+              <div class="col-12" id="grupo-archivo" hidden>
+                <label for="campo-archivo" class="form-label">Archivo *</label>
+                <input type="file" class="form-control" id="campo-archivo" aria-describedby="ayuda-archivo">
+                <div id="ayuda-archivo" class="form-text"></div>
+                <div class="mt-2" id="vista-previa" hidden>
+                  <img id="imagen-previa" class="img-thumbnail imagen-previa" alt="Vista previa de la fotografía seleccionada">
+                </div>
+              </div>
+
+              <div class="col-12" id="grupo-url" hidden>
+                <label for="campo-url" class="form-label">Enlace *</label>
+                <input type="url" class="form-control" id="campo-url" maxlength="500" placeholder="https://"
+                       aria-describedby="ayuda-url">
+                <div id="ayuda-url" class="form-text">
+                  Dirección completa que empiece con http:// o https://, sin usuario ni contraseña.
+                </div>
+              </div>
+
+              <div class="col-12" id="grupo-fijo" hidden>
+                <div class="alert alert-secondary py-2 small mb-0" id="texto-fijo"></div>
+              </div>
+
+              <div class="col-12" id="grupo-estudiantes" hidden>
+                <fieldset>
+                  <legend class="form-label fs-6 mb-1" id="leyenda-estudiantes">Estudiantes relacionados</legend>
+                  <div class="alert alert-info py-2 small mb-2" id="aviso-imagen" hidden>
+                    <div class="fw-semibold">Autorización de uso de imagen</div>
+                    Marque a cada estudiante que se reconoce en la fotografía. Solo puede aparecer quien tiene la
+                    autorización de uso de imagen <strong>otorgada</strong>; si alguien que se reconoce no la tiene,
+                    no registre la foto. Si nadie se reconoce (manos, prototipos, aula vacía), declare la foto sin
+                    estudiantes identificables.
+                    <a class="alert-link" id="enlace-autorizaciones" href="estudiantes.html" target="_blank" rel="noopener">
+                      Gestionar autorizaciones en Estudiantes
+                    </a>
+                  </div>
+                  <div class="form-check mb-2" id="grupo-sin-estudiantes" hidden>
+                    <input class="form-check-input" type="checkbox" id="campo-sin-estudiantes">
+                    <label class="form-check-label" for="campo-sin-estudiantes">
+                      La fotografía no muestra estudiantes identificables
+                    </label>
+                  </div>
+                  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <input type="search" class="form-control form-control-sm filtro-estudiantes" id="filtro-estudiantes"
+                           placeholder="Filtrar por nombre o código" aria-label="Filtrar estudiantes">
+                    <span class="small text-body-secondary ms-auto" id="contador-estudiantes" aria-live="polite"></span>
+                  </div>
+                  <div class="border rounded p-2 lista-estudiantes" id="lista-estudiantes"></div>
+                  <p class="form-text mb-0" id="ayuda-estudiantes"></p>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar-evidencia">Guardar evidencia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-retiro" tabindex="-1" aria-labelledby="titulo-modal-retiro" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-retiro" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-retiro">Retirar evidencia</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-semibold mb-0" id="retiro-titulo"></p>
+          <p class="text-body-secondary small" id="retiro-datos"></p>
+          <div id="alertas-retiro" aria-live="polite"></div>
+          <div class="alert alert-warning py-2 small" id="retiro-aviso"></div>
+          <label for="retiro-motivo" class="form-label">Motivo del retiro *</label>
+          <textarea class="form-control" id="retiro-motivo" rows="3" maxlength="500"
+                    aria-describedby="contador-retiro-motivo"></textarea>
+          <div class="form-text text-end" id="contador-retiro-motivo">0 / 500</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
+          <button type="submit" class="btn btn-danger" id="boton-confirmar-retiro">Retirar evidencia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="titulo-modal-detalle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-detalle">Detalle de la evidencia</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-detalle" aria-live="polite"></div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h3 class="h5 mb-0" id="detalle-titulo"></h3>
+            <span id="detalle-insignias"></span>
+          </div>
+          <p class="text-body-secondary small mb-3" id="detalle-actividad"></p>
+          <div class="alert alert-warning py-2 small" id="detalle-bloqueo" hidden></div>
+          <div class="mb-3 text-center" id="detalle-foto" hidden>
+            <img id="detalle-imagen" class="img-fluid rounded border imagen-evidencia" alt="">
+          </div>
+          <dl class="row small mb-3" id="detalle-datos"></dl>
+          <div class="mb-3" id="grupo-detalle-estudiantes" hidden>
+            <h4 class="h6">Estudiantes relacionados</h4>
+            <ul class="list-unstyled small mb-0" id="detalle-estudiantes"></ul>
+          </div>
+          <div class="mb-3" id="grupo-detalle-retiro" hidden>
+            <h4 class="h6">Retiro</h4>
+            <div class="border border-danger-subtle rounded p-2 small">
+              <p class="mb-1 texto-preformateado" id="detalle-motivo-retiro"></p>
+              <p class="mb-0 text-body-secondary" id="detalle-retirada"></p>
+            </div>
+          </div>
+          <p class="small text-body-secondary mb-0" id="detalle-registro"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-primary" id="boton-detalle-ver-foto" hidden>
+            <i class="bi bi-image me-1" aria-hidden="true"></i>Ver fotografía
+          </button>
+          <button type="button" class="btn btn-outline-primary" id="boton-detalle-descargar" hidden>
+            <i class="bi bi-download me-1" aria-hidden="true"></i>Descargar
+          </button>
+          <a class="btn btn-outline-primary" id="enlace-detalle-url" href="#" target="_blank" rel="noopener noreferrer" hidden>
+            <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Abrir enlace
+          </a>
+          <button type="button" class="btn btn-outline-secondary me-auto" id="boton-detalle-actividad" hidden>
+            <i class="bi bi-images me-1" aria-hidden="true"></i>Evidencias de la sesión
+          </button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/evidencias.js"></script>
+</body>
+</html>

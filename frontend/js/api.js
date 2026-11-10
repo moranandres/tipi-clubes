@@ -86,11 +86,24 @@ export async function apiEnviarArchivo(ruta, archivo, { campo = 'archivo', metod
   return leerJson(respuesta);
 }
 
-export async function apiDescargarArchivo(ruta, nombreArchivo) {
+export async function apiEnviarFormulario(ruta, formulario, { metodo = 'POST' } = {}) {
+  const respuesta = await ejecutar(ruta, {
+    method: metodo,
+    headers: cabecerasBase(true),
+    body: formulario
+  }, true);
+  return leerJson(respuesta);
+}
+
+export async function apiObtenerArchivo(ruta) {
   const cabeceras = cabecerasBase(true);
   cabeceras.Accept = '*/*';
   const respuesta = await ejecutar(ruta, { method: 'GET', headers: cabeceras }, true);
-  const contenido = await respuesta.blob();
+  return respuesta.blob();
+}
+
+export async function apiDescargarArchivo(ruta, nombreArchivo) {
+  const contenido = await apiObtenerArchivo(ruta);
   const direccion = URL.createObjectURL(contenido);
   const enlace = document.createElement('a');
   enlace.href = direccion;

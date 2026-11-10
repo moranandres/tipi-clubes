@@ -556,6 +556,18 @@ function crearEnlaceAsistencia(actividad) {
   }, [marca]);
 }
 
+function crearEnlaceEvidencias(actividad) {
+  const marca = crearElemento('i', { clase: 'bi bi-images', atributos: { 'aria-hidden': 'true' } });
+  return crearElemento('a', {
+    clase: 'btn btn-sm btn-outline-primary ms-1',
+    atributos: {
+      href: `evidencias.html?actividadId=${actividad.id}`,
+      title: 'Evidencias de la sesión',
+      'aria-label': `Evidencias de la sesión: ${actividad.tema}`
+    }
+  }, [marca]);
+}
+
 function crearAcciones(actividad) {
   const acciones = [crearBoton('bi-eye', 'Ver detalle', actividad, () => abrirDetalle(actividad))];
   const gestiona = puedeGestionar(actividad);
@@ -578,6 +590,7 @@ function crearAcciones(actividad) {
       acciones.push(crearBoton('bi-pencil-square', 'Corregir ejecución', actividad, () => abrirEjecucion(actividad)));
     }
     acciones.push(crearEnlaceAsistencia(actividad));
+    acciones.push(crearEnlaceEvidencias(actividad));
   }
   return acciones;
 }
@@ -1100,6 +1113,7 @@ async function abrirDetalle(resumenActividad) {
   elemento('grupo-detalle-reprogramaciones').hidden = true;
   elemento('detalle-nota-eliminar').hidden = true;
   elemento('enlace-detalle-asistencia').hidden = true;
+  elemento('enlace-detalle-evidencias').hidden = true;
   elemento('detalle-registro').textContent = '';
   modalDetalle.show();
 
@@ -1166,6 +1180,9 @@ function renderizarDetalle(actividad) {
     const enlace = elemento('enlace-detalle-asistencia');
     enlace.href = `asistencia.html?actividadId=${actividad.id}`;
     enlace.hidden = false;
+    const evidencias = elemento('enlace-detalle-evidencias');
+    evidencias.href = `evidencias.html?actividadId=${actividad.id}`;
+    evidencias.hidden = false;
   }
 
   if (actividad.estado === 'CANCELADA') {
