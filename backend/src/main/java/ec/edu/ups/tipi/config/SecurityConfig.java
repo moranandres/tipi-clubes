@@ -47,6 +47,11 @@ public class SecurityConfig {
                         "/api/auth/restablecer",
                         "/api/auth/restablecer/validar").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/publico/certificados/*").permitAll()
+                .requestMatchers(HttpMethod.GET,
+                        "/v3/api-docs",
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e.authenticationEntryPoint(
@@ -58,9 +63,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuracion = new CorsConfiguration();
-        configuracion.setAllowedOrigins(Arrays.asList(origenesPermitidos));
+        configuracion.setAllowedOrigins(Arrays.stream(origenesPermitidos)
+                .map(String::trim)
+                .filter(origen -> !origen.isEmpty())
+                .toList());
         configuracion.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuracion.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuracion.setExposedHeaders(List.of("Location", "Content-Disposition"));
         configuracion.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource origen = new UrlBasedCorsConfigurationSource();
