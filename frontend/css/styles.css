@@ -196,3 +196,67 @@
 .fila-sin-evidencia > td {
   background-color: var(--bs-warning-bg-subtle);
 }
+
+.barra-avance {
+  height: 0.5rem;
+  min-width: 6rem;
+}
+
+.punto-semaforo {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.semaforo-adecuado {
+  background-color: var(--bs-success);
+}
+
+.semaforo-riesgo {
+  background-color: var(--bs-warning);
+}
+
+.semaforo-critico {
+  background-color: var(--bs-danger);
+}
+
+.semaforo-sin-datos {
+  background-color: var(--bs-secondary-bg);
+}
+
+.tarjeta-semaforo {
+  border-left-width: 4px !important;
+}
+
+.fila-vencida > td {
+  background-color: var(--bs-danger-bg-subtle);
+}
+
+.fila-por-registrar > td {
+  background-color: var(--bs-warning-bg-subtle);
+}
+
+.fila-cancelada > td {
+  color: var(--bs-secondary-color);
+}
+
+.barra-niveles {
+  height: 0.75rem;
+  min-width: 8rem;
+}
+
+.lista-competencias {
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+.selector-nivel {
+  max-width: 11rem;
+}
+
+.avance-proyecto {
+  border-left: 3px solid var(--bs-primary-border-subtle);
+}

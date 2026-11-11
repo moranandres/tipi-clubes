@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Avances y resultados | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <h1 class="h3 mb-0">Avances y resultados</h1>
+            <p class="text-body-secondary small mb-0">
+              Avances del club, de cada estudiante y de cada proyecto, con las competencias evaluadas, el progreso de
+              cada estudiante y los resultados del período.
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary" id="boton-nuevo" hidden>
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Registrar avance
+          </button>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <ul class="nav nav-tabs" id="pestanas" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pestana-avances" data-bs-toggle="tab" data-bs-target="#panel-avances"
+                    type="button" role="tab" aria-controls="panel-avances" aria-selected="true">
+              <i class="bi bi-journal-text me-1" aria-hidden="true"></i>Avances registrados
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pestana-progreso" data-bs-toggle="tab" data-bs-target="#panel-progreso"
+                    type="button" role="tab" aria-controls="panel-progreso" aria-selected="false">
+              <i class="bi bi-person-lines-fill me-1" aria-hidden="true"></i>Progreso del estudiante
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pestana-resultados" data-bs-toggle="tab" data-bs-target="#panel-resultados"
+                    type="button" role="tab" aria-controls="panel-resultados" aria-selected="false">
+              <i class="bi bi-bar-chart-line me-1" aria-hidden="true"></i>Resultados del período
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content border border-top-0 rounded-bottom bg-body p-3 shadow-sm">
+          <section class="tab-pane fade show active" id="panel-avances" role="tabpanel" aria-labelledby="pestana-avances"
+                   tabindex="0">
+            <form id="formulario-filtros" class="row g-2 align-items-end mb-3" novalidate>
+              <div class="col-12 col-md-4 col-xl-3" id="grupo-filtro-institucion">
+                <label for="filtro-institucion" class="form-label mb-1">Institución</label>
+                <select class="form-select" id="filtro-institucion">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4 col-xl-3">
+                <label for="filtro-club" class="form-label mb-1">Club</label>
+                <select class="form-select" id="filtro-club">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="filtro-alcance" class="form-label mb-1">Alcance</label>
+                <select class="form-select" id="filtro-alcance">
+                  <option value="">Todos</option>
+                  <option value="CLUB">Del club</option>
+                  <option value="ESTUDIANTE">De estudiante</option>
+                  <option value="PROYECTO">De proyecto</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="filtro-estado" class="form-label mb-1">Estado</label>
+                <select class="form-select" id="filtro-estado">
+                  <option value="ACTIVO">Activos</option>
+                  <option value="ANULADO">Anulados</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="filtro-desde" class="form-label mb-1">Desde</label>
+                <input type="date" class="form-control" id="filtro-desde">
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="filtro-hasta" class="form-label mb-1">Hasta</label>
+                <input type="date" class="form-control" id="filtro-hasta">
+              </div>
+              <div class="col-12 col-md-4 col-xl-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">Buscar</button>
+                <button type="reset" class="btn btn-outline-secondary flex-fill">Limpiar</button>
+              </div>
+            </form>
+
+            <div id="aviso-filtro" hidden></div>
+            <div id="alertas-avances" aria-live="polite"></div>
+
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <caption class="visually-hidden">Avances registrados</caption>
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Avance de</th>
+                    <th scope="col">Club</th>
+                    <th scope="col">Resultados</th>
+                    <th scope="col">Competencias</th>
+                    <th scope="col" class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="cuerpo-avances"></tbody>
+              </table>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+              <small class="text-body-secondary" id="resumen-avances" aria-live="polite"></small>
+              <nav id="paginacion-avances" aria-label="Paginación de avances"></nav>
+            </div>
+          </section>
+
+          <section class="tab-pane fade" id="panel-progreso" role="tabpanel" aria-labelledby="pestana-progreso"
+                   tabindex="0">
+            <form id="formulario-estudiantes" class="row g-2 align-items-end mb-3" novalidate>
+              <div class="col-12 col-md-4" id="grupo-estudiante-institucion">
+                <label for="estudiante-institucion" class="form-label mb-1">Institución</label>
+                <select class="form-select" id="estudiante-institucion">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4">
+                <label for="estudiante-q" class="form-label mb-1" id="etiqueta-estudiante-q">Nombre o código</label>
+                <input type="search" class="form-control" id="estudiante-q" maxlength="100">
+              </div>
+              <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Buscar</button>
+              </div>
+            </form>
+
+            <div id="alertas-progreso" aria-live="polite"></div>
+
+            <div id="busqueda-estudiantes">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <caption class="visually-hidden">Estudiantes encontrados</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Código</th>
+                      <th scope="col" id="columna-nombre">Estudiante</th>
+                      <th scope="col">Institución</th>
+                      <th scope="col" class="text-end">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-estudiantes"></tbody>
+                </table>
+              </div>
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+                <small class="text-body-secondary" id="resumen-estudiantes" aria-live="polite"></small>
+                <nav id="paginacion-estudiantes" aria-label="Paginación de estudiantes"></nav>
+              </div>
+            </div>
+
+            <div id="progreso" hidden>
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <h2 class="h5 mb-0" id="progreso-nombre"></h2>
+                  <p class="small text-body-secondary mb-0" id="progreso-datos"></p>
+                </div>
+                <div class="d-flex flex-wrap align-items-end gap-2">
+                  <div>
+                    <label for="progreso-periodo" class="form-label small mb-1">Período</label>
+                    <select class="form-select form-select-sm" id="progreso-periodo">
+                      <option value="">Todos los períodos</option>
+                    </select>
+                  </div>
+                  <a class="btn btn-sm btn-outline-secondary" id="enlace-historial" href="historial.html">
+                    <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Historial
+                  </a>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="boton-otro-estudiante">
+                    <i class="bi bi-search me-1" aria-hidden="true"></i>Otro estudiante
+                  </button>
+                </div>
+              </div>
+              <div id="progreso-aviso"></div>
+              <div class="row g-2 mb-3" id="progreso-cifras"></div>
+              <h3 class="h6">Competencias evaluadas</h3>
+              <div class="table-responsive mb-3">
+                <table class="table table-sm align-middle mb-0">
+                  <caption class="visually-hidden">Progreso por competencia</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Competencia</th>
+                      <th scope="col">Nivel inicial</th>
+                      <th scope="col">Nivel actual</th>
+                      <th scope="col">Variación</th>
+                      <th scope="col">Evaluaciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-progreso"></tbody>
+                </table>
+              </div>
+              <h3 class="h6">Proyectos</h3>
+              <ul class="list-unstyled small mb-0" id="progreso-proyectos"></ul>
+            </div>
+          </section>
+
+          <section class="tab-pane fade" id="panel-resultados" role="tabpanel" aria-labelledby="pestana-resultados"
+                   tabindex="0">
+            <form id="formulario-resultados" class="row g-2 align-items-end mb-3" novalidate>
+              <div class="col-12 col-md-4">
+                <label for="resultados-periodo" class="form-label mb-1">Período académico</label>
+                <select class="form-select" id="resultados-periodo">
+                  <option value="">Período activo</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4" id="grupo-resultados-institucion">
+                <label for="resultados-institucion" class="form-label mb-1">Institución</label>
+                <select class="form-select" id="resultados-institucion">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-primary w-100" id="boton-resultados">Calcular</button>
+              </div>
+              <div class="col-12">
+                <p class="form-text mb-0">
+                  Cuenta los clubes activos, suspendidos y cerrados del período, sus proyectos y sus avances activos. El
+                  nivel de cada competencia es el de la última evaluación de cada estudiante.
+                </p>
+              </div>
+            </form>
+
+            <div id="alertas-resultados" aria-live="polite"></div>
+
+            <div id="resultados" hidden>
+              <p class="small text-body-secondary" id="resultados-titulo"></p>
+              <div class="row g-2 mb-3" id="resultados-cifras"></div>
+              <h2 class="h6">Competencias</h2>
+              <div class="table-responsive mb-3">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <caption class="visually-hidden">Resultados por competencia</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Competencia</th>
+                      <th scope="col" class="text-end">Sesiones</th>
+                      <th scope="col" class="text-end">Clubes</th>
+                      <th scope="col" class="text-end">Estudiantes evaluados</th>
+                      <th scope="col">Nivel actual</th>
+                      <th scope="col" class="text-end">Logrado o más</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-competencias"></tbody>
+                </table>
+              </div>
+              <h2 class="h6">Clubes</h2>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <caption class="visually-hidden">Resultados por club</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Club</th>
+                      <th scope="col" class="text-end">Participantes</th>
+                      <th scope="col">Proyectos</th>
+                      <th scope="col" class="text-end">Finalización</th>
+                      <th scope="col" class="text-end">En proyectos</th>
+                      <th scope="col" class="text-end">Avances</th>
+                      <th scope="col" class="text-end">Con avance</th>
+                      <th scope="col" class="text-end">Competencias</th>
+                      <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-clubes"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-avance" tabindex="-1" aria-labelledby="titulo-modal-avance" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form class="modal-content" id="formulario-avance" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-avance">Registrar avance</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-avance" aria-live="polite"></div>
+          <fieldset class="mb-3" id="grupo-alcance">
+            <legend class="form-label fs-6 mb-1">Avance de *</legend>
+            <div class="row g-2">
+              <div class="col-4">
+                <input type="radio" class="btn-check" name="alcance" id="alcance-CLUB" value="CLUB">
+                <label class="btn btn-outline-primary w-100 h-100 boton-tipo" for="alcance-CLUB">
+                  <i class="bi bi-people d-block fs-4" aria-hidden="true"></i>Club
+                  <span class="d-block small">Todo el grupo</span>
+                </label>
+              </div>
+              <div class="col-4">
+                <input type="radio" class="btn-check" name="alcance" id="alcance-ESTUDIANTE" value="ESTUDIANTE">
+                <label class="btn btn-outline-primary w-100 h-100 boton-tipo" for="alcance-ESTUDIANTE">
+                  <i class="bi bi-person d-block fs-4" aria-hidden="true"></i>Estudiante
+                  <span class="d-block small">Con competencias</span>
+                </label>
+              </div>
+              <div class="col-4">
+                <input type="radio" class="btn-check" name="alcance" id="alcance-PROYECTO" value="PROYECTO">
+                <label class="btn btn-outline-primary w-100 h-100 boton-tipo" for="alcance-PROYECTO">
+                  <i class="bi bi-kanban d-block fs-4" aria-hidden="true"></i>Proyecto
+                  <span class="d-block small">Con porcentaje</span>
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          <div id="campos-avance" hidden>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="campo-club" class="form-label">Club *</label>
+                <select class="form-select" id="campo-club"></select>
+              </div>
+              <div class="col-md-6" id="grupo-proyecto" hidden>
+                <label for="campo-proyecto" class="form-label">Proyecto *</label>
+                <select class="form-select" id="campo-proyecto" aria-describedby="ayuda-proyecto"></select>
+                <div id="ayuda-proyecto" class="form-text"></div>
+              </div>
+              <div class="col-md-6" id="grupo-estudiante" hidden>
+                <label for="campo-estudiante" class="form-label">Estudiante *</label>
+                <select class="form-select" id="campo-estudiante" aria-describedby="ayuda-estudiante"></select>
+                <div id="ayuda-estudiante" class="form-text">Integrantes del club en la fecha del avance.</div>
+              </div>
+              <div class="col-md-8">
+                <label for="campo-actividad" class="form-label">Sesión relacionada</label>
+                <select class="form-select" id="campo-actividad" aria-describedby="ayuda-actividad"></select>
+                <div id="ayuda-actividad" class="form-text">Opcional. Solo sesiones ejecutadas del club.</div>
+              </div>
+              <div class="col-md-4">
+                <label for="campo-fecha" class="form-label">Fecha *</label>
+                <input type="date" class="form-control" id="campo-fecha" aria-describedby="ayuda-fecha">
+                <div id="ayuda-fecha" class="form-text"></div>
+              </div>
+              <div class="col-12">
+                <label for="campo-resultados" class="form-label">Resultados obtenidos *</label>
+                <textarea class="form-control" id="campo-resultados" rows="3" maxlength="2000"
+                          aria-describedby="contador-resultados"></textarea>
+                <div class="form-text text-end" id="contador-resultados">0 / 2000</div>
+              </div>
+              <div class="col-md-6">
+                <label for="campo-logros" class="form-label">Logros</label>
+                <textarea class="form-control" id="campo-logros" rows="2" maxlength="2000"></textarea>
+              </div>
+              <div class="col-md-6">
+                <label for="campo-dificultades" class="form-label">Dificultades</label>
+                <textarea class="form-control" id="campo-dificultades" rows="2" maxlength="2000"></textarea>
+              </div>
+              <div class="col-12">
+                <label for="campo-pasos" class="form-label">Próximos pasos</label>
+                <textarea class="form-control" id="campo-pasos" rows="2" maxlength="1000"></textarea>
+              </div>
+              <div class="col-12" id="grupo-porcentaje" hidden>
+                <label for="campo-porcentaje" class="form-label">Porcentaje de avance del proyecto *</label>
+                <div class="d-flex align-items-center gap-3">
+                  <input type="range" class="form-range flex-grow-1" id="rango-porcentaje" min="0" max="100" step="5"
+                         aria-label="Porcentaje de avance">
+                  <div class="input-group input-group-sm w-auto">
+                    <input type="number" class="form-control" id="campo-porcentaje" min="0" max="100" step="1">
+                    <span class="input-group-text">%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12" id="grupo-competencias" hidden>
+                <fieldset>
+                  <legend class="form-label fs-6 mb-1">Competencias evaluadas</legend>
+                  <p class="form-text mt-0">
+                    Elija el nivel solo en las competencias que observó en esta fecha (máximo 15). El progreso del
+                    estudiante compara su primera y su última evaluación de cada competencia.
+                  </p>
+                  <div class="border rounded p-2 lista-competencias" id="lista-competencias"></div>
+                  <span class="small text-body-secondary" id="contador-competencias" aria-live="polite"></span>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar-avance">Guardar avance</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-anular" tabindex="-1" aria-labelledby="titulo-modal-anular" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-anular" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-anular">Anular avance</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-semibold mb-0" id="anular-titulo"></p>
+          <p class="text-body-secondary small" id="anular-datos"></p>
+          <div id="alertas-anular" aria-live="polite"></div>
+          <div class="alert alert-warning py-2 small">
+            El avance anulado no se elimina: queda en el historial con su motivo y deja de contar en el progreso y en
+            los resultados. Si necesita corregirlo, regístrelo de nuevo.
+          </div>
+          <label for="anular-motivo" class="form-label">Motivo de la anulación *</label>
+          <textarea class="form-control" id="anular-motivo" rows="3" maxlength="500"
+                    aria-describedby="contador-anular-motivo"></textarea>
+          <div class="form-text text-end" id="contador-anular-motivo">0 / 500</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
+          <button type="submit" class="btn btn-danger" id="boton-confirmar-anular">Anular avance</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="titulo-modal-detalle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-detalle">Detalle del avance</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-detalle" aria-live="polite"></div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h3 class="h5 mb-0" id="detalle-titulo"></h3>
+            <span id="detalle-insignias"></span>
+          </div>
+          <p class="text-body-secondary small mb-3" id="detalle-club"></p>
+          <div class="alert alert-secondary py-2 small" id="detalle-reservado" hidden>
+            Avance individual: su vista de supervisión muestra solo el código del estudiante, la fecha y las
+            competencias evaluadas; los textos quedan reservados para la institución.
+          </div>
+          <dl class="row small mb-3" id="detalle-datos"></dl>
+          <div class="mb-3" id="grupo-detalle-competencias" hidden>
+            <h4 class="h6">Competencias evaluadas</h4>
+            <ul class="list-unstyled small mb-0" id="detalle-competencias"></ul>
+          </div>
+          <div class="mb-3" id="grupo-detalle-anulacion" hidden>
+            <h4 class="h6">Anulación</h4>
+            <div class="border border-danger-subtle rounded p-2 small">
+              <p class="mb-1 texto-preformateado" id="detalle-motivo-anulacion"></p>
+              <p class="mb-0 text-body-secondary" id="detalle-anulado"></p>
+            </div>
+          </div>
+          <p class="small text-body-secondary mb-0" id="detalle-registro"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/avances.js"></script>
+</body>
+</html>

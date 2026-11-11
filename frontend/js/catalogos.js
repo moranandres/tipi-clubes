@@ -85,3 +85,15 @@ export function cargarActividadesDelClub(clubId, estado) {
 export function cargarContenidos(filtros = {}) {
   return apiFetch(`/api/contenidos${construirConsulta(filtros)}`);
 }
+
+export function cargarInscripcionesDelClub(clubId) {
+  return cargarTodasLasPaginas(`/api/inscripciones?clubId=${clubId}`);
+}
+
+export function cargarProyectos(filtros = {}) {
+  return cargarTodasLasPaginas(`/api/proyectos${construirConsulta(filtros)}`);
+}
+
+export function cargarEvidenciasDelClub(clubId, estado) {
+  return cargarTodasLasPaginas(`/api/evidencias${construirConsulta({ clubId, estado })}`);
+}

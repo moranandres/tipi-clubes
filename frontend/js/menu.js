@@ -44,6 +44,14 @@ export const SECCIONES_MENU = [
     ]
   },
   {
+    titulo: 'Resultados y seguimiento',
+    opciones: [
+      { id: 'proyectos', etiqueta: 'Proyectos de estudiantes', icono: 'bi-kanban', href: 'proyectos.html', roles: TODOS },
+      { id: 'avances', etiqueta: 'Avances y resultados', icono: 'bi-graph-up-arrow', href: 'avances.html', roles: TODOS },
+      { id: 'seguimiento', etiqueta: 'Seguimiento de actividades', icono: 'bi-stoplights', href: 'seguimiento.html', roles: TODOS }
+    ]
+  },
+  {
     titulo: 'Administración',
     opciones: [
       { id: 'usuarios', etiqueta: 'Usuarios', icono: 'bi-people', href: 'usuarios.html', roles: ['ADMIN'] },

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' http://localhost:8080; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>Seguimiento de actividades | TIPI 3.0</title>
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body class="bg-body-tertiary">
+  <a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#contenido">Saltar al contenido</a>
+  <header id="barra-superior"></header>
+  <div class="container-fluid">
+    <div class="row">
+      <nav id="menu-lateral" class="col-lg-3 col-xl-2 p-0" aria-label="Menú principal"></nav>
+      <main id="contenido" class="col-lg-9 col-xl-10 p-3 p-md-4" tabindex="-1">
+        <div class="mb-3">
+          <h1 class="h3 mb-0">Seguimiento de actividades</h1>
+          <p class="text-body-secondary small mb-0">
+            Actividades planificadas frente a ejecutadas, reprogramaciones y semáforo de cumplimiento de cada club.
+          </p>
+        </div>
+
+        <div id="alertas" aria-live="polite"></div>
+
+        <div class="card shadow-sm mb-3">
+          <div class="card-body py-2 d-flex flex-wrap align-items-center gap-3">
+            <div class="small" id="parametros-texto">Cargando parámetros...</div>
+            <div class="d-flex flex-wrap align-items-center gap-3 small ms-lg-auto" aria-label="Leyenda del semáforo">
+              <span class="d-inline-flex align-items-center gap-1"><span class="punto-semaforo semaforo-adecuado"></span><span id="leyenda-adecuado">Adecuado</span></span>
+              <span class="d-inline-flex align-items-center gap-1"><span class="punto-semaforo semaforo-riesgo"></span><span id="leyenda-riesgo">En riesgo</span></span>
+              <span class="d-inline-flex align-items-center gap-1"><span class="punto-semaforo semaforo-critico"></span><span id="leyenda-critico">Crítico</span></span>
+              <span class="d-inline-flex align-items-center gap-1"><span class="punto-semaforo semaforo-sin-datos"></span>Sin datos</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="boton-parametros" hidden>
+              <i class="bi bi-sliders me-1" aria-hidden="true"></i>Parámetros
+            </button>
+          </div>
+        </div>
+
+        <ul class="nav nav-tabs" id="pestanas" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pestana-resumen" data-bs-toggle="tab" data-bs-target="#panel-resumen"
+                    type="button" role="tab" aria-controls="panel-resumen" aria-selected="true">
+              <i class="bi bi-stoplights me-1" aria-hidden="true"></i>Resumen por club
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pestana-club" data-bs-toggle="tab" data-bs-target="#panel-club"
+                    type="button" role="tab" aria-controls="panel-club" aria-selected="false">
+              <i class="bi bi-list-check me-1" aria-hidden="true"></i>Detalle de un club
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content border border-top-0 rounded-bottom bg-body p-3 shadow-sm">
+          <section class="tab-pane fade show active" id="panel-resumen" role="tabpanel" aria-labelledby="pestana-resumen"
+                   tabindex="0">
+            <form id="formulario-resumen" class="row g-2 align-items-end mb-3" novalidate>
+              <div class="col-12 col-md-4 col-xl-3">
+                <label for="resumen-periodo" class="form-label mb-1">Período académico</label>
+                <select class="form-select" id="resumen-periodo">
+                  <option value="">Período activo</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4 col-xl-3" id="grupo-resumen-institucion">
+                <label for="resumen-institucion" class="form-label mb-1">Institución</label>
+                <select class="form-select" id="resumen-institucion">
+                  <option value="">Todas</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="resumen-desde" class="form-label mb-1">Desde</label>
+                <input type="date" class="form-control" id="resumen-desde">
+              </div>
+              <div class="col-6 col-md-4 col-xl-2">
+                <label for="resumen-hasta" class="form-label mb-1">Hasta</label>
+                <input type="date" class="form-control" id="resumen-hasta">
+              </div>
+              <div class="col-12 col-md-4 col-xl-2">
+                <button type="submit" class="btn btn-primary w-100" id="boton-resumen">Calcular</button>
+              </div>
+              <div class="col-12">
+                <p class="form-text mb-0">
+                  Sin fechas se toma todo el período. El cumplimiento compara las sesiones ejecutadas con las exigibles
+                  (ejecutadas más vencidas); las canceladas y las futuras no cuentan en contra.
+                </p>
+              </div>
+            </form>
+
+            <div id="alertas-resumen" aria-live="polite"></div>
+
+            <div id="resumen" hidden>
+              <p class="small text-body-secondary" id="resumen-titulo"></p>
+              <div class="row g-2 mb-3" id="resumen-semaforo"></div>
+              <div class="row g-2 mb-3" id="resumen-indicadores"></div>
+
+              <div id="grupo-instituciones" hidden>
+                <h2 class="h6">Por institución</h2>
+                <div class="table-responsive mb-3">
+                  <table class="table table-sm table-hover align-middle mb-0">
+                    <caption class="visually-hidden">Seguimiento por institución</caption>
+                    <thead class="table-light">
+                      <tr>
+                        <th scope="col">Institución</th>
+                        <th scope="col" class="text-end">Clubes</th>
+                        <th scope="col" class="text-end">Ejecutadas / exigibles</th>
+                        <th scope="col">Cumplimiento</th>
+                        <th scope="col" class="text-end">Vencidas</th>
+                        <th scope="col" class="text-end">Reprogramadas</th>
+                      </tr>
+                    </thead>
+                    <tbody id="cuerpo-instituciones"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                <h2 class="h6 mb-0">Por club</h2>
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" id="solo-alertas">
+                  <label class="form-check-label small" for="solo-alertas">Solo clubes en riesgo o críticos</label>
+                </div>
+              </div>
+              <div class="table-responsive mb-3">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <caption class="visually-hidden">Seguimiento por club</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Semáforo</th>
+                      <th scope="col">Club</th>
+                      <th scope="col" class="text-end">Ejecutadas / exigibles</th>
+                      <th scope="col">Cumplimiento</th>
+                      <th scope="col" class="text-end">Vencidas</th>
+                      <th scope="col" class="text-end">Por registrar</th>
+                      <th scope="col" class="text-end">Reprogramadas</th>
+                      <th scope="col" class="text-end">Horas</th>
+                      <th scope="col">Última / próxima</th>
+                      <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-clubes"></tbody>
+                </table>
+              </div>
+
+              <h2 class="h6">Por mes</h2>
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <caption class="visually-hidden">Seguimiento por mes</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Mes</th>
+                      <th scope="col" class="text-end">Planificadas</th>
+                      <th scope="col" class="text-end">Ejecutadas</th>
+                      <th scope="col" class="text-end">Vencidas</th>
+                      <th scope="col" class="text-end">Canceladas</th>
+                      <th scope="col">Cumplimiento</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-meses"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="tab-pane fade" id="panel-club" role="tabpanel" aria-labelledby="pestana-club" tabindex="0">
+            <form id="formulario-club" class="row g-2 align-items-end mb-3" novalidate>
+              <div class="col-12 col-md-5">
+                <label for="selector-club" class="form-label mb-1">Club</label>
+                <select class="form-select" id="selector-club">
+                  <option value="">Seleccione un club</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-2">
+                <label for="club-desde" class="form-label mb-1">Desde</label>
+                <input type="date" class="form-control" id="club-desde">
+              </div>
+              <div class="col-6 col-md-2">
+                <label for="club-hasta" class="form-label mb-1">Hasta</label>
+                <input type="date" class="form-control" id="club-hasta">
+              </div>
+              <div class="col-12 col-md-3">
+                <button type="submit" class="btn btn-primary w-100" id="boton-club">Ver seguimiento</button>
+              </div>
+            </form>
+
+            <div id="alertas-club" aria-live="polite"></div>
+
+            <div id="club-vacio" class="text-center text-body-secondary py-4">
+              Seleccione un club para ver sus actividades planificadas, ejecutadas, vencidas y reprogramadas.
+            </div>
+
+            <div id="club" hidden>
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <div class="d-flex flex-wrap align-items-center gap-2">
+                    <h2 class="h5 mb-0" id="club-nombre"></h2>
+                    <span id="club-semaforo"></span>
+                  </div>
+                  <p class="small text-body-secondary mb-0" id="club-datos"></p>
+                </div>
+                <a class="btn btn-sm btn-outline-secondary" id="enlace-actividades" href="actividades.html">
+                  <i class="bi bi-calendar-check me-1" aria-hidden="true"></i>Actividades del club
+                </a>
+              </div>
+              <div class="row g-2 mb-3" id="club-indicadores"></div>
+              <div class="table-responsive mb-3">
+                <table class="table table-sm align-middle mb-0">
+                  <caption class="visually-hidden">Seguimiento mensual del club</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Mes</th>
+                      <th scope="col" class="text-end">Planificadas</th>
+                      <th scope="col" class="text-end">Ejecutadas</th>
+                      <th scope="col" class="text-end">Vencidas</th>
+                      <th scope="col" class="text-end">Canceladas</th>
+                      <th scope="col">Cumplimiento</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-club-meses"></tbody>
+                </table>
+              </div>
+              <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-2">
+                <h3 class="h6 mb-0">Actividades</h3>
+                <div>
+                  <label for="filtro-situacion" class="form-label small mb-1">Situación</label>
+                  <select class="form-select form-select-sm" id="filtro-situacion">
+                    <option value="">Todas</option>
+                    <option value="EJECUTADA">Ejecutadas</option>
+                    <option value="VENCIDA">Vencidas</option>
+                    <option value="POR_REGISTRAR">Por registrar</option>
+                    <option value="POR_EJECUTAR">Por ejecutar</option>
+                    <option value="CANCELADA">Canceladas</option>
+                    <option value="REPROGRAMADA">Reprogramadas</option>
+                  </select>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <caption class="visually-hidden">Actividades del club en el seguimiento</caption>
+                  <thead class="table-light">
+                    <tr>
+                      <th scope="col">Fecha</th>
+                      <th scope="col">Actividad</th>
+                      <th scope="col">Responsable</th>
+                      <th scope="col">Situación</th>
+                      <th scope="col">Registro</th>
+                      <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cuerpo-actividades"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-reprogramaciones" tabindex="-1" aria-labelledby="titulo-modal-reprogramaciones" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-reprogramaciones">Reprogramaciones</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="fw-semibold mb-0" id="reprogramaciones-tema"></p>
+          <p class="text-body-secondary small" id="reprogramaciones-datos"></p>
+          <div id="alertas-reprogramaciones" aria-live="polite"></div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <caption class="visually-hidden">Historial de reprogramaciones</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Antes</th>
+                  <th scope="col">Después</th>
+                  <th scope="col">Desplazamiento</th>
+                  <th scope="col">Motivo</th>
+                  <th scope="col">Registró</th>
+                </tr>
+              </thead>
+              <tbody id="cuerpo-reprogramaciones"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-parametros" tabindex="-1" aria-labelledby="titulo-modal-parametros" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formulario-parametros" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-parametros">Parámetros del seguimiento</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="alertas-parametros" aria-live="polite"></div>
+          <div class="mb-3">
+            <label for="campo-gracia" class="form-label">Días de gracia para registrar la ejecución *</label>
+            <input type="number" class="form-control" id="campo-gracia" min="0" max="15" step="1"
+                   aria-describedby="ayuda-gracia">
+            <div id="ayuda-gracia" class="form-text">
+              De 0 a 15. Una sesión planificada pasa a «vencida» cuando han pasado estos días sin registrar su ejecución.
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label for="campo-adecuado" class="form-label">Umbral adecuado (%) *</label>
+              <input type="number" class="form-control" id="campo-adecuado" min="0.1" max="100" step="0.1">
+            </div>
+            <div class="col-6">
+              <label for="campo-minimo" class="form-label">Umbral mínimo (%) *</label>
+              <input type="number" class="form-control" id="campo-minimo" min="0.1" max="100" step="0.1">
+            </div>
+            <div class="col-12">
+              <p class="form-text mb-0">
+                Cumplimiento mayor o igual al umbral adecuado: verde. Entre el mínimo y el adecuado: amarillo. Por debajo
+                del mínimo: rojo. El mínimo debe ser menor que el adecuado. El cambio aplica a todos los clubes y queda
+                en la auditoría.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <button type="submit" class="btn btn-primary" id="boton-guardar-parametros">Guardar parámetros</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="js/seguimiento.js"></script>
+</body>
+</html>
