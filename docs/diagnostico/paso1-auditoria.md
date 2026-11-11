@@ -7,7 +7,7 @@ Auditoría hecha el 11/11/2026 sobre el equipo de Andrés: backend Spring Boot e
 | # | Dimensión | Puntaje | Hallazgo clave |
 |---|-----------|---------|----------------|
 | 1 | Accesibilidad | 3 | Azul primario `#0d6efd` sobre `#f8f9fa` da 4.3:1 (mínimo 4.5:1) en enlaces del menú, pestañas y filtros |
-| 2 | Rendimiento | 3 | Carga rápida (172 ms), pero el panel hace 6 llamadas y los selectores bajan listas de hasta 100 clubes |
+| 2 | Rendimiento | 3 | Carga rápida (172 ms), pero el panel hace 6 llamadas y los selectores descargan el registro completo de cada club, página por página |
 | 3 | Temas y tokens | 2 | Paleta y tipografía por defecto de Bootstrap, sin tokens propios ni modo oscuro |
 | 4 | Responsive | 2 | En móvil los filtros ocupan más de una pantalla antes de los datos y la tabla mide 700 px en 375 px |
 | 5 | Integridad de implementación | 2 | Aspecto de plantilla genérica, 3 bordes laterales de acento, filas de 149 px, no existe página pública |
@@ -33,7 +33,7 @@ No pasa como sistema propio del producto. El código es ordenado y accesible (CS
 | Controladores devuelven el DTO directamente; 20 altas usan `@ResponseStatus(CREATED)`, las demás respuestas van con 200 y ninguna envía `Location` | `ResponseEntity<DTO>` uniforme: `201 Created` + `Location` en altas, `204` en bajas, `200` en el resto | Contrato HTTP predecible para el cliente de Next.js y para las pruebas |
 | Sin documentación del contrato de 148 endpoints | `springdoc-openapi` en `/v3/api-docs` y tipos TypeScript generados con `openapi-typescript` | El frontend nuevo consume tipos generados; un cambio de DTO rompe la compilación, no la pantalla |
 | El panel arma 6 indicadores con 6 llamadas `?tamano=1` | `GET /api/panel/resumen` con los indicadores ya filtrados por rol e institución | 1 petición en vez de 6 y el alcance por rol se resuelve en el servidor |
-| Los filtros cargan `/api/clubes?tamano=100` e `/api/instituciones?tamano=100` | Endpoints ligeros de opciones `{id, nombre}` con búsqueda (`?q=`) | Ya hay 54 clubes; con más de 100 el selector queda incompleto sin aviso |
+| Los filtros cargan `/api/clubes?tamano=100` e `/api/instituciones?tamano=100` | Endpoints ligeros de opciones `{id, nombre}` con búsqueda (`?q=`) | El selector descarga los 18 campos de cada club en páginas de 100 cuando solo necesita el nombre: 23,8 kB frente a 2,9 kB |
 | `API_BASE_URL` fijo y `connect-src http://localhost:8080` repetido en 30 HTML; CORS solo para `:5500` | Variable `NEXT_PUBLIC_API_URL` o `rewrites` de Next.js; orígenes CORS por entorno, incluido `:3000` | Despliegue sin editar archivos y sin errores de CORS |
 | JWT en `sessionStorage`, visible para cualquier script | Cookie `httpOnly` + `SameSite=Lax` emitida por un route handler de Next.js (BFF) y protección de rutas con `middleware.ts` | Reduce la exposición del token ante XSS y permite renderizar en servidor según el rol |
 | No existe una fuente pública de cifras | `GET /api/publico/estadisticas` solo con agregados (instituciones, clubes activos, sesiones ejecutadas, evidencias) | La landing muestra datos reales sin exponer información personal de estudiantes |
@@ -71,7 +71,7 @@ No pasa como sistema propio del producto. El código es ordenado y accesible (CS
 - **P2** Evidencias sin estado inicial útil. Comando: `$impeccable onboard`.
 - **P2** Panel sin acciones. Comando: `$impeccable shape`.
 - **P2** Bordes laterales de acento ×3. Comando: `$impeccable quieter`.
-- **P2** Selectores limitados a 100 registros. Comando: `$impeccable harden`.
+- **P2** Selectores que descargan registros completos, página por página. Comando: `$impeccable harden`.
 - **P3** Botones de acción de 32×31 px (cumplen el mínimo AA de 24 px, no los 44 px recomendados). Comando: `$impeccable adapt`.
 
 Falsos positivos descartados: las 2 imágenes "sin `src`" de `evidencias.html` son vistas previas que llena el JS.
