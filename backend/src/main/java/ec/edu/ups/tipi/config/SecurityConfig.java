@@ -46,7 +46,9 @@ public class SecurityConfig {
                         "/api/auth/recuperar",
                         "/api/auth/restablecer",
                         "/api/auth/restablecer/validar").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/publico/certificados/*").permitAll()
+                .requestMatchers(HttpMethod.GET,
+                        "/api/publico/certificados/*",
+                        "/api/publico/estadisticas").permitAll()
                 .requestMatchers(HttpMethod.GET,
                         "/v3/api-docs",
                         "/v3/api-docs/**",

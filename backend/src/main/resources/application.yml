@@ -64,6 +64,8 @@ tipi:
     admin-password: ${ADMIN_INITIAL_PASSWORD:Cambiar#2026}
   storage:
     directorio: ${STORAGE_DIR:./uploads}
+  publico:
+    estadisticas-cache-segundos: ${PUBLIC_STATS_CACHE_SECONDS:300}
 
 springdoc:
   api-docs:
