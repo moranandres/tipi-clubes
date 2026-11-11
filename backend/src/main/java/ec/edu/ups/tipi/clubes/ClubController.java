@@ -1,19 +1,23 @@
 package ec.edu.ups.tipi.clubes;
 
+import ec.edu.ups.tipi.clubes.dto.CambioEstadoClubRequest;
+import ec.edu.ups.tipi.clubes.dto.CierreClubResponse;
 import ec.edu.ups.tipi.clubes.dto.ClubActualizarRequest;
 import ec.edu.ups.tipi.clubes.dto.ClubCrearRequest;
 import ec.edu.ups.tipi.clubes.dto.ClubResponse;
-import ec.edu.ups.tipi.clubes.dto.CambioEstadoClubRequest;
-import ec.edu.ups.tipi.clubes.dto.CierreClubResponse;
 import ec.edu.ups.tipi.common.PaginaResponse;
+import ec.edu.ups.tipi.common.Respuestas;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Clubes", description = "Clubes de robótica y programación, cambios de estado y cierre")
 @RestController
 @RequestMapping("/api/clubes")
 @RequiredArgsConstructor
@@ -28,7 +32,7 @@ public class ClubController {
 
     @GetMapping
     @PreAuthorize(LECTURA)
-    public PaginaResponse<ClubResponse> listar(
+    public ResponseEntity<PaginaResponse<ClubResponse>> listar(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) Long institucionId,
             @RequestParam(required = false) Integer periodoId,
@@ -36,43 +40,46 @@ public class ClubController {
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "10") int tamano,
             @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.listar(q, institucionId, periodoId, estado, pagina, tamano, usuario);
+        return ResponseEntity.ok(service.listar(q, institucionId, periodoId, estado, pagina, tamano, usuario));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize(LECTURA)
-    public ClubResponse obtener(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.obtener(id, usuario);
+    public ResponseEntity<ClubResponse> obtener(@PathVariable Long id,
+                                                @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.obtener(id, usuario));
     }
 
     @GetMapping("/{id}/cierre")
     @PreAuthorize(ESCRITURA)
-    public CierreClubResponse previsualizarCierre(@PathVariable Long id,
-                                                  @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return cierre.previsualizar(id, usuario);
+    public ResponseEntity<CierreClubResponse> previsualizarCierre(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(cierre.previsualizar(id, usuario));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize(ESCRITURA)
-    public ClubResponse crear(@Valid @RequestBody ClubCrearRequest request,
-                              @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.crear(request, usuario);
+    public ResponseEntity<ClubResponse> crear(@Valid @RequestBody ClubCrearRequest request,
+                                              @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        ClubResponse creado = service.crear(request, usuario);
+        return Respuestas.creado(creado.id(), creado);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize(ESCRITURA)
-    public ClubResponse actualizar(@PathVariable Long id,
-                                   @Valid @RequestBody ClubActualizarRequest request,
-                                   @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.actualizar(id, request, usuario);
+    public ResponseEntity<ClubResponse> actualizar(@PathVariable Long id,
+                                                   @Valid @RequestBody ClubActualizarRequest request,
+                                                   @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.actualizar(id, request, usuario));
     }
 
     @PatchMapping("/{id}/estado")
     @PreAuthorize(ESCRITURA)
-    public ClubResponse cambiarEstado(@PathVariable Long id,
-                                      @Valid @RequestBody CambioEstadoClubRequest request,
-                                      @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.cambiarEstado(id, request, usuario);
+    public ResponseEntity<ClubResponse> cambiarEstado(@PathVariable Long id,
+                                                      @Valid @RequestBody CambioEstadoClubRequest request,
+                                                      @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.cambiarEstado(id, request, usuario));
     }
 }

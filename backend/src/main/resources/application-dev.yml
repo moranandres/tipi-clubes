@@ -1,4 +1,9 @@
 spring:
   flyway:
-    # En desarrollo también se cargan los datos provisionales
     locations: classpath:db/migration,classpath:db/seed-dev
+
+springdoc:
+  api-docs:
+    enabled: ${OPENAPI_ENABLED:true}
+  swagger-ui:
+    enabled: ${OPENAPI_ENABLED:true}
