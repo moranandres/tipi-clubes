@@ -7,11 +7,15 @@ import ec.edu.ups.tipi.actividades.dto.CancelacionActividadRequest;
 import ec.edu.ups.tipi.actividades.dto.EjecucionActividadRequest;
 import ec.edu.ups.tipi.actividades.dto.ReprogramacionResponse;
 import ec.edu.ups.tipi.common.PaginaResponse;
+import ec.edu.ups.tipi.common.Respuestas;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@Tag(name = "Actividades", description = "Sesiones de los clubes: planificación, ejecución, reprogramación y cancelación")
 @RestController
 @RequestMapping("/api/actividades")
 @RequiredArgsConstructor
@@ -30,9 +35,10 @@ public class ActividadController {
 
     private final ActividadService service;
 
+    @Operation(summary = "Lista paginada de actividades dentro del alcance del usuario")
     @GetMapping
     @PreAuthorize(LECTURA)
-    public PaginaResponse<ActividadResponse> listar(
+    public ResponseEntity<PaginaResponse<ActividadResponse>> listar(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) Long institucionId,
             @RequestParam(required = false) Long clubId,
@@ -46,59 +52,71 @@ public class ActividadController {
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "10") int tamano,
             @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.listar(q, institucionId, clubId, cursoId, responsableId, estado, desde, hasta,
-                pendientes, ascendente, pagina, tamano, usuario);
+        return ResponseEntity.ok(service.listar(q, institucionId, clubId, cursoId, responsableId, estado, desde,
+                hasta, pendientes, ascendente, pagina, tamano, usuario));
     }
 
+    @Operation(summary = "Detalle de una actividad")
     @GetMapping("/{id}")
     @PreAuthorize(LECTURA)
-    public ActividadResponse obtener(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.obtener(id, usuario);
+    public ResponseEntity<ActividadResponse> obtener(@PathVariable Long id,
+                                                     @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.obtener(id, usuario));
     }
 
+    @Operation(summary = "Historial de reprogramaciones de una actividad")
     @GetMapping("/{id}/reprogramaciones")
     @PreAuthorize(LECTURA)
-    public List<ReprogramacionResponse> reprogramaciones(@PathVariable Long id,
-                                                        @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.reprogramaciones(id, usuario);
+    public ResponseEntity<List<ReprogramacionResponse>> reprogramaciones(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.reprogramaciones(id, usuario));
     }
 
+    @Operation(summary = "Planifica una actividad")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize(GESTION)
-    public ActividadResponse crear(@Valid @RequestBody ActividadCrearRequest request,
-                                   @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.crear(request, usuario);
+    public ResponseEntity<ActividadResponse> crear(@Valid @RequestBody ActividadCrearRequest request,
+                                                   @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        ActividadResponse creada = service.crear(request, usuario);
+        return Respuestas.creado(creada.id(), creada);
     }
 
+    @Operation(summary = "Actualiza o reprograma una actividad")
     @PutMapping("/{id}")
     @PreAuthorize(GESTION)
-    public ActividadResponse actualizar(@PathVariable Long id,
-                                        @Valid @RequestBody ActividadActualizarRequest request,
-                                        @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.actualizar(id, request, usuario);
+    public ResponseEntity<ActividadResponse> actualizar(@PathVariable Long id,
+                                                        @Valid @RequestBody ActividadActualizarRequest request,
+                                                        @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.actualizar(id, request, usuario));
     }
 
+    @Operation(summary = "Registra la ejecución de una actividad")
     @PutMapping("/{id}/ejecucion")
     @PreAuthorize(GESTION)
-    public ActividadResponse registrarEjecucion(@PathVariable Long id,
-                                                @Valid @RequestBody EjecucionActividadRequest request,
-                                                @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.registrarEjecucion(id, request, usuario);
+    public ResponseEntity<ActividadResponse> registrarEjecucion(
+            @PathVariable Long id,
+            @Valid @RequestBody EjecucionActividadRequest request,
+            @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.registrarEjecucion(id, request, usuario));
     }
 
+    @Operation(summary = "Cancela una actividad indicando el motivo")
     @PatchMapping("/{id}/cancelacion")
     @PreAuthorize(GESTION)
-    public ActividadResponse cancelar(@PathVariable Long id,
-                                      @Valid @RequestBody CancelacionActividadRequest request,
-                                      @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.cancelar(id, request, usuario);
+    public ResponseEntity<ActividadResponse> cancelar(@PathVariable Long id,
+                                                      @Valid @RequestBody CancelacionActividadRequest request,
+                                                      @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.cancelar(id, request, usuario));
     }
 
+    @Operation(summary = "Elimina una actividad sin registros asociados")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize(GESTION)
-    public void eliminar(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal usuario) {
+    public ResponseEntity<Void> eliminar(@PathVariable Long id, @AuthenticationPrincipal UsuarioPrincipal usuario) {
         service.eliminar(id, usuario);
+        return Respuestas.sinContenido();
     }
 }
