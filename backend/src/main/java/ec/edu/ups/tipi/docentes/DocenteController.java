@@ -8,6 +8,7 @@ import ec.edu.ups.tipi.docentes.dto.DocenteCrearRequest;
 import ec.edu.ups.tipi.docentes.dto.DocenteResponse;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
 import ec.edu.ups.tipi.usuarios.dto.EstadoRequest;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class DocenteController {
 
     private final DocenteService service;
 
+    @Operation(summary = "Lista paginada de docentes dentro del alcance del usuario")
     @GetMapping
     @PreAuthorize(LECTURA)
     public ResponseEntity<PaginaResponse<DocenteResponse>> listar(
@@ -43,6 +45,7 @@ public class DocenteController {
         return ResponseEntity.ok(service.listar(q, institucionId, activo, pagina, tamano, usuario));
     }
 
+    @Operation(summary = "Cuentas de usuario disponibles para vincular a un docente")
     @GetMapping("/cuentas-disponibles")
     @PreAuthorize(ESCRITURA)
     public ResponseEntity<List<CuentaDocenteResponse>> cuentasDisponibles(
@@ -52,6 +55,7 @@ public class DocenteController {
         return ResponseEntity.ok(service.cuentasDisponibles(institucionId, docenteId, usuario));
     }
 
+    @Operation(summary = "Detalle de un docente")
     @GetMapping("/{id}")
     @PreAuthorize(LECTURA)
     public ResponseEntity<DocenteResponse> obtener(@PathVariable Long id,
@@ -59,6 +63,7 @@ public class DocenteController {
         return ResponseEntity.ok(service.obtener(id, usuario));
     }
 
+    @Operation(summary = "Registra un docente")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize(ESCRITURA)
@@ -68,6 +73,7 @@ public class DocenteController {
         return Respuestas.creado(creado.id(), creado);
     }
 
+    @Operation(summary = "Actualiza los datos de un docente")
     @PutMapping("/{id}")
     @PreAuthorize(ESCRITURA)
     public ResponseEntity<DocenteResponse> actualizar(@PathVariable Long id,
@@ -76,6 +82,7 @@ public class DocenteController {
         return ResponseEntity.ok(service.actualizar(id, request, usuario));
     }
 
+    @Operation(summary = "Activa o desactiva un docente")
     @PatchMapping("/{id}/estado")
     @PreAuthorize(ESCRITURA)
     public ResponseEntity<DocenteResponse> cambiarEstado(@PathVariable Long id,

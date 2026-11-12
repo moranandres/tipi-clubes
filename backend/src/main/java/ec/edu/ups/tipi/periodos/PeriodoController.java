@@ -3,6 +3,7 @@ package ec.edu.ups.tipi.periodos;
 import ec.edu.ups.tipi.common.Respuestas;
 import ec.edu.ups.tipi.periodos.dto.PeriodoRequest;
 import ec.edu.ups.tipi.periodos.dto.PeriodoResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +22,14 @@ public class PeriodoController {
 
     private final PeriodoService service;
 
+    @Operation(summary = "Lista de períodos académicos")
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','COORDINADOR','CONSULTA','RESP_INSTITUCIONAL','DOCENTE')")
     public ResponseEntity<List<PeriodoResponse>> listar() {
         return ResponseEntity.ok(service.listar());
     }
 
+    @Operation(summary = "Crea un período académico")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
@@ -35,6 +38,7 @@ public class PeriodoController {
         return Respuestas.creado(creado.id(), creado);
     }
 
+    @Operation(summary = "Actualiza un período académico")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PeriodoResponse> actualizar(@PathVariable Integer id,
@@ -42,6 +46,7 @@ public class PeriodoController {
         return ResponseEntity.ok(service.actualizar(id, request));
     }
 
+    @Operation(summary = "Define el período académico vigente")
     @PatchMapping("/{id}/activar")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PeriodoResponse> activar(@PathVariable Integer id) {

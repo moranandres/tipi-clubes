@@ -7,6 +7,7 @@ import ec.edu.ups.tipi.instituciones.dto.InstitucionRequest;
 import ec.edu.ups.tipi.instituciones.dto.InstitucionResponse;
 import ec.edu.ups.tipi.instituciones.dto.ResponsableRequest;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class InstitucionController {
 
     private final InstitucionService service;
 
+    @Operation(summary = "Lista paginada de instituciones dentro del alcance del usuario")
     @GetMapping
     @PreAuthorize(LECTURA)
     public ResponseEntity<PaginaResponse<InstitucionResponse>> listar(
@@ -40,6 +42,7 @@ public class InstitucionController {
         return ResponseEntity.ok(service.listar(q, provincia, canton, estado, pagina, tamano, usuario));
     }
 
+    @Operation(summary = "Detalle de una institución")
     @GetMapping("/{id}")
     @PreAuthorize(LECTURA)
     public ResponseEntity<InstitucionResponse> obtener(@PathVariable Long id,
@@ -47,6 +50,7 @@ public class InstitucionController {
         return ResponseEntity.ok(service.obtener(id, usuario));
     }
 
+    @Operation(summary = "Registra una institución con su código AMIE")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
@@ -55,6 +59,7 @@ public class InstitucionController {
         return Respuestas.creado(creada.id(), creada);
     }
 
+    @Operation(summary = "Actualiza los datos de una institución")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<InstitucionResponse> actualizar(@PathVariable Long id,
@@ -62,6 +67,7 @@ public class InstitucionController {
         return ResponseEntity.ok(service.actualizar(id, request));
     }
 
+    @Operation(summary = "Actualiza los datos de contacto de una institución")
     @PutMapping("/{id}/contacto")
     @PreAuthorize("hasAnyRole('ADMIN','RESP_INSTITUCIONAL')")
     public ResponseEntity<InstitucionResponse> actualizarContacto(
@@ -71,6 +77,7 @@ public class InstitucionController {
         return ResponseEntity.ok(service.actualizarContacto(id, request, usuario));
     }
 
+    @Operation(summary = "Asigna el responsable institucional")
     @PutMapping("/{id}/responsable")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<InstitucionResponse> asignarResponsable(@PathVariable Long id,
