@@ -102,6 +102,8 @@ export type ModuloPortal = {
 };
 
 const ID_PANEL: IdOpcion = "panel";
+const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = ["clubes"];
+const ROLES_GLOBALES: readonly Rol[] = ["ADMIN", "COORDINADOR", "CONSULTA"];
 
 export function rutaDeOpcion(id: IdOpcion): string {
   return id === ID_PANEL ? "/portal" : `/portal/${id}`;
@@ -162,12 +164,16 @@ export function descripcionDeRol(rol?: string): string {
 
 export const MODULOS_DEL_PORTAL: ModuloPortal[] = SECCIONES.flatMap((seccion) =>
   seccion.opciones
-    .filter((opcion) => opcion.id !== ID_PANEL)
+    .filter((opcion) => opcion.id !== ID_PANEL && !MODULOS_CONSTRUIDOS.includes(opcion.id))
     .map((opcion) => ({ id: opcion.id, etiqueta: opcion.etiqueta, roles: opcion.roles })),
 );
 
 export function buscarModulo(id: string): ModuloPortal | undefined {
   return MODULOS_DEL_PORTAL.find((modulo) => modulo.id === id);
+}
+
+export function tieneAlcanceGlobal(rol?: string): boolean {
+  return esRol(rol) && ROLES_GLOBALES.includes(rol);
 }
 
 export function rolPuedeVer(modulo: ModuloPortal, rol?: string): boolean {

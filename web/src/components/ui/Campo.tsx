@@ -1,4 +1,5 @@
 import { useId, type InputHTMLAttributes, type ReactNode, type Ref } from "react";
+import { CONTROL, ETIQUETA_CONTROL } from "./estilos-control";
 
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "id"> & {
   etiqueta: string;
@@ -13,7 +14,7 @@ export function Campo({ etiqueta, error, accion, className = "", ref, ...resto }
 
   return (
     <div>
-      <label htmlFor={id} className="block text-[0.9375rem] font-medium">
+      <label htmlFor={id} className={ETIQUETA_CONTROL}>
         {etiqueta}
       </label>
       <div className="relative mt-2">
@@ -23,7 +24,7 @@ export function Campo({ etiqueta, error, accion, className = "", ref, ...resto }
           id={id}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? idError : undefined}
-          className={`h-12 w-full rounded-control border border-linea bg-superficie px-3.5 text-base text-tinta transition-[border-color,background-color] duration-150 ease-salida placeholder:text-tenue hover:border-tenue focus-visible:border-acento focus-visible:outline-offset-0 aria-invalid:border-error ${accion ? "pr-12" : ""} ${className}`}
+          className={`${CONTROL} h-12 ${accion ? "pr-12" : ""} ${className}`}
         />
         {accion ? <div className="absolute inset-y-0 right-1 flex items-center">{accion}</div> : null}
       </div>
