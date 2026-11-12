@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-:root {
+:root,
+[data-theme="dark"] {
   color-scheme: dark;
   --fondo: oklch(15.9% 0.016 266.6);
   --superficie: oklch(21% 0.025 266.8);
@@ -16,22 +17,20 @@
   --sombra: 0 18px 40px -18px oklch(0% 0 0 / 0.7);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-    --fondo: oklch(95.4% 0.005 258.3);
-    --superficie: oklch(92.1% 0.008 260.7);
-    --superficie-alta: oklch(89% 0.009 258.3);
-    --linea: oklch(83.2% 0.014 262.4);
-    --tinta: oklch(15.4% 0.005 264.4);
-    --tenue: oklch(45.7% 0.014 269.4);
-    --acento: oklch(45.5% 0.265 267.2);
-    --sobre-acento: oklch(100% 0 0);
-    --exito: oklch(46.7% 0.107 155.6);
-    --aviso: oklch(47.1% 0.099 76.3);
-    --error: oklch(50.1% 0.178 28.7);
-    --sombra: 0 18px 40px -22px oklch(30% 0.05 265 / 0.45);
-  }
+[data-theme="light"] {
+  color-scheme: light;
+  --fondo: oklch(95.4% 0.005 258.3);
+  --superficie: oklch(92.1% 0.008 260.7);
+  --superficie-alta: oklch(89% 0.009 258.3);
+  --linea: oklch(83.2% 0.014 262.4);
+  --tinta: oklch(15.4% 0.005 264.4);
+  --tenue: oklch(45.7% 0.014 269.4);
+  --acento: oklch(45.5% 0.265 267.2);
+  --sobre-acento: oklch(100% 0 0);
+  --exito: oklch(46.7% 0.107 155.6);
+  --aviso: oklch(47.1% 0.099 76.3);
+  --error: oklch(50.1% 0.178 28.7);
+  --sombra: 0 18px 40px -22px oklch(30% 0.05 265 / 0.45);
 }
 
 @theme inline {
@@ -140,6 +139,26 @@
 
   @media (prefers-reduced-motion: reduce) {
     transition: opacity 200ms ease;
+
+    @starting-style {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}
+
+@utility entrada-mensaje {
+  transition:
+    opacity 180ms var(--ease-salida),
+    transform 180ms var(--ease-salida);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity 180ms ease;
 
     @starting-style {
       opacity: 0;
