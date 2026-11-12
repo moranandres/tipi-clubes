@@ -4,6 +4,11 @@ import ec.edu.ups.tipi.estudiantes.dto.AutorizacionRequest;
 import ec.edu.ups.tipi.estudiantes.dto.AutorizacionResponse;
 import ec.edu.ups.tipi.estudiantes.dto.DocumentoDescarga;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -20,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+@Tag(name = "Autorizaciones de estudiantes", description = "Autorizaciones de participación y de uso de imagen, con su documento de respaldo")
 @RestController
 @RequestMapping("/api/estudiantes/{estudianteId}/autorizaciones")
 @RequiredArgsConstructor
@@ -28,28 +34,35 @@ public class AutorizacionController {
 
     private final AutorizacionService service;
 
+    @Operation(summary = "Autorizaciones de un estudiante")
     @GetMapping
-    public List<AutorizacionResponse> listar(@PathVariable Long estudianteId,
-                                             @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.listar(estudianteId, usuario);
+    public ResponseEntity<List<AutorizacionResponse>> listar(@PathVariable Long estudianteId,
+                                                             @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.listar(estudianteId, usuario));
     }
 
+    @Operation(summary = "Registra o actualiza una autorización por tipo")
     @PutMapping("/{tipo}")
-    public AutorizacionResponse actualizar(@PathVariable Long estudianteId,
-                                           @PathVariable TipoAutorizacion tipo,
-                                           @Valid @RequestBody AutorizacionRequest request,
-                                           @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.actualizar(estudianteId, tipo, request, usuario);
+    public ResponseEntity<AutorizacionResponse> actualizar(@PathVariable Long estudianteId,
+                                                           @PathVariable TipoAutorizacion tipo,
+                                                           @Valid @RequestBody AutorizacionRequest request,
+                                                           @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.actualizar(estudianteId, tipo, request, usuario));
     }
 
+    @Operation(summary = "Carga el documento de respaldo de una autorización")
     @PostMapping(value = "/{tipo}/documento", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public AutorizacionResponse cargarDocumento(@PathVariable Long estudianteId,
-                                                @PathVariable TipoAutorizacion tipo,
-                                                @RequestParam("archivo") MultipartFile archivo,
-                                                @AuthenticationPrincipal UsuarioPrincipal usuario) {
-        return service.cargarDocumento(estudianteId, tipo, archivo, usuario);
+    public ResponseEntity<AutorizacionResponse> cargarDocumento(@PathVariable Long estudianteId,
+                                                                @PathVariable TipoAutorizacion tipo,
+                                                                @RequestParam("archivo") MultipartFile archivo,
+                                                                @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.cargarDocumento(estudianteId, tipo, archivo, usuario));
     }
 
+    @Operation(summary = "Descarga el documento de respaldo de una autorización")
+    @ApiResponse(responseCode = "200", description = "Archivo del documento",
+            content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                    schema = @Schema(type = "string", format = "binary")))
     @GetMapping("/{tipo}/documento")
     public ResponseEntity<Resource> descargarDocumento(@PathVariable Long estudianteId,
                                                        @PathVariable TipoAutorizacion tipo,
