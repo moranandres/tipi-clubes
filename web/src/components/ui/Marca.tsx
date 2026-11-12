@@ -3,11 +3,16 @@ import Link from "next/link";
 type Props = {
   href?: string;
   etiqueta?: string;
+  alPulsar?: () => void;
 };
 
-export function Marca({ href = "/", etiqueta }: Props) {
+export function Marca({ href = "/", etiqueta, alPulsar }: Props) {
   return (
-    <Link href={href} className="flex items-baseline gap-2 text-lg font-medium tracking-tight">
+    <Link
+      href={href}
+      onClick={alPulsar}
+      className="flex items-baseline gap-2 text-lg font-medium tracking-tight"
+    >
       TIPI
       <span className="font-mono text-sm text-tenue">3.0</span>
       {etiqueta ? (

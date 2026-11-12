@@ -1,19 +1,167 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { exigirSesion, nombreDeRol } from "@/lib/sesion/usuario";
+import { EsqueletoSemaforo, SemaforoClubes } from "@/components/portal/SemaforoClubes";
+import {
+  EsqueletoTarjeta,
+  TarjetaMetrica,
+  type TonoMetrica,
+} from "@/components/portal/TarjetaMetrica";
+import { obtenerResumenPanel, type ResumenPanel } from "@/lib/api/panel";
+import { exigirSesion } from "@/lib/sesion/usuario";
 
 export const metadata: Metadata = {
-  title: "Inicio del portal",
+  title: "Panel principal",
 };
 
-async function ResumenDeSesion() {
-  const usuario = await exigirSesion();
+type Tarjeta = {
+  etiqueta: string;
+  valor?: number;
+  detalle: string;
+  tono?: TonoMetrica;
+  href?: string;
+};
 
-  if (!usuario) {
+const FORMATO_NUMERO = new Intl.NumberFormat("es-EC");
+const FORMATO_FECHA = new Intl.DateTimeFormat("es-EC", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const FORMATO_HORA = new Intl.DateTimeFormat("es-EC", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "America/Guayaquil",
+});
+
+const REJILLA = "grid gap-4 sm:grid-cols-2 xl:grid-cols-4";
+const TITULO_SECCION = "text-lg font-medium";
+
+function pendiente(valor: number | undefined, conPendientes: string): Pick<Tarjeta, "detalle" | "tono"> {
+  if (typeof valor !== "number") {
+    return { detalle: "Sin dato", tono: "neutro" };
+  }
+  return valor > 0 ? { detalle: conPendientes, tono: "aviso" } : { detalle: "Al día", tono: "exito" };
+}
+
+function tarjetasDePendientes(resumen: ResumenPanel): Tarjeta[] {
+  const pendientes = resumen.pendientes;
+  return [
+    {
+      etiqueta: "Sesiones sin registrar",
+      valor: pendientes?.sesionesSinEjecucion,
+      href: "/portal/actividades",
+      ...pendiente(pendientes?.sesionesSinEjecucion, "Falta registrar su ejecución"),
+    },
+    {
+      etiqueta: "Sesiones próximas",
+      valor: pendientes?.sesionesProximosSieteDias,
+      detalle: "En los próximos 7 días",
+      href: "/portal/actividades",
+    },
+    {
+      etiqueta: "Solicitudes de inscripción",
+      valor: pendientes?.solicitudesInscripcionPorResolver,
+      href: "/portal/solicitudes",
+      ...pendiente(pendientes?.solicitudesInscripcionPorResolver, "Por resolver"),
+    },
+    {
+      etiqueta: "Solicitudes de retiro",
+      valor: pendientes?.solicitudesRetiroPorResolver,
+      href: "/portal/retiros",
+      ...pendiente(pendientes?.solicitudesRetiroPorResolver, "Por resolver"),
+    },
+  ];
+}
+
+function tarjetasDeIndicadores(resumen: ResumenPanel): Tarjeta[] {
+  const indicadores = resumen.indicadores;
+  const activos = indicadores?.clubesActivos;
+  const tarjetas: Tarjeta[] = [];
+
+  if (resumen.alcanceGlobal) {
+    tarjetas.push({
+      etiqueta: "Instituciones",
+      valor: indicadores?.instituciones,
+      detalle: "Adheridas al proyecto",
+      href: "/portal/instituciones",
+    });
+  }
+
+  tarjetas.push(
+    {
+      etiqueta: "Clubes",
+      valor: indicadores?.clubes,
+      detalle:
+        typeof activos === "number"
+          ? `${FORMATO_NUMERO.format(activos)} ${activos === 1 ? "activo" : "activos"}`
+          : "Registrados",
+      tono: typeof activos === "number" && activos > 0 ? "exito" : "neutro",
+      href: "/portal/clubes",
+    },
+    {
+      etiqueta: "Docentes activos",
+      valor: indicadores?.docentesActivos,
+      detalle: "Habilitados",
+      href: "/portal/docentes",
+    },
+  );
+
+  if (typeof indicadores?.usuariosActivos === "number") {
+    tarjetas.push({
+      etiqueta: "Usuarios activos",
+      valor: indicadores.usuariosActivos,
+      detalle: "En todo el sistema",
+      href: "/portal/usuarios",
+    });
+  }
+
+  return tarjetas;
+}
+
+function contextoDe(resumen: ResumenPanel): string {
+  const alcance = resumen.alcanceGlobal
+    ? "todas las instituciones"
+    : (resumen.institucionNombre ?? "tu institución");
+  const periodo = resumen.periodoActivo?.nombre
+    ? `en el período ${resumen.periodoActivo.nombre}`
+    : "sin período académico activo";
+  const corte = resumen.fechaCorte
+    ? `, con corte al ${FORMATO_FECHA.format(new Date(`${resumen.fechaCorte}T00:00:00Z`))}`
+    : "";
+  return `Resumen de ${alcance} ${periodo}${corte}.`;
+}
+
+function Rejilla({ tarjetas }: { tarjetas: Tarjeta[] }) {
+  return (
+    <ul className={REJILLA}>
+      {tarjetas.map((tarjeta) => (
+        <li key={tarjeta.etiqueta}>
+          <TarjetaMetrica {...tarjeta} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+async function Saludo() {
+  const usuario = await exigirSesion();
+  return (
+    <h1 className="text-3xl font-medium tracking-tight">
+      {usuario?.nombres ? `Hola, ${usuario.nombres}` : "Panel principal"}
+    </h1>
+  );
+}
+
+async function Resumen() {
+  const resumen = await obtenerResumenPanel();
+
+  if (!resumen) {
     return (
-      <div className="max-w-[60ch]">
-        <h1 className="text-3xl font-medium tracking-tight">No se pudo verificar tu sesión</h1>
-        <p className="mt-4 text-tenue">
+      <div role="alert" className="mt-8 max-w-[60ch] rounded-pieza bg-superficie p-6">
+        <h2 className={TITULO_SECCION}>No pudimos leer el resumen</h2>
+        <p className="mt-2 text-tenue">
           El servidor de TIPI 3.0 no responde en este momento. Tu sesión sigue guardada: recarga la
           página en unos minutos.
         </p>
@@ -21,67 +169,92 @@ async function ResumenDeSesion() {
     );
   }
 
-  const datos = [
-    { nombre: "Usuario", valor: usuario.username, codigo: true },
-    { nombre: "Nombre", valor: `${usuario.nombres} ${usuario.apellidos}`, codigo: false },
-    { nombre: "Rol", valor: nombreDeRol(usuario.rol), codigo: false },
-    {
-      nombre: "Institución",
-      valor: usuario.institucionId ? `ID ${usuario.institucionId}` : "Todas las instituciones",
-      codigo: Boolean(usuario.institucionId),
-    },
-    {
-      nombre: "Contraseña",
-      valor: usuario.debeCambiarPassword ? "Temporal, pendiente de cambio" : "Definida por ti",
-      codigo: false,
-    },
-  ];
-
   return (
     <>
-      <h1 className="text-3xl font-medium tracking-tight">Hola, {usuario.nombres}</h1>
-      <p className="mt-4 max-w-[60ch] text-tenue">
-        Tu sesión está activa. Estos datos llegan del servidor con tu credencial, que el navegador
-        guarda en una cookie que el código de la página no puede leer.
-      </p>
-      <dl className="mt-10 max-w-[44rem]">
-        {datos.map((dato) => (
-          <div
-            key={dato.nombre}
-            className="grid gap-1 border-t border-linea py-4 last:border-b sm:grid-cols-[12rem_1fr] sm:gap-6"
-          >
-            <dt className="text-tenue">{dato.nombre}</dt>
-            <dd className={`break-words ${dato.codigo ? "font-mono text-[0.9375rem]" : ""}`}>
-              {dato.valor}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      <p className="mt-3 max-w-[70ch] text-tenue">{contextoDe(resumen)}</p>
+
+      <section aria-labelledby="titulo-pendientes" className="mt-10">
+        <h2 id="titulo-pendientes" className={TITULO_SECCION}>
+          Pendientes
+        </h2>
+        <div className="mt-4">
+          <Rejilla tarjetas={tarjetasDePendientes(resumen)} />
+        </div>
+      </section>
+
+      <section aria-labelledby="titulo-indicadores" className="mt-10">
+        <h2 id="titulo-indicadores" className={TITULO_SECCION}>
+          Indicadores
+        </h2>
+        <div className="mt-4">
+          <Rejilla tarjetas={tarjetasDeIndicadores(resumen)} />
+        </div>
+      </section>
+
+      <section aria-labelledby="titulo-seguimiento" className="mt-10">
+        <h2 id="titulo-seguimiento" className={TITULO_SECCION}>
+          Seguimiento de clubes
+        </h2>
+        <div className="mt-4">
+          <SemaforoClubes seguimiento={resumen.seguimiento} />
+        </div>
+      </section>
+
+      {resumen.generadoEn ? (
+        <p className="mt-6 text-sm text-tenue">
+          Calculado a las {FORMATO_HORA.format(new Date(resumen.generadoEn))}.
+        </p>
+      ) : null}
     </>
   );
 }
 
 function EsqueletoResumen() {
   return (
-    <div aria-hidden="true">
-      <div className="h-9 w-64 max-w-full rounded-full bg-superficie-alta" />
-      <div className="mt-5 h-4 w-[28rem] max-w-full rounded-full bg-superficie" />
-      <div className="mt-10 max-w-[44rem]">
-        {[0, 1, 2, 3, 4].map((fila) => (
-          <div key={fila} className="border-t border-linea py-4 last:border-b">
-            <div className="h-5 w-48 max-w-full rounded-full bg-superficie" />
+    <div aria-busy="true">
+      <p className="sr-only" role="status">
+        Cargando el resumen del panel.
+      </p>
+      <div aria-hidden="true">
+        <div className="mt-3 flex h-6 items-center motion-safe:animate-pulse">
+          <div className="h-4 w-[30rem] max-w-full rounded-full bg-superficie" />
+        </div>
+        {[
+          { titulo: "Pendientes", tarjetas: 4 },
+          { titulo: "Indicadores", tarjetas: 3 },
+        ].map((grupo) => (
+          <div key={grupo.titulo} className="mt-10">
+            <p className={TITULO_SECCION}>{grupo.titulo}</p>
+            <div className={`mt-4 ${REJILLA}`}>
+              {Array.from({ length: grupo.tarjetas }, (_, indice) => (
+                <EsqueletoTarjeta key={indice} />
+              ))}
+            </div>
           </div>
         ))}
+        <div className="mt-10">
+          <p className={TITULO_SECCION}>Seguimiento de clubes</p>
+          <div className="mt-4">
+            <EsqueletoSemaforo />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
+function EsqueletoSaludo() {
+  return <div aria-hidden="true" className="h-9 w-64 max-w-full rounded-[10px] bg-superficie-alta" />;
+}
+
 export default function PaginaPortal() {
   return (
-    <div className="contenedor py-12 lg:py-16">
+    <div className="mx-auto w-full max-w-[78rem] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+      <Suspense fallback={<EsqueletoSaludo />}>
+        <Saludo />
+      </Suspense>
       <Suspense fallback={<EsqueletoResumen />}>
-        <ResumenDeSesion />
+        <Resumen />
       </Suspense>
     </div>
   );

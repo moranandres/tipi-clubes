@@ -14,8 +14,12 @@ export type ResultadoSesion =
 
 const ESPERA_MAXIMA_MS = 6000;
 
+export async function leerToken(): Promise<string | undefined> {
+  return (await cookies()).get(COOKIE_SESION)?.value;
+}
+
 export const leerSesion = cache(async (): Promise<ResultadoSesion> => {
-  const token = (await cookies()).get(COOKIE_SESION)?.value;
+  const token = await leerToken();
   if (!token) {
     return { estado: "ausente" };
   }

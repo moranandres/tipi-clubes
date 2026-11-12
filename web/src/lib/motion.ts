@@ -41,6 +41,11 @@ export const entradaPieza: Variants = {
   fuera: { opacity: 0, scale: 0.97, transition: salida },
 };
 
+export const empujeIcono: Variants = {
+  reposo: { x: 0, transition: resorteFirme },
+  sobre: { x: 2, transition: resorteFirme },
+};
+
 export const pulsacion = {
   scale: 0.97,
   transition: { duration: DURACION.pulsacion, ease: CURVA_SALIDA },

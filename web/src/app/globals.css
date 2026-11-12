@@ -66,6 +66,7 @@
 
   --ease-salida: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-movimiento: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-cajon: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @layer base {
@@ -112,6 +113,76 @@
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
+    }
+  }
+}
+
+@layer components {
+  .cajon {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(20rem, 86vw);
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-right: 1px solid var(--linea);
+    background: var(--fondo);
+    color: var(--tinta);
+    transform: translateX(-100%);
+    transition-property: transform, overlay, display;
+    transition-duration: 180ms;
+    transition-timing-function: var(--ease-salida);
+    transition-behavior: allow-discrete;
+  }
+
+  .cajon[open] {
+    transform: translateX(0);
+    transition-duration: 240ms;
+    transition-timing-function: var(--ease-cajon);
+
+    @starting-style {
+      transform: translateX(-100%);
+    }
+  }
+
+  .cajon::backdrop {
+    background: oklch(0% 0 0 / 0);
+    transition-property: background-color, overlay, display;
+    transition-duration: 180ms;
+    transition-timing-function: var(--ease-salida);
+    transition-behavior: allow-discrete;
+  }
+
+  .cajon[open]::backdrop {
+    background: oklch(0% 0 0 / 0.55);
+
+    @starting-style {
+      background: oklch(0% 0 0 / 0);
+    }
+  }
+
+  :root:has(.cajon[open]) {
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cajon,
+    .cajon[open] {
+      transform: none;
+      opacity: 0;
+      transition-property: opacity, overlay, display;
+      transition-duration: 160ms;
+      transition-timing-function: ease;
+
+      @starting-style {
+        transform: none;
+        opacity: 0;
+      }
+    }
+
+    .cajon[open] {
+      opacity: 1;
     }
   }
 }
