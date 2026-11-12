@@ -1,27 +1,28 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
+import { Bienvenida, EsqueletoBienvenida } from "@/components/portal/Bienvenida";
 import { EsqueletoSemaforo, SemaforoClubes } from "@/components/portal/SemaforoClubes";
 import {
   EsqueletoTarjeta,
   TarjetaMetrica,
+  type DatosTarjeta,
   type TonoMetrica,
 } from "@/components/portal/TarjetaMetrica";
-import { obtenerResumenPanel, type ResumenPanel } from "@/lib/api/panel";
-import { exigirSesion } from "@/lib/sesion/usuario";
+import {
+  obtenerActividadPanel,
+  obtenerResumenPanel,
+  type ActividadPanel,
+  type ResumenPanel,
+} from "@/lib/api/panel";
 
 export const metadata: Metadata = {
   title: "Panel principal",
 };
 
-type Tarjeta = {
-  etiqueta: string;
-  valor?: number;
-  detalle: string;
-  tono?: TonoMetrica;
-  href?: string;
-};
+type EstadoSeguimiento = NonNullable<NonNullable<ActividadPanel["indicadores"]>["estado"]>;
 
 const FORMATO_NUMERO = new Intl.NumberFormat("es-EC");
+const FORMATO_HORAS = new Intl.NumberFormat("es-EC", { maximumFractionDigits: 1 });
 const FORMATO_FECHA = new Intl.DateTimeFormat("es-EC", {
   day: "numeric",
   month: "long",
@@ -35,17 +36,28 @@ const FORMATO_HORA = new Intl.DateTimeFormat("es-EC", {
   timeZone: "America/Guayaquil",
 });
 
-const REJILLA = "grid gap-4 sm:grid-cols-2 xl:grid-cols-4";
+const REJILLA = "grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4";
 const TITULO_SECCION = "text-lg font-medium";
+const SIN_PERIODO = "Sin datos del período";
 
-function pendiente(valor: number | undefined, conPendientes: string): Pick<Tarjeta, "detalle" | "tono"> {
+const CUMPLIMIENTO: Record<EstadoSeguimiento, { detalle: string; tono: TonoMetrica }> = {
+  ADECUADO: { detalle: "Adecuado", tono: "exito" },
+  EN_RIESGO: { detalle: "En riesgo", tono: "aviso" },
+  CRITICO: { detalle: "Crítico", tono: "error" },
+  SIN_DATOS: { detalle: "Sin sesiones exigibles todavía", tono: "neutro" },
+};
+
+function pendiente(
+  valor: number | undefined,
+  conPendientes: string,
+): Pick<DatosTarjeta, "detalle" | "tono"> {
   if (typeof valor !== "number") {
     return { detalle: "Sin dato", tono: "neutro" };
   }
   return valor > 0 ? { detalle: conPendientes, tono: "aviso" } : { detalle: "Al día", tono: "exito" };
 }
 
-function tarjetasDePendientes(resumen: ResumenPanel): Tarjeta[] {
+function tarjetasDePendientes(resumen: ResumenPanel): DatosTarjeta[] {
   const pendientes = resumen.pendientes;
   return [
     {
@@ -75,10 +87,58 @@ function tarjetasDePendientes(resumen: ResumenPanel): Tarjeta[] {
   ];
 }
 
-function tarjetasDeIndicadores(resumen: ResumenPanel): Tarjeta[] {
+function tarjetasDeActividad(actividad: ActividadPanel): DatosTarjeta[] {
+  const indicadores = actividad.indicadores;
+  const exigibles = indicadores?.exigibles;
+  const horasPlanificadas = indicadores?.horasPlanificadas;
+  const inscripciones = actividad.inscripcionesActivas;
+  const cumplimiento = indicadores?.estado ? CUMPLIMIENTO[indicadores.estado] : null;
+
+  return [
+    {
+      etiqueta: "Sesiones ejecutadas",
+      valor: indicadores?.ejecutadas,
+      detalle:
+        typeof exigibles === "number"
+          ? `De ${FORMATO_NUMERO.format(exigibles)} exigibles a la fecha`
+          : SIN_PERIODO,
+      href: "/portal/actividades",
+    },
+    {
+      etiqueta: "Horas de trabajo",
+      valor: indicadores?.horasEjecutadas,
+      decimales: 1,
+      sufijo: "h",
+      detalle:
+        typeof horasPlanificadas === "number"
+          ? `De ${FORMATO_HORAS.format(horasPlanificadas)} planificadas`
+          : SIN_PERIODO,
+      href: "/portal/seguimiento",
+    },
+    {
+      etiqueta: "Cumplimiento",
+      valor: indicadores?.porcentajeCumplimiento,
+      sufijo: "%",
+      detalle: cumplimiento?.detalle ?? SIN_PERIODO,
+      tono: cumplimiento?.tono ?? "neutro",
+      href: "/portal/seguimiento",
+    },
+    {
+      etiqueta: "Estudiantes activos",
+      valor: actividad.estudiantesActivos,
+      detalle:
+        typeof inscripciones === "number"
+          ? `${FORMATO_NUMERO.format(inscripciones)} ${inscripciones === 1 ? "inscripción activa" : "inscripciones activas"}`
+          : "Sin dato de inscripciones",
+      href: "/portal/estudiantes",
+    },
+  ];
+}
+
+function tarjetasDeIndicadores(resumen: ResumenPanel): DatosTarjeta[] {
   const indicadores = resumen.indicadores;
   const activos = indicadores?.clubesActivos;
-  const tarjetas: Tarjeta[] = [];
+  const tarjetas: DatosTarjeta[] = [];
 
   if (resumen.alcanceGlobal) {
     tarjetas.push({
@@ -130,10 +190,32 @@ function contextoDe(resumen: ResumenPanel): string {
   const corte = resumen.fechaCorte
     ? `, con corte al ${FORMATO_FECHA.format(new Date(`${resumen.fechaCorte}T00:00:00Z`))}`
     : "";
-  return `Resumen de ${alcance} ${periodo}${corte}.`;
+  return `Datos de ${alcance} ${periodo}${corte}.`;
 }
 
-function Rejilla({ tarjetas }: { tarjetas: Tarjeta[] }) {
+function Seccion({
+  id,
+  titulo,
+  nota,
+  children,
+}: {
+  id: string;
+  titulo: string;
+  nota?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section aria-labelledby={id} className="mt-10">
+      <h2 id={id} className={TITULO_SECCION}>
+        {titulo}
+      </h2>
+      {nota ? <p className="mt-1 max-w-[70ch] text-[0.9375rem] text-tenue">{nota}</p> : null}
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
+
+function Rejilla({ tarjetas }: { tarjetas: DatosTarjeta[] }) {
   return (
     <ul className={REJILLA}>
       {tarjetas.map((tarjeta) => (
@@ -145,21 +227,12 @@ function Rejilla({ tarjetas }: { tarjetas: Tarjeta[] }) {
   );
 }
 
-async function Saludo() {
-  const usuario = await exigirSesion();
-  return (
-    <h1 className="text-3xl font-medium tracking-tight">
-      {usuario?.nombres ? `Hola, ${usuario.nombres}` : "Panel principal"}
-    </h1>
-  );
-}
-
-async function Resumen() {
+async function Pendientes() {
   const resumen = await obtenerResumenPanel();
 
   if (!resumen) {
     return (
-      <div role="alert" className="mt-8 max-w-[60ch] rounded-pieza bg-superficie p-6">
+      <div role="alert" className="mt-10 max-w-[60ch] rounded-pieza bg-superficie p-6">
         <h2 className={TITULO_SECCION}>No pudimos leer el resumen</h2>
         <p className="mt-2 text-tenue">
           El servidor de TIPI 3.0 no responde en este momento. Tu sesión sigue guardada: recarga la
@@ -170,36 +243,43 @@ async function Resumen() {
   }
 
   return (
+    <Seccion id="titulo-pendientes" titulo="Pendientes" nota={contextoDe(resumen)}>
+      <Rejilla tarjetas={tarjetasDePendientes(resumen)} />
+    </Seccion>
+  );
+}
+
+async function Actividad() {
+  const actividad = await obtenerActividadPanel();
+  return (
+    <Seccion id="titulo-actividad" titulo="Actividad del período">
+      <Rejilla tarjetas={tarjetasDeActividad(actividad)} />
+    </Seccion>
+  );
+}
+
+async function Indicadores() {
+  const resumen = await obtenerResumenPanel();
+  if (!resumen) {
+    return null;
+  }
+  return (
+    <Seccion id="titulo-indicadores" titulo="Indicadores">
+      <Rejilla tarjetas={tarjetasDeIndicadores(resumen)} />
+    </Seccion>
+  );
+}
+
+async function Seguimiento() {
+  const resumen = await obtenerResumenPanel();
+  if (!resumen) {
+    return null;
+  }
+  return (
     <>
-      <p className="mt-3 max-w-[70ch] text-tenue">{contextoDe(resumen)}</p>
-
-      <section aria-labelledby="titulo-pendientes" className="mt-10">
-        <h2 id="titulo-pendientes" className={TITULO_SECCION}>
-          Pendientes
-        </h2>
-        <div className="mt-4">
-          <Rejilla tarjetas={tarjetasDePendientes(resumen)} />
-        </div>
-      </section>
-
-      <section aria-labelledby="titulo-indicadores" className="mt-10">
-        <h2 id="titulo-indicadores" className={TITULO_SECCION}>
-          Indicadores
-        </h2>
-        <div className="mt-4">
-          <Rejilla tarjetas={tarjetasDeIndicadores(resumen)} />
-        </div>
-      </section>
-
-      <section aria-labelledby="titulo-seguimiento" className="mt-10">
-        <h2 id="titulo-seguimiento" className={TITULO_SECCION}>
-          Seguimiento de clubes
-        </h2>
-        <div className="mt-4">
-          <SemaforoClubes seguimiento={resumen.seguimiento} />
-        </div>
-      </section>
-
+      <Seccion id="titulo-seguimiento" titulo="Seguimiento de clubes">
+        <SemaforoClubes seguimiento={resumen.seguimiento} />
+      </Seccion>
       {resumen.generadoEn ? (
         <p className="mt-6 text-sm text-tenue">
           Calculado a las {FORMATO_HORA.format(new Date(resumen.generadoEn))}.
@@ -209,52 +289,65 @@ async function Resumen() {
   );
 }
 
-function EsqueletoResumen() {
+function EsqueletoSeccion({
+  titulo,
+  tarjetas,
+  conNota = false,
+}: {
+  titulo: string;
+  tarjetas: number;
+  conNota?: boolean;
+}) {
   return (
-    <div aria-busy="true">
+    <div aria-busy="true" className="mt-10">
       <p className="sr-only" role="status">
-        Cargando el resumen del panel.
+        Cargando {titulo.toLowerCase()}.
       </p>
       <div aria-hidden="true">
-        <div className="mt-3 flex h-6 items-center motion-safe:animate-pulse">
-          <div className="h-4 w-[30rem] max-w-full rounded-full bg-superficie" />
-        </div>
-        {[
-          { titulo: "Pendientes", tarjetas: 4 },
-          { titulo: "Indicadores", tarjetas: 3 },
-        ].map((grupo) => (
-          <div key={grupo.titulo} className="mt-10">
-            <p className={TITULO_SECCION}>{grupo.titulo}</p>
-            <div className={`mt-4 ${REJILLA}`}>
-              {Array.from({ length: grupo.tarjetas }, (_, indice) => (
-                <EsqueletoTarjeta key={indice} />
-              ))}
-            </div>
+        <p className={TITULO_SECCION}>{titulo}</p>
+        {conNota ? (
+          <div className="mt-1 flex h-[1.40625rem] items-center motion-safe:animate-pulse">
+            <div className="h-3.5 w-[28rem] max-w-full rounded-full bg-superficie" />
           </div>
-        ))}
-        <div className="mt-10">
-          <p className={TITULO_SECCION}>Seguimiento de clubes</p>
-          <div className="mt-4">
-            <EsqueletoSemaforo />
-          </div>
+        ) : null}
+        <div className={`mt-4 ${REJILLA}`}>
+          {Array.from({ length: tarjetas }, (_, indice) => (
+            <EsqueletoTarjeta key={indice} />
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-function EsqueletoSaludo() {
-  return <div aria-hidden="true" className="h-9 w-64 max-w-full rounded-[10px] bg-superficie-alta" />;
+function EsqueletoSeguimiento() {
+  return (
+    <div aria-hidden="true" className="mt-10">
+      <p className={TITULO_SECCION}>Seguimiento de clubes</p>
+      <div className="mt-4">
+        <EsqueletoSemaforo />
+      </div>
+    </div>
+  );
 }
 
 export default function PaginaPortal() {
   return (
     <div className="mx-auto w-full max-w-[78rem] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
-      <Suspense fallback={<EsqueletoSaludo />}>
-        <Saludo />
+      <Suspense fallback={<EsqueletoBienvenida />}>
+        <Bienvenida />
       </Suspense>
-      <Suspense fallback={<EsqueletoResumen />}>
-        <Resumen />
+      <Suspense fallback={<EsqueletoSeccion titulo="Pendientes" tarjetas={4} conNota />}>
+        <Pendientes />
+      </Suspense>
+      <Suspense fallback={<EsqueletoSeccion titulo="Actividad del período" tarjetas={4} />}>
+        <Actividad />
+      </Suspense>
+      <Suspense fallback={<EsqueletoSeccion titulo="Indicadores" tarjetas={3} />}>
+        <Indicadores />
+      </Suspense>
+      <Suspense fallback={<EsqueletoSeguimiento />}>
+        <Seguimiento />
       </Suspense>
     </div>
   );

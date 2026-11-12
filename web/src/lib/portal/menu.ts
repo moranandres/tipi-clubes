@@ -131,6 +131,35 @@ export function seccionesParaRol(rol?: string): SeccionMenu[] {
   })).filter((seccion) => seccion.opciones.length > 0);
 }
 
+const ACCESOS_POR_ROL: Record<Rol, readonly IdOpcion[]> = {
+  ADMIN: ["usuarios", "instituciones", "periodos"],
+  COORDINADOR: ["seguimiento", "avances", "clubes"],
+  RESP_INSTITUCIONAL: ["solicitudes", "clubes", "certificados"],
+  DOCENTE: ["actividades", "asistencia", "evidencias"],
+  CONSULTA: ["seguimiento", "avances", "auditoria"],
+};
+
+export function accesosRapidosParaRol(rol?: string): OpcionMenu[] {
+  if (!esRol(rol)) {
+    return [];
+  }
+  const permitidas = seccionesParaRol(rol).flatMap((seccion) => seccion.opciones);
+  return ACCESOS_POR_ROL[rol].flatMap((id) => permitidas.filter((opcion) => opcion.id === id));
+}
+
+const DESCRIPCIONES_DE_ROL: Record<Rol, string> = {
+  ADMIN: "Administras el sistema completo: usuarios, instituciones, períodos y catálogos.",
+  COORDINADOR: "Sigues el avance de los clubes de todas las instituciones y revisas sus resultados.",
+  RESP_INSTITUCIONAL:
+    "Gestionas los clubes, los cursos, las inscripciones y los certificados de tu institución.",
+  DOCENTE: "Planificas las sesiones de tus clubes, pasas asistencia y cargas las evidencias.",
+  CONSULTA: "Consultas la información y los reportes del proyecto sin modificar registros.",
+};
+
+export function descripcionDeRol(rol?: string): string {
+  return esRol(rol) ? DESCRIPCIONES_DE_ROL[rol] : "";
+}
+
 export const MODULOS_DEL_PORTAL: ModuloPortal[] = SECCIONES.flatMap((seccion) =>
   seccion.opciones
     .filter((opcion) => opcion.id !== ID_PANEL)

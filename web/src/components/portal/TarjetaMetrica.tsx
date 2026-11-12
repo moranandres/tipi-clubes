@@ -3,15 +3,16 @@ import Link from "next/link";
 
 export type TonoMetrica = "neutro" | "exito" | "aviso" | "error";
 
-type Props = {
+export type DatosTarjeta = {
   etiqueta: string;
-  valor?: number;
+  valor?: number | null;
   detalle: string;
   tono?: TonoMetrica;
   href?: string;
+  decimales?: number;
+  sufijo?: string;
 };
 
-const FORMATO_NUMERO = new Intl.NumberFormat("es-EC");
 const SIN_DATO = "—";
 
 const PUNTOS: Record<TonoMetrica, string> = {
@@ -29,7 +30,21 @@ const FILA_ETIQUETA = "flex items-start justify-between gap-3 sm:order-1";
 const FILA_DETALLE = "mt-1 flex items-center gap-2 sm:order-3 sm:mt-3";
 const CIFRA = "shrink-0 sm:order-2 sm:mt-4";
 
-export function TarjetaMetrica({ etiqueta, valor, detalle, tono = "neutro", href }: Props) {
+function formatear(valor: number, decimales: number): string {
+  return new Intl.NumberFormat("es-EC", { maximumFractionDigits: decimales }).format(valor);
+}
+
+export function TarjetaMetrica({
+  etiqueta,
+  valor,
+  detalle,
+  tono = "neutro",
+  href,
+  decimales = 0,
+  sufijo,
+}: DatosTarjeta) {
+  const hayValor = typeof valor === "number";
+
   const contenido = (
     <>
       <span className={TEXTOS}>
@@ -49,7 +64,12 @@ export function TarjetaMetrica({ etiqueta, valor, detalle, tono = "neutro", href
         </span>
       </span>
       <span className={`cifras ${CIFRA} text-3xl font-medium leading-none tracking-tight sm:text-4xl`}>
-        {typeof valor === "number" ? FORMATO_NUMERO.format(valor) : SIN_DATO}
+        {hayValor ? formatear(valor, decimales) : SIN_DATO}
+        {hayValor && sufijo ? (
+          <span className="ml-1 text-lg leading-none font-normal tracking-normal text-tenue sm:text-xl sm:leading-none">
+            {sufijo}
+          </span>
+        ) : null}
       </span>
     </>
   );
