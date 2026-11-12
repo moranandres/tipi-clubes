@@ -18,7 +18,20 @@ public final class Respuestas {
         return ResponseEntity.created(ubicacion).body(cuerpo);
     }
 
+    public static <T> ResponseEntity<T> creadoEn(String ruta, Object id, T cuerpo) {
+        URI ubicacion = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path(ruta)
+                .path("/{id}")
+                .buildAndExpand(id)
+                .toUri();
+        return ResponseEntity.created(ubicacion).body(cuerpo);
+    }
+
     public static ResponseEntity<Void> sinContenido() {
         return ResponseEntity.noContent().build();
+    }
+
+    public static ResponseEntity<Void> aceptado() {
+        return ResponseEntity.accepted().build();
     }
 }
