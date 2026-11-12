@@ -1,17 +1,13 @@
 {
   "name": "tipi-tipos-api",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "Genera los tipos de TypeScript de la API de TIPI 3.0 a partir del documento OpenAPI",
   "scripts": {
     "descargar": "node descargar-openapi.mjs",
-    "generar": "openapi-typescript openapi.json -o tipos-api.d.ts",
-    "tipos": "npm run descargar && npm run generar",
-    "verificar": "tsc --noEmit"
-  },
-  "dependencies": {
-    "openapi-fetch": "0.17.0"
+    "generar": "openapi-typescript openapi.json -o ../../web/src/lib/api/tipos-api.d.ts",
+    "tipos": "npm run descargar && npm run generar"
   },
   "devDependencies": {
     "openapi-typescript": "7.13.0",

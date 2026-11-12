@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --fondo: oklch(15.9% 0.016 266.6);
+  --superficie: oklch(21% 0.025 266.8);
+  --superficie-alta: oklch(25.3% 0.032 265.9);
+  --linea: oklch(31.9% 0.038 267.4);
+  --tinta: oklch(94.5% 0.009 258.3);
+  --tenue: oklch(65.5% 0.026 262.1);
+  --acento: oklch(75.6% 0.132 242.1);
+  --sobre-acento: oklch(15.9% 0.016 266.6);
+  --exito: oklch(78.5% 0.134 160);
+  --aviso: oklch(83.4% 0.141 85.4);
+  --error: oklch(75.9% 0.144 26.1);
+  --sombra: 0 18px 40px -18px oklch(0% 0 0 / 0.7);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --fondo: oklch(95.4% 0.005 258.3);
+    --superficie: oklch(92.1% 0.008 260.7);
+    --superficie-alta: oklch(89% 0.009 258.3);
+    --linea: oklch(83.2% 0.014 262.4);
+    --tinta: oklch(15.4% 0.005 264.4);
+    --tenue: oklch(45.7% 0.014 269.4);
+    --acento: oklch(45.5% 0.265 267.2);
+    --sobre-acento: oklch(100% 0 0);
+    --exito: oklch(46.7% 0.107 155.6);
+    --aviso: oklch(47.1% 0.099 76.3);
+    --error: oklch(50.1% 0.178 28.7);
+    --sombra: 0 18px 40px -22px oklch(30% 0.05 265 / 0.45);
+  }
+}
+
+@theme inline {
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-superficie-alta: var(--superficie-alta);
+  --color-linea: var(--linea);
+  --color-tinta: var(--tinta);
+  --color-tenue: var(--tenue);
+  --color-acento: var(--acento);
+  --color-sobre-acento: var(--sobre-acento);
+  --color-exito: var(--exito);
+  --color-aviso: var(--aviso);
+  --color-error: var(--error);
+
+  --font-sans: var(--fuente-texto), system-ui, sans-serif;
+  --font-mono: var(--fuente-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --text-titular: clamp(2.5rem, 1.6rem + 2.4vw, 3.25rem);
+  --text-titular--line-height: 1.04;
+  --text-titular--letter-spacing: -0.036em;
+  --text-seccion: clamp(1.875rem, 1.4rem + 1.6vw, 2.5rem);
+  --text-seccion--line-height: 1.1;
+  --text-seccion--letter-spacing: -0.028em;
+  --text-cifra: clamp(2rem, 1.5rem + 1.4vw, 2.75rem);
+  --text-cifra--line-height: 1;
+  --text-cifra--letter-spacing: -0.03em;
+
+  --radius-pieza: 14px;
+  --radius-control: 10px;
+
+  --shadow-pieza: var(--sombra);
+
+  --ease-salida: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-movimiento: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    scrollbar-color: var(--linea) var(--fondo);
+  }
+
+  body {
+    background: var(--fondo);
+    color: var(--tinta);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 500;
+    font-stretch: 96%;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: var(--acento);
+    color: var(--sobre-acento);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--acento);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@utility contenedor {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+@utility cifras {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+@utility entrada-titular {
+  transition:
+    opacity 260ms var(--ease-salida),
+    transform 260ms var(--ease-salida);
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity 200ms ease;
+
+    @starting-style {
+      opacity: 0;
+      transform: none;
+    }
+  }
+}
