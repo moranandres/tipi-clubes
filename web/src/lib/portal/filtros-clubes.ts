@@ -21,6 +21,13 @@ export type ParametrosDeBusqueda = Record<string, string | string[] | undefined>
 export const RUTA_CLUBES = "/portal/clubes";
 export const CLUBES_POR_PAGINA = 10;
 
+export const FILTROS_DE_CLUBES_VACIOS: FiltrosClubes = {
+  q: "",
+  estado: null,
+  institucion: null,
+  pagina: 1,
+};
+
 const LONGITUD_MAXIMA_BUSQUEDA = 80;
 
 function primero(valor: string | string[] | undefined): string {

@@ -2,15 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CircleAlert, SearchX, ShieldAlert, Users } from "lucide-react";
-import { Suspense, type ReactNode } from "react";
+import { Suspense } from "react";
+import { AvisoDeLista } from "@/components/portal/AvisoDeLista";
 import {
   BotonReintentar,
   ProveedorDeBusqueda,
   ZonaDeResultados,
 } from "@/components/portal/Busqueda";
-import { EsqueletoFiltros, FiltrosClubes } from "@/components/portal/clubes/FiltrosClubes";
-import { PaginacionClubes } from "@/components/portal/clubes/PaginacionClubes";
-import { EsqueletoTabla, TablaClubes } from "@/components/portal/clubes/TablaClubes";
+import { FiltrosClubes } from "@/components/portal/clubes/FiltrosClubes";
+import { TablaClubes } from "@/components/portal/clubes/TablaClubes";
+import { EsqueletoFiltros } from "@/components/portal/ControlesDeFiltro";
+import { EsqueletoLista } from "@/components/portal/EsqueletoLista";
+import { Paginacion } from "@/components/portal/Paginacion";
 import { listarClubes, listarInstitucionesParaFiltro } from "@/lib/api/clubes";
 import {
   CLUBES_POR_PAGINA,
@@ -33,42 +36,13 @@ type PropsConParametros = {
 
 const FORMATO_NUMERO = new Intl.NumberFormat("es-EC");
 const ROL_DOCENTE = "DOCENTE";
+const ANCHOS_DE_FILTROS = ["md:min-w-[16rem] md:flex-1", "md:w-48", "md:w-72"];
 
 function alcanceDe(rol?: string): string {
   if (tieneAlcanceGlobal(rol)) {
     return "en todas las instituciones";
   }
   return rol === ROL_DOCENTE ? "a tu cargo" : "de tu institución";
-}
-
-function Aviso({
-  icono,
-  titulo,
-  children,
-  accion,
-  urgente = false,
-}: {
-  icono: ReactNode;
-  titulo: string;
-  children: ReactNode;
-  accion?: ReactNode;
-  urgente?: boolean;
-}) {
-  return (
-    <div
-      role={urgente ? "alert" : undefined}
-      className="flex flex-col items-start gap-4 rounded-pieza bg-superficie p-6 sm:flex-row sm:p-8"
-    >
-      <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-control bg-superficie-alta text-tenue">
-        {icono}
-      </span>
-      <div className="min-w-0">
-        <h2 className="text-lg font-medium">{titulo}</h2>
-        <p className="mt-1.5 max-w-[60ch] text-tenue">{children}</p>
-        {accion ? <div className="mt-5">{accion}</div> : null}
-      </div>
-    </div>
-  );
 }
 
 async function Filtros({ parametros }: PropsConParametros) {
@@ -87,7 +61,7 @@ async function Resultados({ parametros }: PropsConParametros) {
 
   if (resultado.estado === "sin-servicio") {
     return (
-      <Aviso
+      <AvisoDeLista
         urgente
         icono={<CircleAlert size={20} />}
         titulo="No pudimos cargar los clubes"
@@ -95,15 +69,15 @@ async function Resultados({ parametros }: PropsConParametros) {
       >
         El servidor de TIPI 3.0 no responde en este momento. Tu sesión sigue guardada y los
         filtros se conservan.
-      </Aviso>
+      </AvisoDeLista>
     );
   }
 
   if (resultado.estado === "denegado") {
     return (
-      <Aviso urgente icono={<ShieldAlert size={20} />} titulo="No tienes acceso a esta lista">
+      <AvisoDeLista urgente icono={<ShieldAlert size={20} />} titulo="No tienes acceso a esta lista">
         {resultado.mensaje}
-      </Aviso>
+      </AvisoDeLista>
     );
   }
 
@@ -115,7 +89,7 @@ async function Resultados({ parametros }: PropsConParametros) {
 
   if (total === 0) {
     return hayFiltrosActivos(filtros) ? (
-      <Aviso
+      <AvisoDeLista
         icono={<SearchX size={20} />}
         titulo="Ningún club coincide con los filtros"
         accion={
@@ -125,13 +99,13 @@ async function Resultados({ parametros }: PropsConParametros) {
         }
       >
         Prueba con otro nombre o cambia el estado o la institución.
-      </Aviso>
+      </AvisoDeLista>
     ) : (
-      <Aviso icono={<Users size={20} />} titulo="Todavía no hay clubes">
+      <AvisoDeLista icono={<Users size={20} />} titulo="Todavía no hay clubes">
         {usuario?.rol === ROL_DOCENTE
           ? "No tienes clubes a tu cargo. El responsable de tu institución puede asignarte uno."
           : "Cuando se registre el primer club aparecerá en esta lista."}
-      </Aviso>
+      </AvisoDeLista>
     );
   }
 
@@ -149,7 +123,15 @@ async function Resultados({ parametros }: PropsConParametros) {
       <div className="mt-4">
         <TablaClubes clubes={clubes} mostrarInstitucion={tieneAlcanceGlobal(usuario?.rol)} />
       </div>
-      <PaginacionClubes filtros={filtros} pagina={pagina} totalPaginas={totalPaginas} />
+      <Paginacion
+        etiqueta="Páginas de la lista de clubes"
+        pagina={pagina}
+        totalPaginas={totalPaginas}
+        rutaAnterior={pagina > 1 ? rutaConFiltros({ ...filtros, pagina: pagina - 1 }) : null}
+        rutaSiguiente={
+          pagina < totalPaginas ? rutaConFiltros({ ...filtros, pagina: pagina + 1 }) : null
+        }
+      />
     </>
   );
 }
@@ -162,12 +144,12 @@ export default function PaginaClubes({ searchParams }: PageProps<"/portal/clubes
         Consulta los clubes de robótica y programación con su docente, su horario y sus cupos.
       </p>
       <ProveedorDeBusqueda>
-        <Suspense fallback={<EsqueletoFiltros />}>
+        <Suspense fallback={<EsqueletoFiltros anchos={ANCHOS_DE_FILTROS} />}>
           <Filtros parametros={searchParams} />
         </Suspense>
         <div className="mt-8">
           <ZonaDeResultados>
-            <Suspense fallback={<EsqueletoTabla />}>
+            <Suspense fallback={<EsqueletoLista mensaje="Cargando la lista de clubes." />}>
               <Resultados parametros={searchParams} />
             </Suspense>
           </ZonaDeResultados>

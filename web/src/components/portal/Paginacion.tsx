@@ -1,30 +1,27 @@
 "use client";
 
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useBusqueda } from "@/components/portal/Busqueda";
 import { Boton } from "@/components/ui/Boton";
-import { rutaConFiltros, type FiltrosClubes } from "@/lib/portal/filtros-clubes";
+import { useBusqueda } from "./Busqueda";
 
 type Props = {
-  filtros: FiltrosClubes;
+  etiqueta: string;
   pagina: number;
   totalPaginas: number;
+  rutaAnterior: string | null;
+  rutaSiguiente: string | null;
 };
 
-export function PaginacionClubes({ filtros, pagina, totalPaginas }: Props) {
+export function Paginacion({ etiqueta, pagina, totalPaginas, rutaAnterior, rutaSiguiente }: Props) {
   const { navegar } = useBusqueda();
 
   if (totalPaginas <= 1) {
     return null;
   }
 
-  function irA(destino: number) {
-    navegar(rutaConFiltros({ ...filtros, pagina: destino }));
-  }
-
   return (
     <nav
-      aria-label="Páginas de la lista de clubes"
+      aria-label={etiqueta}
       className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-3"
     >
       <p className="cifras text-[0.9375rem] text-tenue">
@@ -34,8 +31,8 @@ export function PaginacionClubes({ filtros, pagina, totalPaginas }: Props) {
         <Boton
           variante="secundario"
           textoCargando=""
-          disabled={pagina <= 1}
-          onClick={() => irA(pagina - 1)}
+          disabled={!rutaAnterior}
+          onClick={() => rutaAnterior && navegar(rutaAnterior)}
         >
           <ArrowLeft aria-hidden="true" size={16} />
           Anterior
@@ -43,8 +40,8 @@ export function PaginacionClubes({ filtros, pagina, totalPaginas }: Props) {
         <Boton
           variante="secundario"
           textoCargando=""
-          disabled={pagina >= totalPaginas}
-          onClick={() => irA(pagina + 1)}
+          disabled={!rutaSiguiente}
+          onClick={() => rutaSiguiente && navegar(rutaSiguiente)}
         >
           Siguiente
           <ArrowRight aria-hidden="true" size={16} />
