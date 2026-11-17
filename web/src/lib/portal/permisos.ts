@@ -40,6 +40,10 @@ export function puedeAutorizarSobrecupo(rol?: string): boolean {
   return rol === ROL_ADMINISTRADOR;
 }
 
+export function puedeGestionarAutorizaciones(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_REGISTRAN, rol);
+}
+
 export function soloVeDatosMinimos(rol?: string): boolean {
   return esUnoDe(ROLES_CON_VISTA_MINIMA, rol);
 }

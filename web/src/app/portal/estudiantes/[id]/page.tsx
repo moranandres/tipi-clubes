@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 import { Suspense } from "react";
+import {
+  AutorizacionesDelEstudiante,
+  EsqueletoAutorizacionesDelEstudiante,
+} from "@/components/portal/autorizaciones/AutorizacionesDelEstudiante";
 import { EliminarEstudiante } from "@/components/portal/estudiantes/EliminarEstudiante";
 import { EstadoDelEstudiante } from "@/components/portal/estudiantes/EstadoDelEstudiante";
 import { FormularioEstudiante } from "@/components/portal/estudiantes/FormularioEstudiante";
@@ -21,14 +26,12 @@ import {
 import { ListaDeDatos } from "@/components/portal/ListaDeDatos";
 import { PuntoDeEstado } from "@/components/portal/PuntoDeEstado";
 import { obtenerHistorial, type Estudiante, type Historial } from "@/lib/api/estudiantes";
+import { rutaDeGestion } from "@/lib/portal/filtros-autorizaciones";
 import {
   AUTORIZACION_OTORGADA,
-  NOMBRES_DE_AUTORIZACION,
   NOMBRES_DE_ESTADO_DE_ESTUDIANTE,
-  PUNTOS_DE_AUTORIZACION,
   PUNTOS_DE_ESTADO_DE_ESTUDIANTE,
   RUTA_ESTUDIANTES,
-  type EstadoAutorizacion,
 } from "@/lib/portal/filtros-estudiantes";
 import { identidadDe } from "@/lib/portal/identidad";
 import {
@@ -66,42 +69,7 @@ function sinHistorial(historial: Historial): boolean {
   return !resumen.clubes && !resumen.competencias && !resumen.certificadosVigentes && !resumen.certificadosAnulados;
 }
 
-function EstadoDeAutorizacion({ estado }: { estado?: EstadoAutorizacion }) {
-  const actual = estado ?? "PENDIENTE";
-  return (
-    <PuntoDeEstado punto={PUNTOS_DE_AUTORIZACION[actual]}>{NOMBRES_DE_AUTORIZACION[actual]}</PuntoDeEstado>
-  );
-}
-
-function Autorizaciones({ estudiante }: { estudiante: Estudiante }) {
-  return (
-    <section aria-labelledby="autorizaciones" className="rounded-pieza border border-linea p-5">
-      <h2 id="autorizaciones" className="text-lg font-medium">
-        Autorizaciones del representante
-      </h2>
-      <dl className="mt-4 flex flex-col gap-3 text-[0.9375rem]">
-        <div className="flex items-center justify-between gap-4">
-          <dt className="text-tenue">Participación</dt>
-          <dd>
-            <EstadoDeAutorizacion estado={estudiante.autorizacionParticipacion} />
-          </dd>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <dt className="text-tenue">Uso de imagen</dt>
-          <dd>
-            <EstadoDeAutorizacion estado={estudiante.autorizacionUsoImagen} />
-          </dd>
-        </div>
-      </dl>
-      <p className="mt-4 text-sm text-tenue">
-        La autorización de participación otorgada es obligatoria para aprobar su inscripción a un
-        club. Sin la de uso de imagen no se publican fotografías en las que aparezca.
-      </p>
-    </section>
-  );
-}
-
-function AvisoSinAutorizacion() {
+function AvisoSinAutorizacion({ estudianteId }: { estudianteId: number }) {
   return (
     <p
       role="note"
@@ -110,7 +78,13 @@ function AvisoSinAutorizacion() {
       <TriangleAlert aria-hidden="true" size={18} className="mt-0.5 shrink-0 text-aviso" />
       <span className="min-w-0">
         Este estudiante no tiene la autorización de participación otorgada. Puedes registrar su
-        solicitud de inscripción, pero no se podrá aprobar hasta que el representante la firme.
+        solicitud de inscripción, pero no se podrá aprobar hasta que el representante la firme.{" "}
+        <Link
+          href={rutaDeGestion(estudianteId, "PARTICIPACION")}
+          className="font-medium text-acento"
+        >
+          Registrar la autorización de participación
+        </Link>
       </span>
     </p>
   );
@@ -167,10 +141,16 @@ async function Contenido({ params, searchParams }: Props) {
       {consulta.aviso === AVISO_CREADO ? (
         <AvisoDeResultado>
           El estudiante se registró con el código {estudiante.codigoInterno}. El siguiente paso es
-          registrar la autorización de participación firmada por su representante.
+          registrar la autorización de participación firmada por su representante.{" "}
+          <Link
+            href={rutaDeGestion(id, "PARTICIPACION")}
+            className="font-medium text-acento"
+          >
+            Registrarla ahora
+          </Link>
         </AvisoDeResultado>
       ) : sinAutorizacion && estado === ESTADO_ACTIVO ? (
-        <AvisoSinAutorizacion />
+        <AvisoSinAutorizacion estudianteId={id} />
       ) : null}
       <div className={COLUMNAS_DE_GESTION}>
         <div className="min-w-0">
@@ -207,7 +187,11 @@ async function Contenido({ params, searchParams }: Props) {
           )}
         </div>
         <div className="flex min-w-0 flex-col gap-6">
-          {minima ? null : <Autorizaciones estudiante={estudiante} />}
+          {minima ? null : (
+            <Suspense fallback={<EsqueletoAutorizacionesDelEstudiante />}>
+              <AutorizacionesDelEstudiante estudianteId={id} />
+            </Suspense>
+          )}
           {gestionable ? (
             <EstadoDelEstudiante
               key={id}

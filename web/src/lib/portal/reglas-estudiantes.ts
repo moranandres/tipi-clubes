@@ -38,7 +38,7 @@ export function normalizarNombre(valor: string): string {
   return valor.trim().replace(/\s+/g, " ");
 }
 
-function errorDeNombre(valor: string, vacio: string): string | undefined {
+export function errorDeNombre(valor: string, vacio: string): string | undefined {
   const texto = normalizarNombre(valor);
   if (!texto) {
     return vacio;

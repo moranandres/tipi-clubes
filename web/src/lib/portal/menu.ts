@@ -4,6 +4,7 @@ const TODOS: readonly Rol[] = ["ADMIN", "COORDINADOR", "RESP_INSTITUCIONAL", "DO
 const SIN_DOCENTE: readonly Rol[] = ["ADMIN", "COORDINADOR", "RESP_INSTITUCIONAL", "CONSULTA"];
 const SOLO_ADMIN: readonly Rol[] = ["ADMIN"];
 const ADMIN_Y_CONSULTA: readonly Rol[] = ["ADMIN", "CONSULTA"];
+const CON_DATOS_DE_REPRESENTANTES: readonly Rol[] = ["ADMIN", "RESP_INSTITUCIONAL", "DOCENTE"];
 
 type Definicion = {
   id: string;
@@ -44,6 +45,7 @@ const SECCIONES = [
     opciones: [
       { id: "estudiantes", etiqueta: "Estudiantes", roles: TODOS },
       { id: "historial", etiqueta: "Historial del estudiante", roles: TODOS },
+      { id: "autorizaciones", etiqueta: "Autorizaciones", roles: CON_DATOS_DE_REPRESENTANTES },
       { id: "solicitudes", etiqueta: "Solicitudes de inscripción", roles: TODOS },
       { id: "retiros", etiqueta: "Solicitudes de retiro", roles: TODOS },
     ],
@@ -107,6 +109,7 @@ const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = [
   "cursos",
   "estudiantes",
   "historial",
+  "autorizaciones",
   "solicitudes",
   "retiros",
 ];

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Ban, Lock, TriangleAlert, XCircle } from "lucide-react";
+import { Ban, FileSignature, Lock, TriangleAlert, XCircle } from "lucide-react";
 import { Suspense } from "react";
 import {
   AvisoDenegado,
@@ -20,9 +20,16 @@ import { ListaDeDatos } from "@/components/portal/ListaDeDatos";
 import { PasosDeTramite, type Paso } from "@/components/portal/PasosDeTramite";
 import { AprobarSolicitud } from "@/components/portal/solicitudes/AprobarSolicitud";
 import { TomarEnRevision } from "@/components/portal/solicitudes/TomarEnRevision";
-import { cancelarSolicitud, consultarVerificacion, rechazarSolicitud } from "@/lib/acciones/solicitudes";
+import { EnlaceBoton } from "@/components/ui/EnlaceBoton";
+import {
+  cancelarSolicitud,
+  consultarVerificacion,
+  rechazarSolicitud,
+  type VerificacionConsultada,
+} from "@/lib/acciones/solicitudes";
 import { obtenerEstudiante } from "@/lib/api/estudiantes";
 import { listarCursosAbiertos, obtenerSolicitud, type Solicitud } from "@/lib/api/solicitudes";
+import { rutaDeGestion } from "@/lib/portal/filtros-autorizaciones";
 import { NOMBRES_DE_NIVEL } from "@/lib/portal/filtros-cursos";
 import { AUTORIZACION_OTORGADA, RUTA_ESTUDIANTES } from "@/lib/portal/filtros-estudiantes";
 import {
@@ -121,27 +128,51 @@ function BloqueoPorAutoria() {
   );
 }
 
-function AvisoSinAutorizacion({ estudianteId }: { estudianteId?: number }) {
+function AvisoSinAutorizacion({
+  estudianteId,
+  solicitudId,
+}: {
+  estudianteId?: number;
+  solicitudId: number;
+}) {
   return (
-    <p
+    <div
       role="note"
-      className="mt-6 flex items-start gap-2.5 rounded-control border border-aviso/60 bg-superficie px-4 py-3 text-[0.9375rem]"
+      className="mt-6 flex flex-col gap-3 rounded-control border border-aviso/60 bg-superficie px-4 py-3 text-[0.9375rem] sm:flex-row sm:items-center sm:justify-between"
     >
-      <TriangleAlert aria-hidden="true" size={18} className="mt-0.5 shrink-0 text-aviso" />
-      <span className="min-w-0">
-        El estudiante todavía no tiene la autorización de participación otorgada. La solicitud no
-        se podrá aprobar hasta que se registre firmada por su representante.
-        {estudianteId ? (
-          <>
-            {" "}
-            <Link href={`${RUTA_ESTUDIANTES}/${estudianteId}`} className="font-medium text-acento">
-              Ver la ficha del estudiante
-            </Link>
-          </>
-        ) : null}
-      </span>
-    </p>
+      <p className="flex min-w-0 items-start gap-2.5">
+        <TriangleAlert aria-hidden="true" size={18} className="mt-0.5 shrink-0 text-aviso" />
+        <span className="min-w-0">
+          El estudiante todavía no tiene la autorización de participación otorgada. La solicitud no
+          se podrá aprobar hasta que se registre firmada por su representante.
+        </span>
+      </p>
+      {estudianteId ? (
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+          <EnlaceBoton
+            href={rutaDeGestion(estudianteId, "PARTICIPACION", { desde: "solicitud", id: solicitudId })}
+            tamano="compacto"
+          >
+            <FileSignature aria-hidden="true" size={16} />
+            Registrar la autorización
+          </EnlaceBoton>
+          <Link href={`${RUTA_ESTUDIANTES}/${estudianteId}`} className="text-sm font-medium text-acento">
+            Ver la ficha del estudiante
+          </Link>
+        </div>
+      ) : null}
+    </div>
   );
+}
+
+function claveDeVerificacion(id: number, verificacion: VerificacionConsultada): string {
+  if (!verificacion.ok) {
+    return `${id}-sin-verificacion`;
+  }
+  const cumplidos = verificacion.controles
+    .map((control) => `${control.regla ?? ""}:${control.cumple ? 1 : 0}`)
+    .join("|");
+  return `${id}-${cumplidos}`;
 }
 
 function puedeCancelar(usuario: UsuarioSesion, solicitud: Solicitud): boolean {
@@ -160,7 +191,7 @@ async function PanelDeAprobacion({ solicitud, usuario, destino }: { solicitud: S
 
   return (
     <AprobarSolicitud
-      key={id}
+      key={claveDeVerificacion(id, verificacion)}
       solicitudId={id}
       iniciales={{
         nivelAsignado: solicitud.nivel ?? "",
@@ -239,7 +270,9 @@ async function Contenido({ params, searchParams }: Props) {
           .join(" · ")}
       />
       {aviso ? <AvisoDeResultado>{aviso}</AvisoDeResultado> : null}
-      {sinAutorizacion ? <AvisoSinAutorizacion estudianteId={solicitud.estudianteId} /> : null}
+      {sinAutorizacion ? (
+        <AvisoSinAutorizacion estudianteId={solicitud.estudianteId} solicitudId={id} />
+      ) : null}
       <div className={conPanelDeAccion ? COLUMNAS_DE_GESTION : "mt-8 max-w-[52rem]"}>
         <div className="flex min-w-0 flex-col gap-10">
           <section aria-labelledby="avance">
