@@ -67,3 +67,11 @@ export function puedeGestionarDocentes(rol?: string): boolean {
 export function puedeGestionarPeriodos(rol?: string): boolean {
   return rol === ROL_ADMINISTRADOR;
 }
+
+export function puedeGestionarActividades(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_REGISTRAN, rol);
+}
+
+export function puedeElegirResponsable(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_GESTIONAN, rol);
+}

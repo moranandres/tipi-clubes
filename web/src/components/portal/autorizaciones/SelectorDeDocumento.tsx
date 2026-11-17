@@ -13,19 +13,27 @@ import {
   tamanoLegible,
 } from "@/lib/portal/reglas-autorizaciones";
 
+export type FormatosDeArchivo = {
+  acepta: string;
+  texto: string;
+  revisar: (archivo: File) => Promise<string | undefined>;
+};
+
 type Props = {
   etiqueta: string;
   archivo: File | null;
   error?: string;
   reemplaza: boolean;
   deshabilitado: boolean;
+  formatos?: FormatosDeArchivo;
+  ayuda?: string;
   alElegir: (archivo: File | null, error?: string) => void;
 };
 
 const MENSAJE_FIRMA_INVALIDA =
   "El contenido del archivo no corresponde a un PDF, JPG o PNG. Vuelve a exportarlo o escanearlo.";
 
-async function revisar(archivo: File): Promise<string | undefined> {
+async function revisarDocumento(archivo: File): Promise<string | undefined> {
   const error = errorDeArchivo({ nombre: archivo.name, tipo: archivo.type, tamano: archivo.size });
   if (error) {
     return error;
@@ -38,12 +46,20 @@ async function revisar(archivo: File): Promise<string | undefined> {
   }
 }
 
+const FORMATOS_DE_DOCUMENTO: FormatosDeArchivo = {
+  acepta: ACEPTA_DOCUMENTO,
+  texto: TEXTO_DE_FORMATOS,
+  revisar: revisarDocumento,
+};
+
 export function SelectorDeDocumento({
   etiqueta,
   archivo,
   error,
   reemplaza,
   deshabilitado,
+  formatos = FORMATOS_DE_DOCUMENTO,
+  ayuda: ayudaPropia,
   alElegir,
 }: Props) {
   const id = useId();
@@ -55,7 +71,7 @@ export function SelectorDeDocumento({
     if (!elegido) {
       return;
     }
-    const problema = await revisar(elegido);
+    const problema = await formatos.revisar(elegido);
     if (problema) {
       evento.target.value = "";
       alElegir(null, problema);
@@ -72,9 +88,11 @@ export function SelectorDeDocumento({
     alElegir(null);
   }
 
-  const ayuda = reemplaza
-    ? `${TEXTO_DE_FORMATOS}. Al guardar, reemplaza al documento actual.`
-    : `${TEXTO_DE_FORMATOS}. Puede ser el documento escaneado o una foto legible.`;
+  const ayuda =
+    ayudaPropia ??
+    (reemplaza
+      ? `${formatos.texto}. Al guardar, reemplaza al documento actual.`
+      : `${formatos.texto}. Puede ser el documento escaneado o una foto legible.`);
 
   return (
     <div className="min-w-0">
@@ -85,7 +103,7 @@ export function SelectorDeDocumento({
           id={id}
           type="file"
           name="archivo"
-          accept={ACEPTA_DOCUMENTO}
+          accept={formatos.acepta}
           disabled={deshabilitado}
           aria-label={etiqueta}
           aria-invalid={error ? true : undefined}

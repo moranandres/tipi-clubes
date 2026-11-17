@@ -115,6 +115,9 @@ const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = [
   "autorizaciones",
   "solicitudes",
   "retiros",
+  "actividades",
+  "asistencia",
+  "evidencias",
 ];
 const ROLES_GLOBALES: readonly Rol[] = ["ADMIN", "COORDINADOR", "CONSULTA"];
 

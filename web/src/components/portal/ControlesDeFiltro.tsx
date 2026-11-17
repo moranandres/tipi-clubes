@@ -8,6 +8,7 @@ import { useBusqueda } from "./Busqueda";
 const ESPERA_AL_ESCRIBIR_MS = 350;
 const LONGITUD_MAXIMA = 80;
 const ICONO_EN_CAMPO = "pointer-events-none absolute top-1/2 -translate-y-1/2 text-tenue";
+const FECHA_COMPLETA = /^\d{4}-\d{2}-\d{2}$/;
 
 type FiltrosBasicos = { q: string; pagina: number };
 
@@ -211,6 +212,55 @@ export function EsqueletoFiltros({ anchos }: { anchos: string[] }) {
         </div>
       ))}
       <div className="hidden h-11 w-[8.5625rem] shrink-0 md:block" />
+    </div>
+  );
+}
+
+export function SelectorDeFecha({
+  etiqueta,
+  valor,
+  minimo,
+  maximo,
+  alCambiar,
+  className = "min-w-0 md:w-44",
+}: {
+  etiqueta: string;
+  valor: string;
+  minimo?: string;
+  maximo?: string;
+  alCambiar: (valor: string | null) => void;
+  className?: string;
+}) {
+  const id = useId();
+  const [texto, setTexto] = useState(valor);
+  const [valorVisto, setValorVisto] = useState(valor);
+
+  if (valor !== valorVisto) {
+    setValorVisto(valor);
+    setTexto(valor);
+  }
+
+  function alEscribir(siguiente: string) {
+    setTexto(siguiente);
+    if (siguiente === "" || FECHA_COMPLETA.test(siguiente)) {
+      alCambiar(siguiente || null);
+    }
+  }
+
+  return (
+    <div className={className}>
+      <label htmlFor={id} className={ETIQUETA_CONTROL}>
+        {etiqueta}
+      </label>
+      <input
+        id={id}
+        type="date"
+        value={texto}
+        min={minimo}
+        max={maximo}
+        onChange={(evento) => alEscribir(evento.target.value)}
+        className={`${CONTROL} cifras mt-2 h-11`}
+      />
     </div>
   );
 }
