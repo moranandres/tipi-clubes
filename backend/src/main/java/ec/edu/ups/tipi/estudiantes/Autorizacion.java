@@ -60,6 +60,25 @@ public class Autorizacion {
     @Column(name = "registrado_por")
     private Long registradoPor;
 
+    @Column(name = "representante_nombres", length = 100)
+    private String representanteNombres;
+
+    @Column(name = "representante_apellidos", length = 100)
+    private String representanteApellidos;
+
+    @Column(name = "representante_cedula", length = 10)
+    private String representanteCedula;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "representante_parentesco", length = 20)
+    private Parentesco representanteParentesco;
+
+    @Column(name = "representante_telefono", length = 10)
+    private String representanteTelefono;
+
+    @Column(name = "representante_correo", length = 150)
+    private String representanteCorreo;
+
     @Column(name = "actualizado_en", nullable = false)
     private Instant actualizadoEn = Instant.now();
 }

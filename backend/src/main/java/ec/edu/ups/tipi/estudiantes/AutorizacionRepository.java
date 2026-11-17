@@ -1,12 +1,14 @@
 package ec.edu.ups.tipi.estudiantes;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface AutorizacionRepository extends JpaRepository<Autorizacion, Long> {
+public interface AutorizacionRepository
+        extends JpaRepository<Autorizacion, Long>, JpaSpecificationExecutor<Autorizacion> {
 
     Optional<Autorizacion> findByEstudianteIdAndTipo(Long estudianteId, TipoAutorizacion tipo);
 

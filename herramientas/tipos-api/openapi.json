@@ -588,6 +588,83 @@
         },
         "type": "object"
       },
+      "AutorizacionListadoResponse": {
+        "properties": {
+          "actualizadoEn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "estado": {
+            "enum": [
+              "PENDIENTE",
+              "OTORGADA",
+              "NO_OTORGADA",
+              "REVOCADA"
+            ],
+            "type": "string"
+          },
+          "estudianteApellidos": {
+            "type": "string"
+          },
+          "estudianteCodigo": {
+            "type": "string"
+          },
+          "estudianteCursoEtiqueta": {
+            "type": "string"
+          },
+          "estudianteEstado": {
+            "enum": [
+              "ACTIVO",
+              "RETIRADO",
+              "EGRESADO"
+            ],
+            "type": "string"
+          },
+          "estudianteId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "estudianteNombres": {
+            "type": "string"
+          },
+          "fechaRegistro": {
+            "format": "date",
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "institucionId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "institucionNombre": {
+            "type": "string"
+          },
+          "observacion": {
+            "type": "string"
+          },
+          "representante": {
+            "$ref": "#/components/schemas/RepresentanteResponse"
+          },
+          "revocadoEn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tieneDocumento": {
+            "type": "boolean"
+          },
+          "tipo": {
+            "enum": [
+              "PARTICIPACION",
+              "USO_IMAGEN"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "AutorizacionRequest": {
         "properties": {
           "estado": {
@@ -607,10 +684,14 @@
             "maxLength": 255,
             "minLength": 0,
             "type": "string"
+          },
+          "representante": {
+            "$ref": "#/components/schemas/RepresentanteRequest"
           }
         },
         "required": [
-          "estado"
+          "estado",
+          "representante"
         ],
         "type": "object"
       },
@@ -652,6 +733,9 @@
           },
           "observacion": {
             "type": "string"
+          },
+          "representante": {
+            "$ref": "#/components/schemas/RepresentanteResponse"
           },
           "revocadoEn": {
             "format": "date-time",
@@ -4998,6 +5082,33 @@
         },
         "type": "object"
       },
+      "PaginaResponseAutorizacionListadoResponse": {
+        "properties": {
+          "contenido": {
+            "items": {
+              "$ref": "#/components/schemas/AutorizacionListadoResponse"
+            },
+            "type": "array"
+          },
+          "pagina": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "tamano": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElementos": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
       "PaginaResponseAvanceResponse": {
         "properties": {
           "contenido": {
@@ -6614,6 +6725,89 @@
           "estado",
           "estudianteId"
         ],
+        "type": "object"
+      },
+      "RepresentanteRequest": {
+        "properties": {
+          "apellidos": {
+            "maxLength": 100,
+            "minLength": 0,
+            "pattern": "^\\p{L}[\\p{L}\\p{M}'’. -]*$",
+            "type": "string"
+          },
+          "cedula": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "correo": {
+            "maxLength": 150,
+            "minLength": 0,
+            "pattern": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+            "type": "string"
+          },
+          "nombres": {
+            "maxLength": 100,
+            "minLength": 0,
+            "pattern": "^\\p{L}[\\p{L}\\p{M}'’. -]*$",
+            "type": "string"
+          },
+          "parentesco": {
+            "enum": [
+              "MADRE",
+              "PADRE",
+              "TUTOR_LEGAL",
+              "ABUELO",
+              "TIO",
+              "HERMANO",
+              "OTRO"
+            ],
+            "type": "string"
+          },
+          "telefono": {
+            "minLength": 1,
+            "pattern": "^0[2-9][0-9]{7,8}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "apellidos",
+          "cedula",
+          "nombres",
+          "parentesco",
+          "telefono"
+        ],
+        "type": "object"
+      },
+      "RepresentanteResponse": {
+        "properties": {
+          "apellidos": {
+            "type": "string"
+          },
+          "cedula": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          },
+          "nombres": {
+            "type": "string"
+          },
+          "parentesco": {
+            "enum": [
+              "MADRE",
+              "PADRE",
+              "TUTOR_LEGAL",
+              "ABUELO",
+              "TIO",
+              "HERMANO",
+              "OTRO"
+            ],
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "ReprogramacionResponse": {
@@ -9048,6 +9242,96 @@
         "summary": "Comprueba que el enlace de recuperación siga vigente",
         "tags": [
           "Recuperación de contraseña"
+        ]
+      }
+    },
+    "/api/autorizaciones": {
+      "get": {
+        "operationId": "autorizacionConsultaListar",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "estado",
+            "required": false,
+            "schema": {
+              "enum": [
+                "PENDIENTE",
+                "OTORGADA",
+                "NO_OTORGADA",
+                "REVOCADA"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tipo",
+            "required": false,
+            "schema": {
+              "enum": [
+                "PARTICIPACION",
+                "USO_IMAGEN"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "institucionId",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "estudianteId",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pagina",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tamano",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaResponseAutorizacionListadoResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "$ref": "#/components/responses/Problema"
+          }
+        },
+        "summary": "Lista paginada de autorizaciones dentro del alcance del usuario",
+        "tags": [
+          "Autorizaciones de estudiantes"
         ]
       }
     },

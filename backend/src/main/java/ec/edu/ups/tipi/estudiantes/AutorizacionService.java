@@ -8,6 +8,7 @@ import ec.edu.ups.tipi.common.ApiException;
 import ec.edu.ups.tipi.estudiantes.dto.AutorizacionRequest;
 import ec.edu.ups.tipi.estudiantes.dto.AutorizacionResponse;
 import ec.edu.ups.tipi.estudiantes.dto.DocumentoDescarga;
+import ec.edu.ups.tipi.estudiantes.dto.RepresentanteRequest;
 import ec.edu.ups.tipi.security.AlcanceInstitucional;
 import ec.edu.ups.tipi.security.UsuarioPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -61,6 +64,8 @@ public class AutorizacionService {
         autorizacion.setObservacion(observacion);
         autorizacion.setRegistradoPor(usuario.getId());
         autorizacion.setActualizadoEn(ahora);
+        String representanteAnterior = autorizacion.getRepresentanteCedula();
+        asignarRepresentante(autorizacion, request.representante());
         if (nuevo == EstadoAutorizacion.REVOCADA && actual != EstadoAutorizacion.REVOCADA) {
             autorizacion.setRevocadoEn(ahora);
         }
@@ -68,7 +73,10 @@ public class AutorizacionService {
 
         String advertencia = null;
         StringBuilder detalle = new StringBuilder("codigo=" + estudiante.getCodigoInterno() + ", tipo=" + tipo
-                + "; estado: '" + actual + "' -> '" + nuevo + "'");
+                + "; estado: '" + actual + "' -> '" + nuevo + "'"
+                + "; representante: " + autorizacion.getRepresentanteParentesco()
+                + (Objects.equals(representanteAnterior, autorizacion.getRepresentanteCedula())
+                        ? "" : " (cédula registrada o cambiada)"));
         if (tipo == TipoAutorizacion.PARTICIPACION && nuevo == EstadoAutorizacion.REVOCADA) {
             long activas = estudianteRepository.contarInscripcionesActivas(estudianteId);
             if (activas > 0) {
@@ -161,6 +169,20 @@ public class AutorizacionService {
                         "Para otorgar nuevamente una autorización revocada, cargue un documento firmado nuevo.");
             }
         }
+    }
+
+    private void asignarRepresentante(Autorizacion autorizacion, RepresentanteRequest representante) {
+        autorizacion.setRepresentanteNombres(normalizar(representante.nombres()));
+        autorizacion.setRepresentanteApellidos(normalizar(representante.apellidos()));
+        autorizacion.setRepresentanteCedula(representante.cedula().trim());
+        autorizacion.setRepresentanteParentesco(representante.parentesco());
+        autorizacion.setRepresentanteTelefono(representante.telefono().trim());
+        autorizacion.setRepresentanteCorreo(StringUtils.hasText(representante.correo())
+                ? representante.correo().trim().toLowerCase(Locale.ROOT) : null);
+    }
+
+    private String normalizar(String texto) {
+        return texto.trim().replaceAll("\\s+", " ");
     }
 
     private Estudiante buscarEstudiante(Long estudianteId, UsuarioPrincipal usuario) {

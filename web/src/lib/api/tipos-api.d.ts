@@ -332,6 +332,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/autorizaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista paginada de autorizaciones dentro del alcance del usuario */
+        get: operations["autorizacionConsultaListar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/avances": {
         parameters: {
             query?: never;
@@ -2160,12 +2177,41 @@ export interface components {
             /** Format: int64 */
             usuarioId?: number;
         };
+        AutorizacionListadoResponse: {
+            /** Format: date-time */
+            actualizadoEn?: string;
+            /** @enum {string} */
+            estado?: "PENDIENTE" | "OTORGADA" | "NO_OTORGADA" | "REVOCADA";
+            estudianteApellidos?: string;
+            estudianteCodigo?: string;
+            estudianteCursoEtiqueta?: string;
+            /** @enum {string} */
+            estudianteEstado?: "ACTIVO" | "RETIRADO" | "EGRESADO";
+            /** Format: int64 */
+            estudianteId?: number;
+            estudianteNombres?: string;
+            /** Format: date */
+            fechaRegistro?: string;
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            institucionId?: number;
+            institucionNombre?: string;
+            observacion?: string;
+            representante?: components["schemas"]["RepresentanteResponse"];
+            /** Format: date-time */
+            revocadoEn?: string;
+            tieneDocumento?: boolean;
+            /** @enum {string} */
+            tipo?: "PARTICIPACION" | "USO_IMAGEN";
+        };
         AutorizacionRequest: {
             /** @enum {string} */
             estado: "PENDIENTE" | "OTORGADA" | "NO_OTORGADA" | "REVOCADA";
             /** Format: date */
             fechaRegistro?: string;
             observacion?: string;
+            representante: components["schemas"]["RepresentanteRequest"];
         };
         AutorizacionResponse: {
             /** Format: date-time */
@@ -2182,6 +2228,7 @@ export interface components {
             /** Format: date */
             fechaRegistro?: string;
             observacion?: string;
+            representante?: components["schemas"]["RepresentanteResponse"];
             /** Format: date-time */
             revocadoEn?: string;
             tieneDocumento?: boolean;
@@ -3618,6 +3665,17 @@ export interface components {
             /** Format: int32 */
             totalPaginas?: number;
         };
+        PaginaResponseAutorizacionListadoResponse: {
+            contenido?: components["schemas"]["AutorizacionListadoResponse"][];
+            /** Format: int32 */
+            pagina?: number;
+            /** Format: int32 */
+            tamano?: number;
+            /** Format: int64 */
+            totalElementos?: number;
+            /** Format: int32 */
+            totalPaginas?: number;
+        };
         PaginaResponseAvanceResponse: {
             contenido?: components["schemas"]["AvanceResponse"][];
             /** Format: int32 */
@@ -4183,6 +4241,24 @@ export interface components {
             /** Format: int64 */
             estudianteId: number;
             observacion?: string;
+        };
+        RepresentanteRequest: {
+            apellidos: string;
+            cedula: string;
+            correo?: string;
+            nombres: string;
+            /** @enum {string} */
+            parentesco: "MADRE" | "PADRE" | "TUTOR_LEGAL" | "ABUELO" | "TIO" | "HERMANO" | "OTRO";
+            telefono: string;
+        };
+        RepresentanteResponse: {
+            apellidos?: string;
+            cedula?: string;
+            correo?: string;
+            nombres?: string;
+            /** @enum {string} */
+            parentesco?: "MADRE" | "PADRE" | "TUTOR_LEGAL" | "ABUELO" | "TIO" | "HERMANO" | "OTRO";
+            telefono?: string;
         };
         ReprogramacionResponse: {
             /** Format: int64 */
@@ -5275,6 +5351,34 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Problema"];
+        };
+    };
+    autorizacionConsultaListar: {
+        parameters: {
+            query?: {
+                estado?: "PENDIENTE" | "OTORGADA" | "NO_OTORGADA" | "REVOCADA";
+                tipo?: "PARTICIPACION" | "USO_IMAGEN";
+                institucionId?: number;
+                estudianteId?: number;
+                pagina?: number;
+                tamano?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginaResponseAutorizacionListadoResponse"];
+                };
             };
             default: components["responses"]["Problema"];
         };

@@ -10,12 +10,14 @@ import java.time.LocalDate;
 public record AutorizacionResponse(
         TipoAutorizacion tipo, EstadoAutorizacion estado, LocalDate fechaRegistro, String observacion,
         boolean tieneDocumento, String documentoNombre, String documentoTipo, Long documentoTamano,
-        Instant documentoSubidoEn, Instant revocadoEn, Instant actualizadoEn, String advertencia) {
+        Instant documentoSubidoEn, Instant revocadoEn, Instant actualizadoEn,
+        RepresentanteResponse representante, String advertencia) {
 
     public static AutorizacionResponse de(Autorizacion a, String advertencia) {
         return new AutorizacionResponse(a.getTipo(), a.getEstado(), a.getFechaRegistro(), a.getObservacion(),
                 a.getDocumentoRuta() != null, a.getDocumentoNombre(), a.getDocumentoTipo(), a.getDocumentoTamano(),
-                a.getDocumentoSubidoEn(), a.getRevocadoEn(), a.getActualizadoEn(), advertencia);
+                a.getDocumentoSubidoEn(), a.getRevocadoEn(), a.getActualizadoEn(),
+                RepresentanteResponse.de(a), advertencia);
     }
 
     public static AutorizacionResponse de(Autorizacion a) {

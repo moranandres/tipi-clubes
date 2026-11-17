@@ -1,6 +1,7 @@
 package ec.edu.ups.tipi.estudiantes.dto;
 
 import ec.edu.ups.tipi.estudiantes.EstadoAutorizacion;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
@@ -15,5 +16,9 @@ public record AutorizacionRequest(
         LocalDate fechaRegistro,
 
         @Size(max = 255, message = "Máximo 255 caracteres")
-        String observacion) {
+        String observacion,
+
+        @NotNull(message = "Los datos del representante legal son obligatorios")
+        @Valid
+        RepresentanteRequest representante) {
 }
