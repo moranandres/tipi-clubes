@@ -66,3 +66,14 @@ export function minutosDe(hora: string): number {
   const [horas, minutos] = hora.split(":").map(Number);
   return horas * 60 + minutos;
 }
+
+const FORMATO_DIA_ISO = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  timeZone: "America/Guayaquil",
+});
+
+export function hoyEnGuayaquil(): string {
+  return FORMATO_DIA_ISO.format(new Date());
+}

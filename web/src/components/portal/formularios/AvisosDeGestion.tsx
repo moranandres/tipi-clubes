@@ -30,7 +30,7 @@ export function AvisoSoloLectura({
         titulo="Tu rol solo permite consultar"
         accion={<EnlaceALaLista recurso={recurso} rutaDeLista={rutaDeLista} />}
       >
-        Solo {quienes} pueden crear o modificar {recurso}.
+        Solo {quienes} {quienes.includes(" y ") ? "pueden" : "puede"} crear o modificar {recurso}.
       </AvisoDeLista>
     </div>
   );

@@ -35,3 +35,29 @@ export function leerCampos<C extends string>(
 export function hayErrores(errores: Record<string, string | undefined>): boolean {
   return Object.values(errores).some(Boolean);
 }
+
+const CORREO = /^[^\s@]+@[^\s@]+$/;
+
+export function errorDeLongitud(valor: string, maximo: number): string | undefined {
+  return valor.trim().length > maximo ? `Máximo ${maximo} caracteres` : undefined;
+}
+
+export function errorDeObligatorio(
+  valor: string,
+  vacio: string,
+  maximo: number,
+): string | undefined {
+  return valor.trim() ? errorDeLongitud(valor, maximo) : vacio;
+}
+
+export function errorDeCorreo(valor: string, maximo: number): string | undefined {
+  const texto = valor.trim();
+  if (!texto) {
+    return undefined;
+  }
+  return CORREO.test(texto) ? errorDeLongitud(texto, maximo) : "Correo electrónico inválido";
+}
+
+export function textoOpcional(valor: string): string | undefined {
+  return valor.trim() || undefined;
+}

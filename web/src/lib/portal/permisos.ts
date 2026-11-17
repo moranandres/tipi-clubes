@@ -51,3 +51,19 @@ export function soloVeDatosMinimos(rol?: string): boolean {
 export function esDocente(rol?: string): boolean {
   return rol === ROL_DOCENTE;
 }
+
+export function puedeAdministrarInstituciones(rol?: string): boolean {
+  return rol === ROL_ADMINISTRADOR;
+}
+
+export function puedeEditarContactoDeInstitucion(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_GESTIONAN, rol);
+}
+
+export function puedeGestionarDocentes(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_GESTIONAN, rol);
+}
+
+export function puedeGestionarPeriodos(rol?: string): boolean {
+  return rol === ROL_ADMINISTRADOR;
+}

@@ -105,7 +105,10 @@ export type ModuloPortal = {
 
 const ID_PANEL: IdOpcion = "panel";
 const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = [
+  "instituciones",
   "clubes",
+  "docentes",
+  "periodos",
   "cursos",
   "estudiantes",
   "historial",

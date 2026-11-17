@@ -142,3 +142,19 @@ export function conOpcionActual(
   }
   return [{ valor, texto }, ...opciones];
 }
+
+type CuentaParaOpcion = {
+  id?: number;
+  username?: string;
+  nombres?: string;
+  apellidos?: string;
+};
+
+export function opcionesDeCuentas(cuentas: readonly CuentaParaOpcion[]): OpcionDeFormulario[] {
+  return cuentas
+    .filter((cuenta) => typeof cuenta.id === "number")
+    .map((cuenta) => ({
+      valor: String(cuenta.id),
+      texto: unir([nombreCompleto(cuenta.apellidos, cuenta.nombres), cuenta.username]) || "Cuenta sin nombre",
+    }));
+}
