@@ -24,6 +24,7 @@ type Props = {
   puntoActual: string;
   opciones: OpcionDeCambio[];
   sinOpciones: string;
+  conMotivo?: boolean;
   cambiar: (estado: string, motivo: string) => Promise<ResultadoDeAccion>;
 };
 
@@ -36,6 +37,7 @@ export function CambioDeEstado({
   puntoActual,
   opciones,
   sinOpciones,
+  conMotivo = true,
   cambiar,
 }: Props) {
   const idTitulo = useId();
@@ -76,8 +78,8 @@ export function CambioDeEstado({
       return;
     }
 
-    const texto = motivo.trim();
-    if (opcion.exigeMotivo && !texto) {
+    const texto = conMotivo ? motivo.trim() : "";
+    if (conMotivo && opcion.exigeMotivo && !texto) {
       setErrorDeMotivo("Escribe el motivo de este cambio.");
       enfocarPrimerInvalido(formulario.current);
       return;
@@ -167,27 +169,29 @@ export function CambioDeEstado({
             ) : null}
           </p>
 
-          <div className="mt-2">
-            <CampoTextoLargo
-              etiqueta={opcion && !opcion.exigeMotivo ? "Motivo (opcional)" : "Motivo"}
-              name="motivo"
-              rows={3}
-              maxLength={LONGITUD_MAXIMA_DE_MOTIVO}
-              value={motivo}
-              disabled={!opcion}
-              required={opcion?.exigeMotivo}
-              error={errorDeMotivo}
-              ayuda={
-                opcion
-                  ? "Queda registrado en la auditoría del sistema."
-                  : "Elige primero el nuevo estado."
-              }
-              onChange={(evento) => {
-                setMotivo(evento.target.value);
-                setErrorDeMotivo(undefined);
-              }}
-            />
-          </div>
+          {conMotivo ? (
+            <div className="mt-2">
+              <CampoTextoLargo
+                etiqueta={opcion && !opcion.exigeMotivo ? "Motivo (opcional)" : "Motivo"}
+                name="motivo"
+                rows={3}
+                maxLength={LONGITUD_MAXIMA_DE_MOTIVO}
+                value={motivo}
+                disabled={!opcion}
+                required={opcion?.exigeMotivo}
+                error={errorDeMotivo}
+                ayuda={
+                  opcion
+                    ? "Queda registrado en la auditoría del sistema."
+                    : "Elige primero el nuevo estado."
+                }
+                onChange={(evento) => {
+                  setMotivo(evento.target.value);
+                  setErrorDeMotivo(undefined);
+                }}
+              />
+            </div>
+          ) : null}
 
           <Boton
             type="submit"

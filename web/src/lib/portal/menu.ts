@@ -102,7 +102,14 @@ export type ModuloPortal = {
 };
 
 const ID_PANEL: IdOpcion = "panel";
-const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = ["clubes", "cursos"];
+const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = [
+  "clubes",
+  "cursos",
+  "estudiantes",
+  "historial",
+  "solicitudes",
+  "retiros",
+];
 const ROLES_GLOBALES: readonly Rol[] = ["ADMIN", "COORDINADOR", "CONSULTA"];
 
 export function rutaDeOpcion(id: IdOpcion): string {

@@ -17,7 +17,11 @@ function EnlaceALaLista({ recurso, rutaDeLista }: PropsDeRecurso) {
   );
 }
 
-export function AvisoSoloLectura({ recurso, rutaDeLista }: PropsDeRecurso) {
+export function AvisoSoloLectura({
+  recurso,
+  rutaDeLista,
+  quienes = "el administrador y el responsable institucional",
+}: PropsDeRecurso & { quienes?: string }) {
   return (
     <div className="mt-8">
       <AvisoDeLista
@@ -26,7 +30,7 @@ export function AvisoSoloLectura({ recurso, rutaDeLista }: PropsDeRecurso) {
         titulo="Tu rol solo permite consultar"
         accion={<EnlaceALaLista recurso={recurso} rutaDeLista={rutaDeLista} />}
       >
-        Solo el administrador y el responsable institucional pueden crear o modificar {recurso}.
+        Solo {quienes} pueden crear o modificar {recurso}.
       </AvisoDeLista>
     </div>
   );

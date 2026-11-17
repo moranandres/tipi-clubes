@@ -61,6 +61,16 @@ export function falloDeApi(
   return accionFallida(MENSAJE_GENERICO);
 }
 
+export function falloConDatosAlDia(
+  respuesta: Resultado<unknown>,
+  pistas: readonly PistaDeCampo[] = [],
+): AccionFallida {
+  if (respuesta.estado === CONFLICTO || respuesta.estado === NO_ENCONTRADO) {
+    revalidarPortal();
+  }
+  return falloDeApi(respuesta, pistas);
+}
+
 export function fueCorrecta(respuesta: Resultado<unknown>): boolean {
   return respuesta.estado >= 200 && respuesta.estado < 300;
 }

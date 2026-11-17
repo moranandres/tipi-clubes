@@ -21,7 +21,17 @@ const FORMATO_FECHA = new Intl.DateTimeFormat("es-EC", {
   timeZone: "UTC",
 });
 
-const HORA_VALIDA = /^([01]\d|2[0-3]):[0-5]\d$/;
+const FORMATO_MOMENTO = new Intl.DateTimeFormat("es-EC", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "America/Guayaquil",
+});
+
+const HORA_VALIDA =/^([01]\d|2[0-3]):[0-5]\d$/;
 const FECHA_VALIDA = /^\d{4}-\d{2}-\d{2}$/;
 
 export function nombreDeDia(dia?: number): string {
@@ -34,6 +44,14 @@ export function horaCorta(hora?: string): string {
 
 export function fechaCorta(fecha?: string): string {
   return fecha ? FORMATO_FECHA.format(new Date(`${fecha}T00:00:00Z`)) : "";
+}
+
+export function momentoCorto(instante?: string): string {
+  if (!instante) {
+    return "";
+  }
+  const momento = new Date(instante);
+  return Number.isNaN(momento.getTime()) ? "" : FORMATO_MOMENTO.format(momento);
 }
 
 export function esHoraValida(hora: string): boolean {

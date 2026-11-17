@@ -44,7 +44,7 @@ function EsqueletoEstado() {
   );
 }
 
-export default async function PaginaModulo({ params }: PageProps<"/portal/[modulo]">) {
+async function Contenido({ params }: Pick<PageProps<"/portal/[modulo]">, "params">) {
   const { modulo: id } = await params;
   const modulo = buscarModulo(id);
 
@@ -53,10 +53,29 @@ export default async function PaginaModulo({ params }: PageProps<"/portal/[modul
   }
 
   return (
-    <div className="mx-auto w-full max-w-[78rem] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+    <>
       <h1 className="text-3xl font-medium tracking-tight">{modulo.etiqueta}</h1>
       <Suspense fallback={<EsqueletoEstado />}>
         <EstadoDelModulo modulo={modulo} />
+      </Suspense>
+    </>
+  );
+}
+
+function EsqueletoTitulo() {
+  return (
+    <div aria-hidden="true" className="motion-safe:animate-pulse">
+      <div className="h-9 w-72 max-w-full rounded-[8px] bg-superficie" />
+      <EsqueletoEstado />
+    </div>
+  );
+}
+
+export default function PaginaModulo({ params }: PageProps<"/portal/[modulo]">) {
+  return (
+    <div className="mx-auto w-full max-w-[78rem] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+      <Suspense fallback={<EsqueletoTitulo />}>
+        <Contenido params={params} />
       </Suspense>
       <Link
         href="/portal"
