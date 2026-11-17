@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { BookOpen, CircleAlert, SearchX, ShieldAlert } from "lucide-react";
+import { BookOpen, CircleAlert, Plus, SearchX, ShieldAlert } from "lucide-react";
 import { Suspense } from "react";
 import { AvisoDeLista } from "@/components/portal/AvisoDeLista";
 import {
@@ -17,7 +17,9 @@ import {
 } from "@/components/portal/cursos/ResumenPorEstado";
 import { TablaCursos } from "@/components/portal/cursos/TablaCursos";
 import { EsqueletoLista } from "@/components/portal/EsqueletoLista";
+import { AvisoDeResultado } from "@/components/portal/formularios/PiezasDeGestion";
 import { Paginacion } from "@/components/portal/Paginacion";
+import { EnlaceBoton } from "@/components/ui/EnlaceBoton";
 import { listarInstitucionesParaFiltro } from "@/lib/api/clubes";
 import { contarCursosPorEstado, listarCursos } from "@/lib/api/cursos";
 import {
@@ -29,6 +31,7 @@ import {
   type ParametrosDeBusqueda,
 } from "@/lib/portal/filtros-cursos";
 import { tieneAlcanceGlobal } from "@/lib/portal/menu";
+import { puedeGestionarClubesYCursos } from "@/lib/portal/permisos";
 import { exigirSesion } from "@/lib/sesion/usuario";
 
 export const metadata: Metadata = {
@@ -42,12 +45,36 @@ type PropsConParametros = {
 const FORMATO_NUMERO = new Intl.NumberFormat("es-EC");
 const ROL_DOCENTE = "DOCENTE";
 const ANCHOS_DE_FILTROS = ["md:min-w-[16rem] md:flex-1", "md:w-44", "md:w-44", "md:w-64"];
+const AVISO_DE_ELIMINACION = "curso-eliminado";
 
 function alcanceDe(rol?: string): string {
   if (tieneAlcanceGlobal(rol)) {
     return "en todas las instituciones";
   }
   return rol === ROL_DOCENTE ? "en tus clubes" : "en tu institución";
+}
+
+async function AccionPrincipal() {
+  const usuario = await exigirSesion();
+
+  if (!puedeGestionarClubesYCursos(usuario?.rol)) {
+    return null;
+  }
+
+  return (
+    <EnlaceBoton href={`${RUTA_CURSOS}/nuevo`} className="shrink-0">
+      <Plus aria-hidden="true" size={18} />
+      Nuevo curso
+    </EnlaceBoton>
+  );
+}
+
+async function AvisoDeAccion({ parametros }: PropsConParametros) {
+  const { aviso } = await parametros;
+
+  return aviso === AVISO_DE_ELIMINACION ? (
+    <AvisoDeResultado>El curso se eliminó junto con sus horarios.</AvisoDeResultado>
+  ) : null;
 }
 
 async function Filtros({ parametros }: PropsConParametros) {
@@ -94,6 +121,7 @@ async function Resultados({ parametros }: PropsConParametros) {
   }
 
   const { cursos, total, pagina, totalPaginas } = resultado.datos;
+  const gestionable = puedeGestionarClubesYCursos(usuario?.rol);
 
   if (cursos.length === 0 && total > 0) {
     redirect(rutaDeCursos({ ...filtros, pagina: totalPaginas }));
@@ -116,7 +144,9 @@ async function Resultados({ parametros }: PropsConParametros) {
       <AvisoDeLista icono={<BookOpen size={20} />} titulo="Todavía no hay cursos">
         {usuario?.rol === ROL_DOCENTE
           ? "Tus clubes todavía no tienen cursos. El responsable de tu institución puede crearlos."
-          : "Cuando se registre el primer curso aparecerá en esta lista."}
+          : gestionable
+            ? "Usa el botón Nuevo curso para registrar el primero."
+            : "Cuando se registre el primer curso aparecerá en esta lista."}
       </AvisoDeLista>
     );
   }
@@ -133,7 +163,11 @@ async function Resultados({ parametros }: PropsConParametros) {
         {totalPaginas > 1 ? `, del ${primero} al ${ultimo}` : ""}.
       </p>
       <div className="mt-4">
-        <TablaCursos cursos={cursos} mostrarInstitucion={tieneAlcanceGlobal(usuario?.rol)} />
+        <TablaCursos
+          cursos={cursos}
+          mostrarInstitucion={tieneAlcanceGlobal(usuario?.rol)}
+          gestionable={gestionable}
+        />
       </div>
       <Paginacion
         etiqueta="Páginas de la lista de cursos"
@@ -151,10 +185,21 @@ async function Resultados({ parametros }: PropsConParametros) {
 export default function PaginaCursos({ searchParams }: PageProps<"/portal/cursos">) {
   return (
     <div className="mx-auto w-full max-w-[78rem] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
-      <h1 className="text-3xl font-medium tracking-tight">Cursos y horarios</h1>
-      <p className="mt-3 max-w-[70ch] text-tenue">
-        Consulta la programación de cada club: nivel, modalidad, horario semanal, fechas y cupos.
-      </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-medium tracking-tight">Cursos y horarios</h1>
+          <p className="mt-3 max-w-[70ch] text-tenue">
+            Consulta la programación de cada club: nivel, modalidad, horario semanal, fechas y
+            cupos.
+          </p>
+        </div>
+        <Suspense fallback={null}>
+          <AccionPrincipal />
+        </Suspense>
+      </div>
+      <Suspense fallback={null}>
+        <AvisoDeAccion parametros={searchParams} />
+      </Suspense>
       <ProveedorDeBusqueda>
         <Suspense fallback={<EsqueletoFiltros anchos={ANCHOS_DE_FILTROS} />}>
           <Filtros parametros={searchParams} />

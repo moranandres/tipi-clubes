@@ -7,6 +7,7 @@ import {
 } from "@/lib/portal/filtros-cursos";
 import { api, type Esquemas } from "./cliente";
 import { conSesion, exigirAutenticacion, intentar, tokenDeSesion } from "./con-sesion";
+import { comoDetalle, type ResultadoDeDetalle } from "./detalle";
 
 export type Curso = Esquemas["CursoResponse"];
 export type HorarioDeCurso = Esquemas["HorarioResponse"];
@@ -96,4 +97,14 @@ export async function contarCursosPorEstado(filtros: FiltrosCursos): Promise<Con
       respuestas[indice].datos?.totalElementos ?? null,
     ]),
   ) as ConteosPorEstado;
+}
+
+export async function obtenerCurso(id: number): Promise<ResultadoDeDetalle<Curso>> {
+  const token = await tokenDeSesion();
+
+  return comoDetalle(
+    await intentar(
+      api.GET("/api/cursos/{id}", { ...conSesion(token), params: { path: { id } } }),
+    ),
+  );
 }

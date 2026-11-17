@@ -9,6 +9,13 @@ export const NOMBRES_DE_ESTADO: Record<EstadoClub, string> = {
   CERRADO: "Cerrado",
 };
 
+export const PUNTOS_DE_ESTADO_DE_CLUB: Record<EstadoClub, string> = {
+  PLANIFICADO: "bg-acento",
+  ACTIVO: "bg-exito",
+  SUSPENDIDO: "bg-aviso",
+  CERRADO: "bg-tenue",
+};
+
 export type FiltrosClubes = {
   q: string;
   estado: EstadoClub | null;

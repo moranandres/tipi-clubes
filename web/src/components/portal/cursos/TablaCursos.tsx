@@ -1,43 +1,32 @@
+import { EnlaceBoton } from "@/components/ui/EnlaceBoton";
 import type { Curso, HorarioDeCurso } from "@/lib/api/cursos";
 import {
   NOMBRES_DE_ESTADO_DE_CURSO,
   NOMBRES_DE_MODALIDAD,
   NOMBRES_DE_NIVEL,
   PUNTOS_DE_ESTADO_DE_CURSO,
+  RUTA_CURSOS,
   type EstadoCurso,
 } from "@/lib/portal/filtros-cursos";
+import { fechaCorta, horaCorta, nombreDeDia } from "@/lib/portal/tiempo";
 
 type Props = {
   cursos: Curso[];
   mostrarInstitucion: boolean;
+  gestionable: boolean;
 };
 
-const DIAS = ["", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const SIN_DATO = "—";
 const MODALIDAD_HIBRIDA = "HIBRIDO";
 const SESION_VIRTUAL = "VIRTUAL";
 
-const FORMATO_FECHA = new Intl.DateTimeFormat("es-EC", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  timeZone: "UTC",
-});
 const FORMATO_HORAS = new Intl.NumberFormat("es-EC", { maximumFractionDigits: 1 });
 
 const CELDA = "px-5 py-3.5 align-top";
 const ENCABEZADO = "px-5 py-3 text-left text-sm font-medium text-tenue";
 
-function horaCorta(hora?: string): string {
-  return hora ? hora.slice(0, 5) : "";
-}
-
-function fechaCorta(fecha?: string): string {
-  return fecha ? FORMATO_FECHA.format(new Date(`${fecha}T00:00:00Z`)) : "";
-}
-
 function textoDeHorario(horario: HorarioDeCurso, hibrido: boolean): string {
-  const dia = horario.diaSemana ? DIAS[horario.diaSemana] : (horario.dia ?? "");
+  const dia = nombreDeDia(horario.diaSemana) || (horario.dia ?? "");
   const base = `${dia}, ${horaCorta(horario.horaInicio)} a ${horaCorta(horario.horaFin)}`;
   if (!hibrido) {
     return base;
@@ -142,7 +131,16 @@ function Detalle({ curso }: { curso: Curso }) {
   );
 }
 
-export function TablaCursos({ cursos, mostrarInstitucion }: Props) {
+function EnlaceGestionar({ curso }: { curso: Curso }) {
+  return (
+    <EnlaceBoton href={`${RUTA_CURSOS}/${curso.id}`} variante="elevado" tamano="compacto">
+      Gestionar
+      <span className="sr-only"> el curso {curso.nombre}</span>
+    </EnlaceBoton>
+  );
+}
+
+export function TablaCursos({ cursos, mostrarInstitucion, gestionable }: Props) {
   return (
     <>
       <div className="hidden overflow-x-auto rounded-pieza bg-superficie xl:block">
@@ -150,11 +148,11 @@ export function TablaCursos({ cursos, mostrarInstitucion }: Props) {
           <caption className="sr-only">Lista de cursos</caption>
           <thead>
             <tr className="border-b border-linea">
-              <th scope="col" className={`${ENCABEZADO} ${mostrarInstitucion ? "w-[25%]" : "w-[36%]"}`}>
+              <th scope="col" className={`${ENCABEZADO} ${mostrarInstitucion ? "w-[24%]" : "w-[34%]"}`}>
                 Curso
               </th>
               {mostrarInstitucion ? (
-                <th scope="col" className={`${ENCABEZADO} w-[17%]`}>
+                <th scope="col" className={`${ENCABEZADO} w-[15%]`}>
                   Institución
                 </th>
               ) : null}
@@ -170,6 +168,11 @@ export function TablaCursos({ cursos, mostrarInstitucion }: Props) {
               <th scope="col" className={ENCABEZADO}>
                 Estado
               </th>
+              {gestionable ? (
+                <th scope="col" className={`${ENCABEZADO} text-right`}>
+                  Acciones
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -199,6 +202,11 @@ export function TablaCursos({ cursos, mostrarInstitucion }: Props) {
                 <td className={CELDA}>
                   <Estado estado={curso.estado} />
                 </td>
+                {gestionable ? (
+                  <td className="px-5 py-2.5 text-right align-top">
+                    <EnlaceGestionar curso={curso} />
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -234,6 +242,11 @@ export function TablaCursos({ cursos, mostrarInstitucion }: Props) {
                 {estaCompleto(curso) ? <span className="ml-2 text-sm text-aviso">Completo</span> : null}
               </dd>
             </dl>
+            {gestionable ? (
+              <div className="mt-4">
+                <EnlaceGestionar curso={curso} />
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>

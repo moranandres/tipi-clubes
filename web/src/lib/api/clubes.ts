@@ -2,9 +2,20 @@ import "server-only";
 import { cache } from "react";
 import { CLUBES_POR_PAGINA, type FiltrosClubes } from "@/lib/portal/filtros-clubes";
 import { api, type Esquemas } from "./cliente";
-import { conSesion, exigirAutenticacion, intentar, tokenDeSesion } from "./con-sesion";
+import {
+  TAMANO_MAXIMO_DE_PAGINA,
+  conSesion,
+  exigirAutenticacion,
+  intentar,
+  reunirPaginas,
+  tokenDeSesion,
+} from "./con-sesion";
+import { comoDetalle, type ResultadoDeDetalle } from "./detalle";
 
 export type Club = Esquemas["ClubResponse"];
+export type CierreDeClub = Esquemas["CierreClubResponse"];
+export type Docente = Esquemas["DocenteResponse"];
+export type Periodo = Esquemas["PeriodoResponse"];
 export type OpcionDeInstitucion = Esquemas["OpcionResponse"];
 
 export type PaginaDeClubes = {
@@ -74,3 +85,78 @@ export const listarInstitucionesParaFiltro = cache(async (): Promise<OpcionDeIns
   exigirAutenticacion(respuesta);
   return respuesta.datos?.opciones ?? [];
 });
+
+export const obtenerClub = cache(async (id: number): Promise<ResultadoDeDetalle<Club>> => {
+  const token = await tokenDeSesion();
+
+  return comoDetalle(
+    await intentar(
+      api.GET("/api/clubes/{id}", { ...conSesion(token), params: { path: { id } } }),
+    ),
+  );
+});
+
+export async function previsualizarCierreDeClub(id: number): Promise<CierreDeClub | null> {
+  const token = await tokenDeSesion();
+
+  const respuesta = await intentar(
+    api.GET("/api/clubes/{id}/cierre", { ...conSesion(token), params: { path: { id } } }),
+  );
+
+  exigirAutenticacion(respuesta);
+  return respuesta.datos;
+}
+
+export const listarPeriodos = cache(async (): Promise<Periodo[] | null> => {
+  const token = await tokenDeSesion();
+
+  const respuesta = await intentar(api.GET("/api/periodos", conSesion(token)));
+
+  exigirAutenticacion(respuesta);
+  return respuesta.datos;
+});
+
+export async function listarDocentesActivos(institucionId: number): Promise<Docente[] | null> {
+  const token = await tokenDeSesion();
+
+  return reunirPaginas((pagina) =>
+    intentar(
+      api.GET("/api/docentes", {
+        ...conSesion(token),
+        params: {
+          query: { institucionId, activo: true, pagina, tamano: TAMANO_MAXIMO_DE_PAGINA },
+        },
+      }),
+    ),
+  );
+}
+
+export async function listarInstitucionesParaFormulario(): Promise<OpcionDeInstitucion[] | null> {
+  const token = await tokenDeSesion();
+
+  const instituciones = await reunirPaginas((pagina) =>
+    intentar(
+      api.GET("/api/instituciones", {
+        ...conSesion(token),
+        params: { query: { pagina, tamano: TAMANO_MAXIMO_DE_PAGINA } },
+      }),
+    ),
+  );
+
+  return instituciones
+    ? instituciones.map((institucion) => ({ id: institucion.id, nombre: institucion.nombre }))
+    : null;
+}
+
+export async function listarClubesParaFormulario(): Promise<Club[] | null> {
+  const token = await tokenDeSesion();
+
+  return reunirPaginas((pagina) =>
+    intentar(
+      api.GET("/api/clubes", {
+        ...conSesion(token),
+        params: { query: { pagina, tamano: TAMANO_MAXIMO_DE_PAGINA } },
+      }),
+    ),
+  );
+}

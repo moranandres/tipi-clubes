@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CircleAlert, SearchX, ShieldAlert, Users } from "lucide-react";
+import { CircleAlert, Plus, SearchX, ShieldAlert, Users } from "lucide-react";
 import { Suspense } from "react";
 import { AvisoDeLista } from "@/components/portal/AvisoDeLista";
 import {
@@ -14,6 +14,7 @@ import { TablaClubes } from "@/components/portal/clubes/TablaClubes";
 import { EsqueletoFiltros } from "@/components/portal/ControlesDeFiltro";
 import { EsqueletoLista } from "@/components/portal/EsqueletoLista";
 import { Paginacion } from "@/components/portal/Paginacion";
+import { EnlaceBoton } from "@/components/ui/EnlaceBoton";
 import { listarClubes, listarInstitucionesParaFiltro } from "@/lib/api/clubes";
 import {
   CLUBES_POR_PAGINA,
@@ -24,6 +25,7 @@ import {
   type ParametrosDeBusqueda,
 } from "@/lib/portal/filtros-clubes";
 import { tieneAlcanceGlobal } from "@/lib/portal/menu";
+import { puedeGestionarClubesYCursos } from "@/lib/portal/permisos";
 import { exigirSesion } from "@/lib/sesion/usuario";
 
 export const metadata: Metadata = {
@@ -43,6 +45,21 @@ function alcanceDe(rol?: string): string {
     return "en todas las instituciones";
   }
   return rol === ROL_DOCENTE ? "a tu cargo" : "de tu institución";
+}
+
+async function AccionPrincipal() {
+  const usuario = await exigirSesion();
+
+  if (!puedeGestionarClubesYCursos(usuario?.rol)) {
+    return null;
+  }
+
+  return (
+    <EnlaceBoton href={`${RUTA_CLUBES}/nuevo`} className="shrink-0">
+      <Plus aria-hidden="true" size={18} />
+      Nuevo club
+    </EnlaceBoton>
+  );
 }
 
 async function Filtros({ parametros }: PropsConParametros) {
@@ -82,6 +99,7 @@ async function Resultados({ parametros }: PropsConParametros) {
   }
 
   const { clubes, total, pagina, totalPaginas } = resultado.datos;
+  const gestionable = puedeGestionarClubesYCursos(usuario?.rol);
 
   if (clubes.length === 0 && total > 0) {
     redirect(rutaConFiltros({ ...filtros, pagina: totalPaginas }));
@@ -104,7 +122,9 @@ async function Resultados({ parametros }: PropsConParametros) {
       <AvisoDeLista icono={<Users size={20} />} titulo="Todavía no hay clubes">
         {usuario?.rol === ROL_DOCENTE
           ? "No tienes clubes a tu cargo. El responsable de tu institución puede asignarte uno."
-          : "Cuando se registre el primer club aparecerá en esta lista."}
+          : gestionable
+            ? "Usa el botón Nuevo club para registrar el primero."
+            : "Cuando se registre el primer club aparecerá en esta lista."}
       </AvisoDeLista>
     );
   }
@@ -121,7 +141,11 @@ async function Resultados({ parametros }: PropsConParametros) {
         {totalPaginas > 1 ? `, del ${primero} al ${ultimo}` : ""}.
       </p>
       <div className="mt-4">
-        <TablaClubes clubes={clubes} mostrarInstitucion={tieneAlcanceGlobal(usuario?.rol)} />
+        <TablaClubes
+          clubes={clubes}
+          mostrarInstitucion={tieneAlcanceGlobal(usuario?.rol)}
+          gestionable={gestionable}
+        />
       </div>
       <Paginacion
         etiqueta="Páginas de la lista de clubes"
@@ -139,10 +163,17 @@ async function Resultados({ parametros }: PropsConParametros) {
 export default function PaginaClubes({ searchParams }: PageProps<"/portal/clubes">) {
   return (
     <div className="mx-auto w-full max-w-[78rem] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
-      <h1 className="text-3xl font-medium tracking-tight">Clubes</h1>
-      <p className="mt-3 max-w-[70ch] text-tenue">
-        Consulta los clubes de robótica y programación con su docente, su horario y sus cupos.
-      </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-medium tracking-tight">Clubes</h1>
+          <p className="mt-3 max-w-[70ch] text-tenue">
+            Consulta los clubes de robótica y programación con su docente, su horario y sus cupos.
+          </p>
+        </div>
+        <Suspense fallback={null}>
+          <AccionPrincipal />
+        </Suspense>
+      </div>
       <ProveedorDeBusqueda>
         <Suspense fallback={<EsqueletoFiltros anchos={ANCHOS_DE_FILTROS} />}>
           <Filtros parametros={searchParams} />

@@ -1,30 +1,26 @@
+import { EnlaceBoton } from "@/components/ui/EnlaceBoton";
 import type { Club } from "@/lib/api/clubes";
-import { NOMBRES_DE_ESTADO, type EstadoClub } from "@/lib/portal/filtros-clubes";
+import {
+  NOMBRES_DE_ESTADO,
+  PUNTOS_DE_ESTADO_DE_CLUB,
+  RUTA_CLUBES,
+  type EstadoClub,
+} from "@/lib/portal/filtros-clubes";
+import { horaCorta, nombreDeDia } from "@/lib/portal/tiempo";
 
 type Props = {
   clubes: Club[];
   mostrarInstitucion: boolean;
+  gestionable: boolean;
 };
 
-const DIAS = ["", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const SIN_DATO = "—";
-
-const PUNTOS: Record<EstadoClub, string> = {
-  PLANIFICADO: "bg-acento",
-  ACTIVO: "bg-exito",
-  SUSPENDIDO: "bg-aviso",
-  CERRADO: "bg-tenue",
-};
 
 const CELDA = "px-5 py-3.5 align-top";
 const ENCABEZADO = "px-5 py-3 text-left text-sm font-medium text-tenue";
 
-function horaCorta(hora?: string): string {
-  return hora ? hora.slice(0, 5) : "";
-}
-
 function horarioDe(club: Club): string {
-  const dia = club.diaSemana ? DIAS[club.diaSemana] : "";
+  const dia = nombreDeDia(club.diaSemana);
   if (!dia) {
     return "Sin horario";
   }
@@ -48,7 +44,10 @@ function Estado({ estado }: { estado?: EstadoClub }) {
   }
   return (
     <span className="inline-flex items-center gap-2 whitespace-nowrap">
-      <span aria-hidden="true" className={`size-1.5 shrink-0 rounded-full ${PUNTOS[estado]}`} />
+      <span
+        aria-hidden="true"
+        className={`size-1.5 shrink-0 rounded-full ${PUNTOS_DE_ESTADO_DE_CLUB[estado]}`}
+      />
       {NOMBRES_DE_ESTADO[estado]}
     </span>
   );
@@ -61,7 +60,16 @@ function Detalle({ club }: { club: Club }) {
   ) : null;
 }
 
-export function TablaClubes({ clubes, mostrarInstitucion }: Props) {
+function EnlaceGestionar({ club }: { club: Club }) {
+  return (
+    <EnlaceBoton href={`${RUTA_CLUBES}/${club.id}`} variante="elevado" tamano="compacto">
+      Gestionar
+      <span className="sr-only"> el club {club.nombre}</span>
+    </EnlaceBoton>
+  );
+}
+
+export function TablaClubes({ clubes, mostrarInstitucion, gestionable }: Props) {
   return (
     <>
       <div className="hidden overflow-x-auto rounded-pieza bg-superficie md:block">
@@ -69,11 +77,11 @@ export function TablaClubes({ clubes, mostrarInstitucion }: Props) {
           <caption className="sr-only">Lista de clubes</caption>
           <thead>
             <tr className="border-b border-linea">
-              <th scope="col" className={`${ENCABEZADO} ${mostrarInstitucion ? "w-[28%]" : "w-[40%]"}`}>
+              <th scope="col" className={`${ENCABEZADO} ${mostrarInstitucion ? "w-[26%]" : "w-[36%]"}`}>
                 Club
               </th>
               {mostrarInstitucion ? (
-                <th scope="col" className={`${ENCABEZADO} w-[20%]`}>
+                <th scope="col" className={`${ENCABEZADO} w-[18%]`}>
                   Institución
                 </th>
               ) : null}
@@ -89,6 +97,11 @@ export function TablaClubes({ clubes, mostrarInstitucion }: Props) {
               <th scope="col" className={ENCABEZADO}>
                 Estado
               </th>
+              {gestionable ? (
+                <th scope="col" className={`${ENCABEZADO} text-right`}>
+                  Acciones
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -116,6 +129,11 @@ export function TablaClubes({ clubes, mostrarInstitucion }: Props) {
                 <td className={CELDA}>
                   <Estado estado={club.estado} />
                 </td>
+                {gestionable ? (
+                  <td className="px-5 py-2.5 text-right align-top">
+                    <EnlaceGestionar club={club} />
+                  </td>
+                ) : null}
               </tr>
             ))}
           </tbody>
@@ -149,6 +167,11 @@ export function TablaClubes({ clubes, mostrarInstitucion }: Props) {
                 {estaCompleto(club) ? <span className="ml-2 text-sm text-aviso">Completo</span> : null}
               </dd>
             </dl>
+            {gestionable ? (
+              <div className="mt-4">
+                <EnlaceGestionar club={club} />
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>
