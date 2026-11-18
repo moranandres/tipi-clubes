@@ -89,6 +89,26 @@ export function AvisoDenegado({
   );
 }
 
+export function AvisoSinAcceso({ quienes }: { quienes: string }) {
+  return (
+    <div className="mt-8">
+      <AvisoDeLista
+        urgente
+        icono={<ShieldAlert size={20} />}
+        titulo="Tu rol no tiene acceso a esta sección"
+        accion={
+          <Link href="/portal" className="font-medium text-acento">
+            Volver al panel principal
+          </Link>
+        }
+      >
+        Esta sección es solo para {quienes}. Si crees que es un error, avisa a la coordinación de
+        TIPI 3.0.
+      </AvisoDeLista>
+    </div>
+  );
+}
+
 export function AvisoDeRequisito({
   titulo,
   children,

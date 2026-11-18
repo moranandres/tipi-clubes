@@ -7,6 +7,7 @@ const ENLACES = [
   { href: "#como-funciona", texto: "Cómo funciona" },
   { href: "#cifras", texto: "Cifras" },
   { href: "#acceso", texto: "Roles" },
+  { href: "/verificar", texto: "Verificar certificado" },
 ] as const;
 
 export function Navegacion() {

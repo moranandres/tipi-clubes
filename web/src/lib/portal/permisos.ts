@@ -107,3 +107,29 @@ export function puedeRegistrarAvances(rol?: string): boolean {
 export function puedeAjustarParametrosDeSeguimiento(rol?: string): boolean {
   return rol === ROL_ADMINISTRADOR;
 }
+
+const ROLES_DE_AUDITORIA = ["ADMIN", "CONSULTA"];
+const ROLES_CON_ALCANCE_GLOBAL = ["ADMIN", "COORDINADOR", "CONSULTA"];
+
+export function puedeAdministrarUsuarios(rol?: string): boolean {
+  return rol === ROL_ADMINISTRADOR;
+}
+
+export function puedeAdministrarContenidos(rol?: string): boolean {
+  return rol === ROL_ADMINISTRADOR;
+}
+
+export function puedeConsultarAuditoria(rol?: string): boolean {
+  return esUnoDe(ROLES_DE_AUDITORIA, rol);
+}
+
+export function puedeAbrirClubDelCatalogo(
+  rol?: string,
+  institucionPropia?: number,
+  institucionDelClub?: number,
+): boolean {
+  if (esUnoDe(ROLES_CON_ALCANCE_GLOBAL, rol)) {
+    return true;
+  }
+  return Boolean(rol && institucionPropia && institucionPropia === institucionDelClub);
+}

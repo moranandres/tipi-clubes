@@ -97,33 +97,7 @@ export type SeccionMenu = {
   opciones: OpcionMenu[];
 };
 
-export type ModuloPortal = {
-  id: IdOpcion;
-  etiqueta: string;
-  roles: readonly Rol[];
-};
-
 const ID_PANEL: IdOpcion = "panel";
-const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = [
-  "instituciones",
-  "clubes",
-  "docentes",
-  "periodos",
-  "cursos",
-  "competencias",
-  "certificados",
-  "estudiantes",
-  "historial",
-  "autorizaciones",
-  "solicitudes",
-  "retiros",
-  "actividades",
-  "asistencia",
-  "evidencias",
-  "proyectos",
-  "avances",
-  "seguimiento",
-];
 const ROLES_GLOBALES: readonly Rol[] = ["ADMIN", "COORDINADOR", "CONSULTA"];
 
 export function rutaDeOpcion(id: IdOpcion): string {
@@ -183,20 +157,6 @@ export function descripcionDeRol(rol?: string): string {
   return esRol(rol) ? DESCRIPCIONES_DE_ROL[rol] : "";
 }
 
-export const MODULOS_DEL_PORTAL: ModuloPortal[] = SECCIONES.flatMap((seccion) =>
-  seccion.opciones
-    .filter((opcion) => opcion.id !== ID_PANEL && !MODULOS_CONSTRUIDOS.includes(opcion.id))
-    .map((opcion) => ({ id: opcion.id, etiqueta: opcion.etiqueta, roles: opcion.roles })),
-);
-
-export function buscarModulo(id: string): ModuloPortal | undefined {
-  return MODULOS_DEL_PORTAL.find((modulo) => modulo.id === id);
-}
-
 export function tieneAlcanceGlobal(rol?: string): boolean {
   return esRol(rol) && ROLES_GLOBALES.includes(rol);
-}
-
-export function rolPuedeVer(modulo: ModuloPortal, rol?: string): boolean {
-  return esRol(rol) && modulo.roles.includes(rol);
 }
