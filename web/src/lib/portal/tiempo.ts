@@ -77,3 +77,8 @@ const FORMATO_DIA_ISO = new Intl.DateTimeFormat("en-CA", {
 export function hoyEnGuayaquil(): string {
   return FORMATO_DIA_ISO.format(new Date());
 }
+
+export function fechaConBarras(fecha: string): string {
+  const [anio, mes, dia] = fecha.split("-");
+  return `${dia}/${mes}/${anio}`;
+}

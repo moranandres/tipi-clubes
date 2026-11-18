@@ -19,6 +19,7 @@ type Props = {
   error?: string;
   ayuda: string;
   deshabilitado?: boolean;
+  textoVacio?: string;
   alCambiar: (ids: number[]) => void;
 };
 
@@ -33,6 +34,7 @@ export function SelectorDeEstudiantes({
   error,
   ayuda,
   deshabilitado = false,
+  textoVacio = "La sesión no tiene integrantes para relacionar.",
   alCambiar,
 }: Props) {
   const id = useId();
@@ -47,7 +49,7 @@ export function SelectorDeEstudiantes({
     <fieldset aria-describedby={idMensaje} className="min-w-0" disabled={deshabilitado}>
       <legend className={ETIQUETA_CONTROL}>{etiqueta}</legend>
       {candidatos.length === 0 ? (
-        <p className="mt-2 text-[0.9375rem] text-tenue">La sesión no tiene integrantes para relacionar.</p>
+        <p className="mt-2 text-[0.9375rem] text-tenue">{textoVacio}</p>
       ) : (
         <ul className="mt-2 grid gap-2 sm:grid-cols-2">
           {candidatos.map((candidato) => {

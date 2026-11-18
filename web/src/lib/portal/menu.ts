@@ -110,6 +110,8 @@ const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = [
   "docentes",
   "periodos",
   "cursos",
+  "competencias",
+  "certificados",
   "estudiantes",
   "historial",
   "autorizaciones",
@@ -118,6 +120,9 @@ const MODULOS_CONSTRUIDOS: readonly IdOpcion[] = [
   "actividades",
   "asistencia",
   "evidencias",
+  "proyectos",
+  "avances",
+  "seguimiento",
 ];
 const ROLES_GLOBALES: readonly Rol[] = ["ADMIN", "COORDINADOR", "CONSULTA"];
 

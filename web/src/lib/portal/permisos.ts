@@ -75,3 +75,35 @@ export function puedeGestionarActividades(rol?: string): boolean {
 export function puedeElegirResponsable(rol?: string): boolean {
   return esUnoDe(ROLES_QUE_GESTIONAN, rol);
 }
+
+export function puedeRegistrarParticipaciones(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_REGISTRAN, rol);
+}
+
+export function puedeAdministrarCatalogoDeCompetencias(rol?: string): boolean {
+  return rol === ROL_ADMINISTRADOR;
+}
+
+export function puedeEmitirCertificados(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_GESTIONAN, rol);
+}
+
+export function puedeDescargarCertificados(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_REGISTRAN, rol);
+}
+
+export function puedeRegistrarResultadosDeCurso(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_REGISTRAN, rol);
+}
+
+export function puedeGestionarProyectos(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_REGISTRAN, rol);
+}
+
+export function puedeRegistrarAvances(rol?: string): boolean {
+  return esUnoDe(ROLES_QUE_REGISTRAN, rol);
+}
+
+export function puedeAjustarParametrosDeSeguimiento(rol?: string): boolean {
+  return rol === ROL_ADMINISTRADOR;
+}
