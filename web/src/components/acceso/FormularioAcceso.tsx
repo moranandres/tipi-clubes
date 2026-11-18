@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { ArrowRight, CircleAlert, Eye, EyeOff, Info } from "lucide-react";
 import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Boton } from "@/components/ui/Boton";
 import { Campo } from "@/components/ui/Campo";
-import { RUTA_PORTAL } from "@/lib/sesion/cookie";
+import { RUTA_CAMBIO_DE_CLAVE, RUTA_PORTAL } from "@/lib/sesion/cookie";
 
 const CARGA_MINIMA_MS = 400;
 const DESTINO_VALIDO = /^\/portal(?:[/?]|$)/;
@@ -81,7 +82,12 @@ export function FormularioAcceso() {
       });
 
       if (respuesta.ok) {
-        window.location.replace(destinoTrasEntrar());
+        const cuerpo: { usuario?: { debeCambiarPassword?: boolean } | null } | null = await respuesta
+          .json()
+          .catch(() => null);
+        window.location.replace(
+          cuerpo?.usuario?.debeCambiarPassword ? RUTA_CAMBIO_DE_CLAVE : destinoTrasEntrar(),
+        );
         return;
       }
 
@@ -158,6 +164,12 @@ export function FormularioAcceso() {
         Entrar al portal
         <ArrowRight aria-hidden="true" size={18} />
       </Boton>
+
+      <p className="mt-4 text-[0.9375rem]">
+        <Link href="/recuperar" className="font-medium text-acento">
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </p>
 
       <div role="alert" className="mt-4 min-h-12 text-sm">
         {errores.general ? (

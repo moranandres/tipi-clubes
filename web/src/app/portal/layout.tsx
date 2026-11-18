@@ -1,4 +1,5 @@
-import { Menu } from "lucide-react";
+import Link from "next/link";
+import { KeyRound, Menu } from "lucide-react";
 import { Suspense } from "react";
 import { BotonCerrarSesion } from "@/components/portal/BotonCerrarSesion";
 import { MenuLateral } from "@/components/portal/MenuLateral";
@@ -6,6 +7,7 @@ import { MenuMovil } from "@/components/portal/MenuMovil";
 import { Marca } from "@/components/ui/Marca";
 import { SelectorTema } from "@/components/ui/SelectorTema";
 import { seccionesParaRol } from "@/lib/portal/menu";
+import { RUTA_CAMBIO_DE_CLAVE } from "@/lib/sesion/cookie";
 import { exigirSesion, nombreDeRol } from "@/lib/sesion/usuario";
 
 async function MenuDeEscritorio() {
@@ -95,6 +97,14 @@ export default function LayoutPortal({ children }: LayoutProps<"/portal">) {
                 <UsuarioEnCabecera />
               </Suspense>
               <SelectorTema className="sm:ml-2" />
+              <Link
+                href={RUTA_CAMBIO_DE_CLAVE}
+                aria-label="Cambiar contraseña"
+                title="Cambiar contraseña"
+                className="grid size-11 shrink-0 select-none place-items-center rounded-control text-tenue transition-[transform,background-color,color] duration-150 ease-salida hover:bg-superficie hover:text-tinta active:scale-[0.97]"
+              >
+                <KeyRound aria-hidden="true" size={18} />
+              </Link>
               <BotonCerrarSesion />
             </div>
           </div>

@@ -99,7 +99,7 @@ public class CertificadoService {
     private final AlcanceInstitucional alcance;
     private final AuditoriaService auditoria;
 
-    @Value("${tipi.certificados.url-verificacion:${tipi.frontend.base-url}/verificar-certificado.html}")
+    @Value("${tipi.certificados.url-verificacion:${tipi.frontend.base-url}/verificar}")
     private String urlVerificacion;
 
     @Transactional(readOnly = true)

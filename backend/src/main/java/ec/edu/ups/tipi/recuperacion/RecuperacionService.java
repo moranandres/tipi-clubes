@@ -114,7 +114,7 @@ public class RecuperacionService {
         eventos.publishEvent(new CorreoRecuperacion(
                 usuario.getEmail(),
                 usuario.getNombres(),
-                frontendBaseUrl + "/restablecer.html#token=" + token,
+                frontendBaseUrl + "/restablecer#token=" + token,
                 minutosValidez));
     }
 

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { api, type Esquemas } from "@/lib/api/cliente";
-import { COOKIE_SESION, RUTA_SESION_EXPIRADA } from "./cookie";
+import { COOKIE_SESION, RUTA_CAMBIO_DE_CLAVE, RUTA_SESION_EXPIRADA } from "./cookie";
 
 export type UsuarioSesion = Esquemas["UsuarioResumen"];
 
@@ -46,6 +46,9 @@ export async function exigirSesion(): Promise<UsuarioSesion | null> {
   const sesion = await leerSesion();
   if (sesion.estado === "ausente") {
     redirect(RUTA_SESION_EXPIRADA);
+  }
+  if (sesion.estado === "activa" && sesion.usuario.debeCambiarPassword) {
+    redirect(RUTA_CAMBIO_DE_CLAVE);
   }
   return sesion.estado === "activa" ? sesion.usuario : null;
 }

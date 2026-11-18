@@ -30,6 +30,10 @@ public class DataInitializer implements CommandLineRunner {
         if (usuarioRepository.count() > 0) {
             return;
         }
+        if (adminPassword == null || adminPassword.isBlank()) {
+            throw new IllegalStateException(
+                    "La base no tiene usuarios: defina ADMIN_INITIAL_PASSWORD para crear la cuenta inicial 'admin'.");
+        }
         Rol rolAdmin = rolRepository.findByCodigo("ADMIN").orElseThrow();
 
         Usuario admin = new Usuario();

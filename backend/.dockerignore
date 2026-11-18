@@ -1,0 +1,7 @@
+target
+uploads
+.env
+.idea
+.vscode
+*.iml
+HELP.md
