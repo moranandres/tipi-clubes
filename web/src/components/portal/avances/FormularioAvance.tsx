@@ -334,7 +334,7 @@ export function FormularioAvance({
           {catalogo.length === 0 ? (
             <p className="mt-2 text-[0.9375rem] text-tenue">El catálogo no tiene competencias activas para evaluar.</p>
           ) : (
-            <div className="mt-4 grid gap-x-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-4 grid items-end gap-x-5 sm:grid-cols-2 xl:grid-cols-3">
               {catalogo.map((competencia) => (
                 <CampoSeleccion
                   key={competencia.valor}

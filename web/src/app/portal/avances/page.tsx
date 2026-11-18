@@ -144,6 +144,7 @@ async function Resultados({ parametros }: PropsConParametros) {
     );
   }
 
+  const anulados = filtros.estado === "ANULADO" ? "anulados " : "";
   const primero = (pagina - 1) * AVANCES_POR_PAGINA + 1;
   const ultimo = primero + elementos.length - 1;
 
@@ -151,8 +152,8 @@ async function Resultados({ parametros }: PropsConParametros) {
     <>
       <p role="status" className="cifras text-[0.9375rem] text-tenue">
         {total === 1
-          ? `1 avance ${alcanceDe(usuario?.rol)}`
-          : `${FORMATO_NUMERO.format(total)} avances ${alcanceDe(usuario?.rol)}`}
+          ? `1 avance ${anulados ? "anulado " : ""}${alcanceDe(usuario?.rol)}`
+          : `${FORMATO_NUMERO.format(total)} avances ${anulados}${alcanceDe(usuario?.rol)}`}
         {totalPaginas > 1 ? `, del ${primero} al ${ultimo}` : ""}.
       </p>
       <div className="mt-4">

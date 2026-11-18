@@ -22,10 +22,7 @@ type Props = {
   clubes: OpcionDeFormulario[];
 };
 
-const OPCIONES_DE_ESTADO = [
-  { valor: "ACTIVO", texto: "Vigentes" },
-  { valor: "ANULADO", texto: "Anulados" },
-];
+const OPCIONES_DE_ESTADO = [{ valor: "ANULADO", texto: "Anulados" }];
 
 export function FiltrosAvances({ filtros, instituciones, clubes }: Props) {
   const { cambiar, enviar, quitar } = useFiltrosEnUrl(filtros, rutaDeAvances, FILTROS_DE_AVANCES_VACIOS);
@@ -62,9 +59,9 @@ export function FiltrosAvances({ filtros, instituciones, clubes }: Props) {
       />
       <Selector
         etiqueta="Estado"
-        valor={filtros.estado ?? ""}
+        valor={filtros.estado === "ANULADO" ? "ANULADO" : ""}
         opciones={OPCIONES_DE_ESTADO}
-        textoDeTodos="Todos"
+        textoDeTodos="Vigentes"
         className="md:w-40"
         alCambiar={(valor) => cambiar({ estado: valor ? (valor as EstadoAvance) : null })}
       />
