@@ -157,6 +157,10 @@ public class SolicitudInscripcionService {
                 .filter(e -> e.getInstitucionId().equals(club.getInstitucionId()))
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST,
                         "El estudiante indicado no existe en la institución del club."));
+        if (estudiante.isAnonimizado()) {
+            throw new ApiException(HttpStatus.CONFLICT, "El estudiante " + estudiante.getCodigoInterno()
+                    + " fue anonimizado y no admite nuevas inscripciones.");
+        }
 
         Curso curso = null;
         if (request.cursoId() != null) {

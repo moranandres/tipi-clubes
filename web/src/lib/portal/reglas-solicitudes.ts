@@ -133,13 +133,14 @@ export function validarAprobacion(datos: DatosDeAprobacion): ErroresDeAprobacion
 export function errorDeMotivo(
   motivo: string,
   minimo: number = LIMITES_DE_SOLICITUD.motivoMinimo,
+  maximo: number = LIMITES_DE_SOLICITUD.motivoMaximo,
 ): string | undefined {
   const texto = motivo.trim();
   if (!texto) {
     return "Escribe el motivo.";
   }
-  if (texto.length < minimo || texto.length > LIMITES_DE_SOLICITUD.motivoMaximo) {
-    return `El motivo debe tener entre ${minimo} y ${LIMITES_DE_SOLICITUD.motivoMaximo} caracteres.`;
+  if (texto.length < minimo || texto.length > maximo) {
+    return `El motivo debe tener entre ${minimo} y ${maximo} caracteres.`;
   }
   return undefined;
 }

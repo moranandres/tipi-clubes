@@ -14,7 +14,8 @@ public record CertificadoResponse(
         Long inscripcionCursoId, Long participacionId,
         LocalDate fechaEmision, Long emitidoPorId, String emitidoPorNombre,
         Long anuladoPorId, String anuladoPorNombre, Instant fechaAnulacion, String motivoAnulacion,
-        String archivoHash, Long archivoTamano, String urlVerificacion, Instant createdAt) implements CertificadoVista {
+        String archivoHash, Long archivoTamano, Instant archivoEliminadoEn, String urlVerificacion,
+        Instant createdAt) implements CertificadoVista {
 
     public static CertificadoResponse de(Certificado c, ContextoCertificado x) {
         return new CertificadoResponse(c.getId(), c.getCodigoVerificacion(), c.getTipo(), c.getTitulo(), c.getEstado(),
@@ -23,6 +24,7 @@ public record CertificadoResponse(
                 c.getInscripcionCursoId(), c.getParticipacionId(),
                 c.getFechaEmision(), c.getEmitidoPor(), x.emitidoPorNombre(),
                 c.getAnuladoPor(), x.anuladoPorNombre(), c.getFechaAnulacion(), c.getMotivoAnulacion(),
-                c.getArchivoHash(), c.getArchivoTamano(), x.urlVerificacion(), c.getCreatedAt());
+                c.getArchivoHash(), c.getArchivoTamano(), c.getArchivoEliminadoEn(), x.urlVerificacion(),
+                c.getCreatedAt());
     }
 }

@@ -2,6 +2,7 @@ package ec.edu.ups.tipi.estudiantes;
 
 import ec.edu.ups.tipi.common.PaginaResponse;
 import ec.edu.ups.tipi.common.Respuestas;
+import ec.edu.ups.tipi.estudiantes.dto.AnonimizacionRequest;
 import ec.edu.ups.tipi.estudiantes.dto.CambioEstadoEstudianteRequest;
 import ec.edu.ups.tipi.estudiantes.dto.CursoResponse;
 import ec.edu.ups.tipi.estudiantes.dto.EstudianteActualizarRequest;
@@ -90,6 +91,18 @@ public class EstudianteController {
                                                          @Valid @RequestBody CambioEstadoEstudianteRequest request,
                                                          @AuthenticationPrincipal UsuarioPrincipal usuario) {
         return ResponseEntity.ok(service.cambiarEstado(id, request.estado(), usuario));
+    }
+
+    @Operation(summary = "Anonimiza los datos personales de un estudiante con historial",
+            description = "Reemplaza nombres y apellidos por una etiqueta neutra, depura los datos del representante "
+                    + "legal, elimina los documentos de autorización y los PDF de sus certificados, y conserva el "
+                    + "código interno y los registros históricos para las estadísticas. La operación es irreversible.")
+    @PostMapping("/{id}/anonimizar")
+    @PreAuthorize(GESTION)
+    public ResponseEntity<EstudianteResponse> anonimizar(@PathVariable Long id,
+                                                         @Valid @RequestBody AnonimizacionRequest request,
+                                                         @AuthenticationPrincipal UsuarioPrincipal usuario) {
+        return ResponseEntity.ok(service.anonimizar(id, request, usuario));
     }
 
     @Operation(summary = "Elimina un estudiante sin registros asociados")

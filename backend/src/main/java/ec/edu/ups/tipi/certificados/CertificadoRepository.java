@@ -16,6 +16,8 @@ public interface CertificadoRepository extends JpaRepository<Certificado, Long>,
 
     boolean existsByCodigoVerificacion(String codigoVerificacion);
 
+    List<Certificado> findByEstudianteIdOrderByIdAsc(Long estudianteId);
+
     Optional<Certificado> findFirstByTipoAndInscripcionCursoIdAndEstado(TipoCertificado tipo, Long inscripcionCursoId,
                                                                          EstadoCertificado estado);
 

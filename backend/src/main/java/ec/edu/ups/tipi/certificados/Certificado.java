@@ -71,4 +71,7 @@ public class Certificado {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
+    @Column(name = "archivo_eliminado_en")
+    private Instant archivoEliminadoEn;
 }

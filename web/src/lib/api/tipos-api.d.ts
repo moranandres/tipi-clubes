@@ -1084,6 +1084,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/estudiantes/{id}/anonimizar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Anonimiza los datos personales de un estudiante con historial
+         * @description Reemplaza nombres y apellidos por una etiqueta neutra, depura los datos del representante legal, elimina los documentos de autorización y los PDF de sus certificados, y conserva el código interno y los registros históricos para las estadísticas. La operación es irreversible.
+         */
+        post: operations["estudianteAnonimizar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/estudiantes/{id}/estado": {
         parameters: {
             query?: never;
@@ -2097,6 +2117,9 @@ export interface components {
             situacion?: "EJECUTADA" | "POR_EJECUTAR" | "POR_REGISTRAR" | "VENCIDA" | "CANCELADA";
             tema?: string;
         };
+        AnonimizacionRequest: {
+            motivo: string;
+        };
         AnulacionAvanceRequest: {
             motivo: string;
         };
@@ -2475,6 +2498,8 @@ export interface components {
             /** Format: int64 */
             anuladoPorId?: number;
             anuladoPorNombre?: string;
+            /** Format: date-time */
+            archivoEliminadoEn?: string;
             archivoHash?: string;
             /** Format: int64 */
             archivoTamano?: number;
@@ -3165,6 +3190,7 @@ export interface components {
         };
         EstudianteEvidenciaVista: unknown;
         EstudianteResponse: components["schemas"]["EstudianteVista"] & {
+            anonimizado?: boolean;
             apellidos?: string;
             /** @enum {string} */
             autorizacionParticipacion?: "PENDIENTE" | "OTORGADA" | "NO_OTORGADA" | "REVOCADA";
@@ -3178,21 +3204,27 @@ export interface components {
             cursoEtiqueta?: string;
             /** @enum {string} */
             estado?: "ACTIVO" | "RETIRADO" | "EGRESADO";
+            /** Format: date-time */
+            fechaAnonimizacion?: string;
             /** Format: int64 */
             id?: number;
             /** Format: int64 */
             institucionId?: number;
             institucionNombre?: string;
+            motivoAnonimizacion?: string;
             nivel?: string;
             nombres?: string;
         };
         EstudianteResumenResponse: components["schemas"]["EstudianteVista"] & {
+            anonimizado?: boolean;
             codigoInterno?: string;
             /** @enum {string} */
             curso?: "INICIAL_1" | "INICIAL_2" | "EGB_1" | "EGB_2" | "EGB_3" | "EGB_4" | "EGB_5" | "EGB_6" | "EGB_7" | "EGB_8" | "EGB_9" | "EGB_10" | "BGU_1" | "BGU_2" | "BGU_3";
             cursoEtiqueta?: string;
             /** @enum {string} */
             estado?: "ACTIVO" | "RETIRADO" | "EGRESADO";
+            /** Format: date-time */
+            fechaAnonimizacion?: string;
             /** Format: int64 */
             id?: number;
             /** Format: int64 */
@@ -7027,6 +7059,33 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            default: components["responses"]["Problema"];
+        };
+    };
+    estudianteAnonimizar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnonimizacionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstudianteResponse"];
+                };
             };
             default: components["responses"]["Problema"];
         };

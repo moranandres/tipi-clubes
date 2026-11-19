@@ -209,7 +209,16 @@ async function Contenido({ params, searchParams }: Props) {
             <h2 id="documento-pdf" className="text-lg font-medium">
               Documento PDF
             </h2>
-            {!vigente ? (
+            {certificado.archivoEliminadoEn ? (
+              <p className="mt-2 flex items-start gap-2.5 text-[0.9375rem] text-tenue">
+                <Lock aria-hidden="true" size={18} className="mt-0.5 shrink-0" />
+                <span>
+                  El PDF se eliminó el {momentoCorto(certificado.archivoEliminadoEn)} al anonimizar los
+                  datos personales del estudiante. El certificado conserva su código y su huella para la
+                  verificación pública.
+                </span>
+              </p>
+            ) : !vigente ? (
               <p className="mt-2 flex items-start gap-2.5 text-[0.9375rem] text-tenue">
                 <Lock aria-hidden="true" size={18} className="mt-0.5 shrink-0" />
                 <span>El certificado está anulado y su PDF ya no se entrega.</span>

@@ -2,8 +2,11 @@ package ec.edu.ups.tipi.estudiantes;
 
 import ec.edu.ups.tipi.almacenamiento.AlmacenamientoArchivos;
 import ec.edu.ups.tipi.auditoria.AuditoriaService;
+import ec.edu.ups.tipi.certificados.Certificado;
+import ec.edu.ups.tipi.certificados.CertificadoRepository;
 import ec.edu.ups.tipi.common.ApiException;
 import ec.edu.ups.tipi.common.PaginaResponse;
+import ec.edu.ups.tipi.estudiantes.dto.AnonimizacionRequest;
 import ec.edu.ups.tipi.estudiantes.dto.EstudianteActualizarRequest;
 import ec.edu.ups.tipi.estudiantes.dto.EstudianteCrearRequest;
 import ec.edu.ups.tipi.estudiantes.dto.EstudianteResponse;
@@ -25,6 +28,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -41,9 +47,13 @@ public class EstudianteService {
     private static final String MENSAJE_HOMONIMO =
             "Ya existe un estudiante con los mismos nombres y apellidos en esta institución. "
             + "Verifique que no sea la misma persona; si se trata de otro estudiante, confirme el registro.";
+    private static final Set<String> ROLES_DE_ANONIMIZACION = Set.of("ADMIN", "RESP_INSTITUCIONAL");
+    private static final ZoneId ZONA = ZoneId.of("America/Guayaquil");
+    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final EstudianteRepository estudianteRepository;
     private final AutorizacionRepository autorizacionRepository;
+    private final CertificadoRepository certificadoRepository;
     private final InstitucionRepository institucionRepository;
     private final AlcanceInstitucional alcance;
     private final AuditoriaService auditoria;
@@ -136,6 +146,7 @@ public class EstudianteService {
     public EstudianteResponse actualizar(Long id, EstudianteActualizarRequest request, UsuarioPrincipal usuario) {
         Estudiante estudiante = buscar(id);
         alcance.verificar(usuario, estudiante.getInstitucionId());
+        rechazarSiAnonimizado(estudiante, "sus datos ya no se editan");
 
         String nombres = normalizar(request.nombres());
         String apellidos = normalizar(request.apellidos());
@@ -171,6 +182,7 @@ public class EstudianteService {
     public EstudianteVista cambiarEstado(Long id, EstadoEstudiante nuevo, UsuarioPrincipal usuario) {
         Estudiante estudiante = buscar(id);
         alcance.verificar(usuario, estudiante.getInstitucionId());
+        rechazarSiAnonimizado(estudiante, "su estado ya no cambia");
 
         EstadoEstudiante actual = estudiante.getEstado();
         if (actual == nuevo) {
@@ -189,14 +201,86 @@ public class EstudianteService {
     }
 
     @Transactional
+    public EstudianteResponse anonimizar(Long id, AnonimizacionRequest request, UsuarioPrincipal usuario) {
+        if (!ROLES_DE_ANONIMIZACION.contains(usuario.getRolCodigo())) {
+            throw new ApiException(HttpStatus.FORBIDDEN,
+                    "Solo el Administrador o el Responsable institucional pueden anonimizar estudiantes.");
+        }
+        Estudiante estudiante = buscar(id);
+        alcance.verificar(usuario, estudiante.getInstitucionId());
+        rechazarSiAnonimizado(estudiante, "la anonimización no se repite");
+        String motivo = normalizar(request.motivo());
+        if (motivo.length() < 10) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "El motivo debe tener entre 10 y 300 caracteres.");
+        }
+
+        if (estudiante.getEstado() == EstadoEstudiante.ACTIVO) {
+            throw new ApiException(HttpStatus.CONFLICT, "El estudiante " + estudiante.getCodigoInterno()
+                    + " está activo. Cambie primero su estado a Retirado o Egresado.");
+        }
+        if (estudianteRepository.contarInscripcionesActivas(id) > 0) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "El estudiante tiene inscripciones activas en clubes. Tramite primero su retiro de los clubes.");
+        }
+        if (estudianteRepository.contarSolicitudesAbiertas(id) > 0) {
+            throw new ApiException(HttpStatus.CONFLICT, "El estudiante tiene solicitudes de inscripción pendientes "
+                    + "o en revisión. Resuélvalas antes de anonimizarlo.");
+        }
+        if (estudianteRepository.contarRegistrosVinculados(id) == 0) {
+            throw new ApiException(HttpStatus.CONFLICT, "El estudiante no tiene historial en el proyecto. "
+                    + "Elimínelo en lugar de anonimizarlo.");
+        }
+
+        Instant ahora = Instant.now();
+
+        List<Autorizacion> autorizaciones = autorizacionRepository.findByEstudianteIdOrderByTipoAsc(id);
+        int documentos = 0;
+        for (Autorizacion autorizacion : autorizaciones) {
+            if (autorizacion.getDocumentoRuta() != null) {
+                almacenamiento.eliminarAlConfirmar(autorizacion.getDocumentoRuta());
+                documentos++;
+            }
+            depurar(autorizacion, ahora);
+        }
+        autorizacionRepository.saveAllAndFlush(autorizaciones);
+
+        estudiante.setNombres(Estudiante.NOMBRE_ANONIMIZADO);
+        estudiante.setApellidos("");
+        estudiante.setAnonimizado(true);
+        estudiante.setFechaAnonimizacion(ahora);
+        estudiante.setMotivoAnonimizacion(motivo);
+        estudiante.setAnonimizadoPor(usuario.getId());
+        estudiante = estudianteRepository.saveAndFlush(estudiante);
+
+        List<Certificado> certificados = certificadoRepository.findByEstudianteIdOrderByIdAsc(id);
+        int pdfs = 0;
+        for (Certificado certificado : certificados) {
+            if (certificado.getArchivoEliminadoEn() == null) {
+                almacenamiento.eliminarAlConfirmar(certificado.getArchivoRuta());
+                certificado.setArchivoEliminadoEn(ahora);
+                pdfs++;
+            }
+        }
+        certificadoRepository.saveAllAndFlush(certificados);
+
+        auditoria.registrar("ESTUDIANTE_ANONIMIZADO", "ESTUDIANTE", id,
+                "codigo=" + estudiante.getCodigoInterno() + "; motivo: '" + motivo + "'"
+                        + "; autorizaciones depuradas=" + autorizaciones.size()
+                        + "; documentos de autorización eliminados=" + documentos
+                        + "; PDF de certificados eliminados=" + pdfs);
+        return completo(estudiante);
+    }
+
+    @Transactional
     public void eliminar(Long id, UsuarioPrincipal usuario) {
         Estudiante estudiante = buscar(id);
         alcance.verificar(usuario, estudiante.getInstitucionId());
+        rechazarSiAnonimizado(estudiante, "su registro forma parte del historial y no se elimina");
 
         if (estudianteRepository.contarRegistrosVinculados(id) > 0) {
             throw new ApiException(HttpStatus.CONFLICT,
                     "El estudiante tiene registros vinculados (inscripciones, solicitudes, participaciones o certificados). "
-                    + "No se puede eliminar; cambie su estado a Retirado o Egresado.");
+                    + "No se puede eliminar; cambie su estado a Retirado o Egresado, o anonimice sus datos personales.");
         }
 
         List<Autorizacion> autorizaciones = autorizacionRepository.findByEstudianteIdOrderByTipoAsc(id);
@@ -212,6 +296,33 @@ public class EstudianteService {
 
         auditoria.registrar("ESTUDIANTE_ELIMINADO", "ESTUDIANTE", id,
                 "codigo=" + codigo + "; se eliminaron sus autorizaciones y documentos");
+    }
+
+    private void depurar(Autorizacion autorizacion, Instant ahora) {
+        autorizacion.setDocumentoRuta(null);
+        autorizacion.setDocumentoNombre(null);
+        autorizacion.setDocumentoTipo(null);
+        autorizacion.setDocumentoTamano(null);
+        autorizacion.setDocumentoHash(null);
+        autorizacion.setDocumentoSubidoEn(null);
+        autorizacion.setDocumentoSubidoPor(null);
+        autorizacion.setObservacion(null);
+        autorizacion.setRepresentanteNombres(null);
+        autorizacion.setRepresentanteApellidos(null);
+        autorizacion.setRepresentanteCedula(null);
+        autorizacion.setRepresentanteParentesco(null);
+        autorizacion.setRepresentanteTelefono(null);
+        autorizacion.setRepresentanteCorreo(null);
+        autorizacion.setAnonimizadaEn(ahora);
+        autorizacion.setActualizadoEn(ahora);
+    }
+
+    private void rechazarSiAnonimizado(Estudiante estudiante, String consecuencia) {
+        if (estudiante.isAnonimizado()) {
+            throw new ApiException(HttpStatus.CONFLICT, "El estudiante " + estudiante.getCodigoInterno()
+                    + " fue anonimizado el " + estudiante.getFechaAnonimizacion().atZone(ZONA).format(FECHA)
+                    + "; " + consecuencia + ".");
+        }
     }
 
     private Estudiante buscar(Long id) {

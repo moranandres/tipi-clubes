@@ -12,6 +12,8 @@ import java.time.Instant;
 @Getter @Setter
 public class Estudiante {
 
+    public static final String NOMBRE_ANONIMIZADO = "Estudiante anonimizado";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -39,4 +41,16 @@ public class Estudiante {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
+    @Column(nullable = false)
+    private boolean anonimizado;
+
+    @Column(name = "fecha_anonimizacion")
+    private Instant fechaAnonimizacion;
+
+    @Column(name = "motivo_anonimizacion", length = 300)
+    private String motivoAnonimizacion;
+
+    @Column(name = "anonimizado_por")
+    private Long anonimizadoPor;
 }

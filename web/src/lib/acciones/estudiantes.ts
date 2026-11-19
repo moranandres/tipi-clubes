@@ -11,11 +11,13 @@ import {
 import {
   CAMPOS_DE_ESTUDIANTE,
   CAMPO_DE_HOMONIMO,
+  LIMITES_DE_ANONIMIZACION,
   normalizarNombre,
   validarEstudiante,
   type DatosDeEstudiante,
 } from "@/lib/portal/reglas-estudiantes";
-import { hayErrores, idDe, leerCampos } from "@/lib/portal/validacion";
+import { errorDeMotivo } from "@/lib/portal/reglas-solicitudes";
+import { hayErrores, idDe, leerCampos, textoDe } from "@/lib/portal/validacion";
 import {
   falloConDatosAlDia,
   falloDeApi,
@@ -33,6 +35,7 @@ import {
 const LONGITUD_MAXIMA_DE_ENTRADA = 400;
 const MENSAJE_SIN_REGISTRO = "No se reconoce el estudiante que intentas modificar.";
 const AVISO_DE_ELIMINACION = "estudiante-eliminado";
+const AVISO_DE_ANONIMIZACION = "anonimizado";
 
 const PISTAS: readonly PistaDeCampo[] = [
   { patron: /mismos nombres y apellidos/i, campo: CAMPO_DE_HOMONIMO },
@@ -163,5 +166,47 @@ export async function eliminarEstudiante(identificador: unknown): Promise<Result
     "El estudiante se eliminó.",
     [],
     `${RUTA_ESTUDIANTES}?aviso=${AVISO_DE_ELIMINACION}`,
+  );
+}
+
+export async function anonimizarEstudiante(
+  identificador: unknown,
+  motivoEscrito: unknown,
+): Promise<ResultadoDeAccion> {
+  const id = idDe(identificador);
+  if (!id) {
+    return accionFallida(MENSAJE_SIN_REGISTRO);
+  }
+
+  const motivo = textoDe(motivoEscrito, LIMITES_DE_ANONIMIZACION.motivoMaximo + 1)
+    .trim()
+    .replace(/\s+/g, " ");
+  const error = errorDeMotivo(
+    motivo,
+    LIMITES_DE_ANONIMIZACION.motivoMinimo,
+    LIMITES_DE_ANONIMIZACION.motivoMaximo,
+  );
+  if (error) {
+    return camposInvalidos({ motivo: error });
+  }
+
+  const token = await tokenDeSesion();
+  const respuesta = await intentar(
+    api.POST("/api/estudiantes/{id}/anonimizar", {
+      ...conSesion(token),
+      params: { path: { id } },
+      body: { motivo },
+    }),
+  );
+
+  if (!respuesta.datos) {
+    return falloConDatosAlDia(respuesta, [{ patron: /motivo/i, campo: "motivo" }]);
+  }
+
+  revalidarPortal();
+  return accionCorrecta(
+    "Los datos personales del estudiante se anonimizaron.",
+    [],
+    `${RUTA_ESTUDIANTES}/${id}?aviso=${AVISO_DE_ANONIMIZACION}`,
   );
 }

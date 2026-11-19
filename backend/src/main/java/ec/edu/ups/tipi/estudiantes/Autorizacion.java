@@ -81,4 +81,7 @@ public class Autorizacion {
 
     @Column(name = "actualizado_en", nullable = false)
     private Instant actualizadoEn = Instant.now();
+
+    @Column(name = "anonimizada_en")
+    private Instant anonimizadaEn;
 }

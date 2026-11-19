@@ -14,13 +14,15 @@ public record EstudianteResponse(
         EstadoEstudiante estado,
         EstadoAutorizacion autorizacionParticipacion,
         EstadoAutorizacion autorizacionUsoImagen,
-        Instant createdAt) implements EstudianteVista {
+        Instant createdAt,
+        boolean anonimizado, Instant fechaAnonimizacion, String motivoAnonimizacion) implements EstudianteVista {
 
     public static EstudianteResponse de(Estudiante e, String institucionNombre,
                                         EstadoAutorizacion participacion, EstadoAutorizacion usoImagen) {
         return new EstudianteResponse(e.getId(), e.getCodigoInterno(), e.getNombres(), e.getApellidos(),
                 e.getInstitucionId(), institucionNombre,
                 e.getCurso(), e.getCurso().getEtiqueta(), e.getCurso().getNivel(),
-                e.getEstado(), participacion, usoImagen, e.getCreatedAt());
+                e.getEstado(), participacion, usoImagen, e.getCreatedAt(),
+                e.isAnonimizado(), e.getFechaAnonimizacion(), e.getMotivoAnonimizacion());
     }
 }

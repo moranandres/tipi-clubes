@@ -191,6 +191,10 @@ public class CertificadoService {
         Borrador borrador = tipo.deCurso()
                 ? borradorCurso(tipo, request.inscripcionCursoId(), usuario)
                 : borradorCompetencia(tipo, request.participacionId(), usuario);
+        if (borrador.estudiante().isAnonimizado()) {
+            throw new ApiException(HttpStatus.CONFLICT, "El estudiante " + borrador.estudiante().getCodigoInterno()
+                    + " fue anonimizado y ya no se le emiten certificados.");
+        }
 
         Optional<Certificado> vigente = tipo.deCurso()
                 ? certificadoRepository.findFirstByTipoAndInscripcionCursoIdAndEstado(tipo,
@@ -268,6 +272,11 @@ public class CertificadoService {
         if (certificado.getEstado() == EstadoCertificado.ANULADO) {
             throw new ApiException(HttpStatus.CONFLICT, "El certificado " + certificado.getCodigoVerificacion()
                     + " está anulado y su PDF ya no se entrega.");
+        }
+        if (certificado.getArchivoEliminadoEn() != null) {
+            throw new ApiException(HttpStatus.GONE, "El PDF del certificado " + certificado.getCodigoVerificacion()
+                    + " se eliminó al anonimizar al estudiante. El certificado sigue registrado y su código "
+                    + "puede verificarse públicamente.");
         }
         Resource recurso = almacenamiento.abrir(certificado.getArchivoRuta());
         verificarHuella(certificado, recurso);

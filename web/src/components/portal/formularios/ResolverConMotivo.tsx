@@ -18,6 +18,8 @@ type Props = {
   icono?: ReactNode;
   variante?: VarianteBoton;
   minimo?: number;
+  maximo?: number;
+  detalle?: ReactNode;
   destino?: string;
   resolver: (motivo: string) => Promise<ResultadoDeAccion>;
 };
@@ -31,6 +33,8 @@ export function ResolverConMotivo({
   icono,
   variante = "peligro",
   minimo = LIMITES_DE_SOLICITUD.motivoMinimo,
+  maximo = LIMITES_DE_SOLICITUD.motivoMaximo,
+  detalle,
   destino,
   resolver,
 }: Props) {
@@ -65,7 +69,7 @@ export function ResolverConMotivo({
       return;
     }
 
-    const encontrado = errorDeMotivo(motivo, minimo);
+    const encontrado = errorDeMotivo(motivo, minimo, maximo);
     if (encontrado) {
       setError(encontrado);
       enfocarPrimerInvalido(formulario.current);
@@ -104,15 +108,16 @@ export function ResolverConMotivo({
       <p className="mt-2 text-[0.9375rem] text-tenue">{descripcion}</p>
       {abierto ? (
         <form ref={formulario} onSubmit={alEnviar} noValidate className="mt-4">
+          {detalle ? <div className="mb-4">{detalle}</div> : null}
           <CampoTextoLargo
             etiqueta="Motivo"
             name="motivo"
             rows={3}
             required
-            maxLength={LIMITES_DE_SOLICITUD.motivoMaximo}
+            maxLength={maximo}
             value={motivo}
             error={error}
-            ayuda={`${longitud} de ${LIMITES_DE_SOLICITUD.motivoMaximo} caracteres, mínimo ${minimo}. Queda registrado en la auditoría.`}
+            ayuda={`${longitud} de ${maximo} caracteres, mínimo ${minimo}. Queda registrado en la auditoría.`}
             onChange={(evento) => {
               setMotivo(evento.target.value);
               setError(undefined);

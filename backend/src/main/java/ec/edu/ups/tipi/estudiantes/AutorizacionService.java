@@ -49,7 +49,7 @@ public class AutorizacionService {
     @Transactional
     public AutorizacionResponse actualizar(Long estudianteId, TipoAutorizacion tipo,
                                            AutorizacionRequest request, UsuarioPrincipal usuario) {
-        Estudiante estudiante = buscarEstudiante(estudianteId, usuario);
+        Estudiante estudiante = buscarEstudianteModificable(estudianteId, usuario);
         Autorizacion autorizacion = asegurar(estudianteId, tipo);
 
         EstadoAutorizacion actual = autorizacion.getEstado();
@@ -92,7 +92,7 @@ public class AutorizacionService {
     @Transactional
     public AutorizacionResponse cargarDocumento(Long estudianteId, TipoAutorizacion tipo,
                                                 MultipartFile archivo, UsuarioPrincipal usuario) {
-        Estudiante estudiante = buscarEstudiante(estudianteId, usuario);
+        Estudiante estudiante = buscarEstudianteModificable(estudianteId, usuario);
         Autorizacion autorizacion = asegurar(estudianteId, tipo);
 
         ArchivoGuardado guardado = almacenamiento.guardar(archivo, "autorizaciones",
@@ -189,6 +189,15 @@ public class AutorizacionService {
         Estudiante estudiante = estudianteRepository.findById(estudianteId).orElseThrow(() ->
                 new ApiException(HttpStatus.NOT_FOUND, "Estudiante no encontrado."));
         alcance.verificar(usuario, estudiante.getInstitucionId());
+        return estudiante;
+    }
+
+    private Estudiante buscarEstudianteModificable(Long estudianteId, UsuarioPrincipal usuario) {
+        Estudiante estudiante = buscarEstudiante(estudianteId, usuario);
+        if (estudiante.isAnonimizado()) {
+            throw new ApiException(HttpStatus.CONFLICT, "El estudiante " + estudiante.getCodigoInterno()
+                    + " fue anonimizado; sus autorizaciones se depuraron y ya no se gestionan.");
+        }
         return estudiante;
     }
 

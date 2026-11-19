@@ -327,6 +327,9 @@ async function Contenido({ params, searchParams }: Props) {
     false,
   );
   const estadoActual = autorizacion?.estado ?? "PENDIENTE";
+  const fechaDeAnonimizacion = datosDelEstudiante.fechaAnonimizacion
+    ? momentoCorto(datosDelEstudiante.fechaAnonimizacion)
+    : null;
   const inactivo =
     datosDelEstudiante.estado && datosDelEstudiante.estado !== ESTUDIANTE_ACTIVO
       ? NOMBRES_DE_ESTADO_DE_ESTUDIANTE[datosDelEstudiante.estado]
@@ -345,7 +348,7 @@ async function Contenido({ params, searchParams }: Props) {
           .filter(Boolean)
           .join(" · ")}
       />
-      {inactivo ? (
+      {inactivo && !datosDelEstudiante.anonimizado ? (
         <p className="mt-2 text-sm text-aviso">
           El estudiante está {inactivo.toLowerCase()}. Puedes actualizar sus autorizaciones para
           mantener el expediente al día.
@@ -361,26 +364,50 @@ async function Contenido({ params, searchParams }: Props) {
       {origen.desde === "solicitud" && tipo === "PARTICIPACION" && estadoActual === "OTORGADA" ? (
         <ListaParaAprobar solicitudId={origen.id} />
       ) : null}
-      <div className={COLUMNAS_DE_GESTION}>
-        <div className="min-w-0">
-          <FormularioAutorizacion
-            key={`${estudianteId}-${tipo}`}
-            estudianteId={estudianteId}
-            tipo={tipo}
-            estadoActual={estadoActual}
-            tieneDocumento={Boolean(autorizacion?.tieneDocumento)}
-            documentoTrasRevocacion={documentoTrasRevocacion(autorizacion)}
-            iniciales={datosIniciales(autorizacion, representante)}
-            copiadoDe={copiadoDe}
-            hoy={hoyEnGuayaquil()}
-            rutaDeVuelta={vuelta.ruta}
-            textoDeVuelta={vuelta.texto}
-          />
+      {datosDelEstudiante.anonimizado ? (
+        <div className={COLUMNAS_DE_GESTION}>
+          <section
+            aria-labelledby="depurada"
+            className="min-w-0 rounded-pieza border border-linea p-5"
+          >
+            <h2 id="depurada" className="text-lg font-medium">
+              Autorización depurada
+            </h2>
+            <p className="mt-3 text-[0.9375rem] text-tenue">
+              {fechaDeAnonimizacion
+                ? `El estudiante fue anonimizado el ${fechaDeAnonimizacion}.`
+                : "El estudiante fue anonimizado."}{" "}
+              Se eliminaron los datos del representante legal, la observación y el documento
+              firmado, y la autorización ya no se gestiona. Solo se conserva su estado para las
+              estadísticas.
+            </p>
+            <p className="mt-4 font-medium">
+              <EstadoDeAutorizacion estado={estadoActual} />
+            </p>
+          </section>
         </div>
-        <div className="flex min-w-0 flex-col gap-6">
-          <ResumenActual estudianteId={estudianteId} tipo={tipo} autorizacion={autorizacion} />
+      ) : (
+        <div className={COLUMNAS_DE_GESTION}>
+          <div className="min-w-0">
+            <FormularioAutorizacion
+              key={`${estudianteId}-${tipo}`}
+              estudianteId={estudianteId}
+              tipo={tipo}
+              estadoActual={estadoActual}
+              tieneDocumento={Boolean(autorizacion?.tieneDocumento)}
+              documentoTrasRevocacion={documentoTrasRevocacion(autorizacion)}
+              iniciales={datosIniciales(autorizacion, representante)}
+              copiadoDe={copiadoDe}
+              hoy={hoyEnGuayaquil()}
+              rutaDeVuelta={vuelta.ruta}
+              textoDeVuelta={vuelta.texto}
+            />
+          </div>
+          <div className="flex min-w-0 flex-col gap-6">
+            <ResumenActual estudianteId={estudianteId} tipo={tipo} autorizacion={autorizacion} />
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

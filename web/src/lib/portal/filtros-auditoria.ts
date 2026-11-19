@@ -77,6 +77,7 @@ const DEFINICIONES_DE_ACCION: readonly DefinicionDeAccion[] = [
   ["ESTUDIANTE_ACTUALIZADO", "ESTUDIANTE", "Estudiante actualizado"],
   ["ESTUDIANTE_ESTADO_CAMBIADO", "ESTUDIANTE", "Estado del estudiante cambiado"],
   ["ESTUDIANTE_ELIMINADO", "ESTUDIANTE", "Estudiante eliminado"],
+  ["ESTUDIANTE_ANONIMIZADO", "ESTUDIANTE", "Datos personales del estudiante anonimizados"],
   ["AUTORIZACION_ACTUALIZADA", "ESTUDIANTE", "Autorización actualizada"],
   ["AUTORIZACION_DOCUMENTO_CARGADO", "ESTUDIANTE", "Documento de autorización cargado"],
   ["AUTORIZACION_DOCUMENTO_DESCARGADO", "ESTUDIANTE", "Documento de autorización descargado"],

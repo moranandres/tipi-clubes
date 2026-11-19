@@ -23,6 +23,7 @@ export const CAMPOS_DE_ESTUDIANTE: readonly CampoDeEstudiante[] = [
 ];
 
 export const LONGITUD_MAXIMA_DE_NOMBRE = 100;
+export const LIMITES_DE_ANONIMIZACION = { motivoMinimo: 10, motivoMaximo: 300 } as const;
 export const CAMPO_DE_HOMONIMO = "confirmarHomonimo";
 
 export const TRANSICIONES_DE_ESTUDIANTE: Record<EstadoEstudiante, readonly EstadoEstudiante[]> = {

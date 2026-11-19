@@ -367,6 +367,19 @@
         },
         "type": "object"
       },
+      "AnonimizacionRequest": {
+        "properties": {
+          "motivo": {
+            "maxLength": 300,
+            "minLength": 10,
+            "type": "string"
+          }
+        },
+        "required": [
+          "motivo"
+        ],
+        "type": "object"
+      },
       "AnulacionAvanceRequest": {
         "properties": {
           "motivo": {
@@ -1470,6 +1483,10 @@
                 "type": "integer"
               },
               "anuladoPorNombre": {
+                "type": "string"
+              },
+              "archivoEliminadoEn": {
+                "format": "date-time",
                 "type": "string"
               },
               "archivoHash": {
@@ -3496,6 +3513,9 @@
           },
           {
             "properties": {
+              "anonimizado": {
+                "type": "boolean"
+              },
               "apellidos": {
                 "type": "string"
               },
@@ -3555,6 +3575,10 @@
                 ],
                 "type": "string"
               },
+              "fechaAnonimizacion": {
+                "format": "date-time",
+                "type": "string"
+              },
               "id": {
                 "format": "int64",
                 "type": "integer"
@@ -3564,6 +3588,9 @@
                 "type": "integer"
               },
               "institucionNombre": {
+                "type": "string"
+              },
+              "motivoAnonimizacion": {
                 "type": "string"
               },
               "nivel": {
@@ -3584,6 +3611,9 @@
           },
           {
             "properties": {
+              "anonimizado": {
+                "type": "boolean"
+              },
               "codigoInterno": {
                 "type": "string"
               },
@@ -3616,6 +3646,10 @@
                   "RETIRADO",
                   "EGRESADO"
                 ],
+                "type": "string"
+              },
+              "fechaAnonimizacion": {
+                "format": "date-time",
                 "type": "string"
               },
               "id": {
@@ -12548,6 +12582,52 @@
           }
         },
         "summary": "Actualiza los datos de un estudiante",
+        "tags": [
+          "Estudiantes"
+        ]
+      }
+    },
+    "/api/estudiantes/{id}/anonimizar": {
+      "post": {
+        "description": "Reemplaza nombres y apellidos por una etiqueta neutra, depura los datos del representante legal, elimina los documentos de autorización y los PDF de sus certificados, y conserva el código interno y los registros históricos para las estadísticas. La operación es irreversible.",
+        "operationId": "estudianteAnonimizar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnonimizacionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstudianteResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "$ref": "#/components/responses/Problema"
+          }
+        },
+        "summary": "Anonimiza los datos personales de un estudiante con historial",
         "tags": [
           "Estudiantes"
         ]

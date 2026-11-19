@@ -19,6 +19,12 @@ public interface EstudianteRepository
     long contarInscripcionesActivas(@Param("id") Long id);
 
     @Query(value = """
+            select count(*) from solicitudes_inscripcion
+            where estudiante_id = :id and estado in ('PENDIENTE', 'EN_REVISION')
+            """, nativeQuery = true)
+    long contarSolicitudesAbiertas(@Param("id") Long id);
+
+    @Query(value = """
             select (select count(*) from inscripciones where estudiante_id = :id)
                  + (select count(*) from solicitudes_inscripcion where estudiante_id = :id)
                  + (select count(*) from participaciones_competencia where estudiante_id = :id)
