@@ -2,6 +2,26 @@ import type { NextConfig } from "next";
 
 const enProduccion = process.env.NODE_ENV === "production";
 
+const politicaDeContenido = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${enProduccion ? "" : " 'unsafe-eval'"}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "media-src 'self' blob:",
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
+  "frame-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+const rutasConPolitica =
+  "/((?!portal/certificados/[^/]+/pdf$|portal/evidencias/[^/]+/archivo/[^/]+$|portal/autorizaciones/[^/]+/[^/]+/documento$).*)";
+
 const cabecerasDeSeguridad = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -45,6 +65,10 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: cabecerasDeSeguridad,
+      },
+      {
+        source: rutasConPolitica,
+        headers: [{ key: "Content-Security-Policy", value: politicaDeContenido }],
       },
     ];
   },
