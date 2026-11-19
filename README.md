@@ -1,5 +1,7 @@
 # TIPI 3.0 · Sistema de gestión de clubes de robótica y programación
 
+**Título oficial del proyecto:** Diseño e implementación de un sistema web multiinstitucional para la gestión administrativa de clubes de robótica y programación del proyecto TIPI 3.0
+
 Sistema web multiinstitucional para administrar, monitorear y evaluar los clubes de robótica y programación de las instituciones educativas fiscales de la Zona 8 adheridas al proyecto de vinculación TIPI 3.0.
 
 ## Estructura del repositorio
@@ -41,13 +43,22 @@ Requisitos: JDK 17 o superior, Node.js 20.9 o superior y PostgreSQL 15 o superio
 
 ### Verificaciones
 
+Las pruebas automatizadas corren aisladas sobre la base `tipi_clubes_test` con el perfil `test` (`backend/src/main/resources/application-test.yml`), sin variables de entorno y sin tocar la base real `tipi_clubes`. Basta crear la base una sola vez; Flyway la migra desde cero en la primera ejecución:
+
+```powershell
+& "C:\Program Files\PostgreSQL\15\bin\createdb.exe" -h localhost -U postgres -E UTF8 -T template0 tipi_clubes_test
+```
+
 ```powershell
 cd backend
-$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/tipi_clubes_pruebas"; ./mvnw test
+./mvnw test
 ./mvnw -DskipTests package
 ```
 
-`TipiBackendApplicationTests` levanta el contexto completo y aplica Flyway sobre la base indicada: apuntar siempre a una base de pruebas, nunca a la real.
+- Las clases que levantan el contexto de Spring Boot (`TipiBackendApplicationTests` y `OpenApiDocumentoTest`) usan `@ActiveProfiles("test")`.
+- El perfil `test` fija la URL `jdbc:postgresql://localhost:5432/tipi_clubes_test`. El usuario y la clave toman `postgres` y la clave local por defecto, ajustables con `TIPI_TEST_DB_USERNAME` y `TIPI_TEST_DB_PASSWORD`.
+- `ProteccionBaseDePruebas` detiene cualquier contexto de prueba cuya base no termine en `_test`, incluso si alguien define `SPRING_DATASOURCE_URL` en la consola, antes de abrir la conexión.
+- Los archivos subidos durante las pruebas se guardan en `backend/target/uploads-test`.
 
 ```powershell
 cd web

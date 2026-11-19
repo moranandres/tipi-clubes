@@ -22,6 +22,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+    public static final String TITULO_OFICIAL = "Diseño e implementación de un sistema web multiinstitucional "
+            + "para la gestión administrativa de clubes de robótica y programación del proyecto TIPI 3.0";
+
     private static final String ESQUEMA_JWT = "bearer-jwt";
     private static final String RESPUESTA_PROBLEMA = "Problema";
     private static final String SUFIJO_CONTROLADOR = "Controller";
@@ -30,10 +33,9 @@ public class OpenApiConfig {
     public OpenAPI documentacionApi() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("TIPI 3.0 - API de gestión de clubes")
+                        .title("TIPI 3.0 - API de gestión administrativa de clubes")
                         .version("v1")
-                        .description("API REST del sistema de información para la gestión de clubes "
-                                + "de robótica y programación del proyecto de vinculación TIPI 3.0."))
+                        .description("API REST del proyecto \"" + TITULO_OFICIAL + "\"."))
                 .components(new Components()
                         .addSecuritySchemes(ESQUEMA_JWT, new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
