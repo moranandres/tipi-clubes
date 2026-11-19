@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: RouteContext<"/porta
   const id = idDe(segmento);
 
   if (!id) {
-    return redirigir(request, RUTA_CERTIFICADOS);
+    return redirigir(RUTA_CERTIFICADOS);
   }
 
   return reenviarArchivo(request, {

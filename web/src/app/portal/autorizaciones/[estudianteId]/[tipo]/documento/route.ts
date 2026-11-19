@@ -19,7 +19,7 @@ export async function GET(
   const tipo = tipoDeSegmento(segmentoDeTipo);
 
   if (!estudianteId || !tipo) {
-    return redirigir(request, RUTA_AUTORIZACIONES);
+    return redirigir(RUTA_AUTORIZACIONES);
   }
 
   return reenviarArchivo(request, {

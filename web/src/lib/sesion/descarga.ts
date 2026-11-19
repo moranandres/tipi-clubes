@@ -19,9 +19,10 @@ const NO_AUTENTICADO = 401;
 const PARAMETRO_DE_DESCARGA = "descargar";
 const TIPO_GENERICO = "application/octet-stream";
 const DISPOSICION_ADJUNTA = /^\s*attachment/i;
+const REDIRECCION_TEMPORAL = 307;
 
-export function redirigir(request: NextRequest, ruta: string): NextResponse {
-  return NextResponse.redirect(new URL(ruta, request.url));
+export function redirigir(ruta: string): NextResponse {
+  return new NextResponse(null, { status: REDIRECCION_TEMPORAL, headers: { Location: ruta } });
 }
 
 function disposicionDe(original: string | null, descargar: boolean): string {
@@ -35,7 +36,7 @@ export async function reenviarArchivo(
 ): Promise<NextResponse> {
   const token = request.cookies.get(COOKIE_SESION)?.value;
   if (!token) {
-    return redirigir(request, RUTA_SESION_EXPIRADA);
+    return redirigir(RUTA_SESION_EXPIRADA);
   }
 
   let respuesta: Response;
@@ -48,14 +49,14 @@ export async function reenviarArchivo(
     });
     respuesta = response;
   } catch {
-    return redirigir(request, rutaDeVuelta);
+    return redirigir(rutaDeVuelta);
   }
 
   if (respuesta.status === NO_AUTENTICADO) {
-    return redirigir(request, RUTA_SESION_EXPIRADA);
+    return redirigir(RUTA_SESION_EXPIRADA);
   }
   if (!respuesta.ok || !respuesta.body) {
-    return redirigir(request, rutaDeVuelta);
+    return redirigir(rutaDeVuelta);
   }
 
   const descargar = request.nextUrl.searchParams.has(PARAMETRO_DE_DESCARGA);

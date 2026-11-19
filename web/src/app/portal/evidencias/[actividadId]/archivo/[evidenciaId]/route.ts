@@ -15,7 +15,7 @@ export async function GET(
   const evidenciaId = idDe(segmentoDeEvidencia);
 
   if (!actividadId || !evidenciaId) {
-    return redirigir(request, RUTA_EVIDENCIAS);
+    return redirigir(RUTA_EVIDENCIAS);
   }
 
   return reenviarArchivo(request, {
